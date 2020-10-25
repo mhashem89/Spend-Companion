@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="17192" systemVersion="19H2" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="YES" userDefinedModelVersionIdentifier="">
+    <entity name="Category" representedClassName="Category" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+        <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Item" inverseName="category" inverseEntity="Item"/>
+        <relationship name="month" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Month" inverseName="categories" inverseEntity="Month"/>
+    </entity>
+    <entity name="Favorite" representedClassName="Favorite" syncable="YES" codeGenerationType="class">
+        <attribute name="name" optional="YES" attributeType="String"/>
+    </entity>
+    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
+        <attribute name="amount" optional="YES" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="detail" optional="YES" attributeType="String"/>
+        <attribute name="recurringEndDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="recurringNum" optional="YES" attributeType="Integer 16" usesScalarValueType="NO"/>
+        <attribute name="recurringUnit" optional="YES" attributeType="Integer 16" usesScalarValueType="NO"/>
+        <attribute name="reminderTime" optional="YES" attributeType="Integer 16" usesScalarValueType="NO"/>
+        <attribute name="reminderUID" optional="YES" attributeType="String"/>
+        <attribute name="type" optional="YES" attributeType="Integer 16" usesScalarValueType="YES"/>
+        <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <relationship name="category" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Category" inverseName="items" inverseEntity="Category"/>
+        <relationship name="month" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Month" inverseName="items" inverseEntity="Month"/>
+        <relationship name="sisterItems" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Item" inverseName="sisterItems" inverseEntity="Item"/>
+    </entity>
+    <entity name="Month" representedClassName="Month" syncable="YES" codeGenerationType="class">
+        <attribute name="date" optional="YES" attributeType="String"/>
+        <attribute name="uid" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="year" optional="YES" attributeType="String"/>
+        <relationship name="categories" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Category" inverseName="month" inverseEntity="Category"/>
+        <relationship name="items" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Item" inverseName="month" inverseEntity="Item"/>
+    </entity>
+    <elements>
+        <element name="Category" positionX="-63" positionY="-18" width="128" height="103"/>
+        <element name="Favorite" positionX="-36" positionY="36" width="128" height="58"/>
+        <element name="Item" positionX="-18" positionY="45" width="128" height="238"/>
+        <element name="Month" positionX="-54" positionY="9" width="128" height="118"/>
+    </elements>
+</model>
