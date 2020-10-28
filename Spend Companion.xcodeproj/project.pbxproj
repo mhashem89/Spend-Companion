@@ -51,6 +51,9 @@
 		D96FBD28254125960025F5CF /* CustomColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD27254125940025F5CF /* CustomColors.swift */; };
 		D96FBD302543B38C0025F5CF /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD2F2543B38A0025F5CF /* Authenticator.swift */; };
 		D96FBD562544F86C0025F5CF /* LockingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD552544F86B0025F5CF /* LockingView.swift */; };
+		D97A6B3A25453963003380A7 /* BarColorChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97A6B3925453963003380A7 /* BarColorChooser.swift */; };
+		D99FAE74254689510048B38D /* CustomizeAppearanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */; };
+		D99FAE7C254799560048B38D /* CurrencyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FAE7B254799560048B38D /* CurrencyViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -122,6 +125,9 @@
 		D96FBD27254125940025F5CF /* CustomColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomColors.swift; sourceTree = "<group>"; };
 		D96FBD2F2543B38A0025F5CF /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		D96FBD552544F86B0025F5CF /* LockingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockingView.swift; sourceTree = "<group>"; };
+		D97A6B3925453963003380A7 /* BarColorChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarColorChooser.swift; sourceTree = "<group>"; };
+		D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeAppearanceController.swift; sourceTree = "<group>"; };
+		D99FAE7B254799560048B38D /* CurrencyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -246,6 +252,7 @@
 				D905F58D253D581F00FE4B59 /* RecentItemCell.swift */,
 				D905F58F253D581F00FE4B59 /* SummaryView.swift */,
 				D96FBD552544F86B0025F5CF /* LockingView.swift */,
+				D97A6B3925453963003380A7 /* BarColorChooser.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -265,6 +272,8 @@
 				D905F5A7253D584100FE4B59 /* SearchViewController.swift */,
 				D905F5A8253D584100FE4B59 /* SortingViewController.swift */,
 				D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */,
+				D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */,
+				D99FAE7B254799560048B38D /* CurrencyViewController.swift */,
 			);
 			path = "View Controllers";
 			sourceTree = "<group>";
@@ -426,10 +435,13 @@
 				D905F53A253D543F00FE4B59 /* AppDelegate.swift in Sources */,
 				D96FBD0A253F96330025F5CF /* ArchivedCode.swift in Sources */,
 				D905F599253D582000FE4B59 /* CalendarHeader.swift in Sources */,
+				D97A6B3A25453963003380A7 /* BarColorChooser.swift in Sources */,
 				D905F587253D579E00FE4B59 /* ChartViewModel.swift in Sources */,
 				D905F59E253D582000FE4B59 /* CalendarCell.swift in Sources */,
 				D905F59A253D582000FE4B59 /* QuickAddView.swift in Sources */,
+				D99FAE74254689510048B38D /* CustomizeAppearanceController.swift in Sources */,
 				D905F59B253D582000FE4B59 /* CategoryCell.swift in Sources */,
+				D99FAE7C254799560048B38D /* CurrencyViewController.swift in Sources */,
 				D905F5B2253D584100FE4B59 /* SearchViewController.swift in Sources */,
 				D96FBD562544F86C0025F5CF /* LockingView.swift in Sources */,
 				D905F5BD253D5B9A00FE4B59 /* Extensions.swift in Sources */,

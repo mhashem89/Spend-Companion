@@ -9,6 +9,11 @@
 import UIKit
 import CoreData
 
+protocol MonthViewModelDelegate: class {
+    
+    func presentError(error: Error)
+    
+}
 
 class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
    
@@ -18,6 +23,8 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
     }
     
     var month: Month!
+    
+    weak var delegate: MonthViewModelDelegate?
     
     var fixedCategories = [String: Category]()
     var otherExpenses = [Category]()
@@ -64,6 +71,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             }
         } catch let err {
             print("WTF", err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     
@@ -75,6 +83,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             try context.save()
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     
@@ -97,6 +106,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             try context.save()
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     
@@ -125,6 +135,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             try context.save()
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     

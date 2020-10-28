@@ -53,6 +53,14 @@ class QuickAddView: UIView {
         return formatter
     }()
     
+    var currencySymbol: String {
+        if let storedCurrency = UserDefaults.standard.value(forKey: "currency") as? String {
+            return CurrencyViewController.extractSymbol(from: storedCurrency)
+        } else {
+            return "$"
+        }
+    }
+    
     var dayLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
@@ -145,7 +153,7 @@ class QuickAddView: UIView {
         let tf = UITextField()
         tf.tag = 3
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        tf.placeholder = "$..    "
+        tf.placeholder = "\(currencySymbol)...    "
         tf.textAlignment = .center
         tf.keyboardType = .decimalPad
         tf.layer.cornerRadius = 5
@@ -278,6 +286,10 @@ class QuickAddView: UIView {
         if !lowerStack.arrangedSubviews.contains(saveButton) {
             lowerStack.insertArrangedSubview(saveButton, at: 2)
         }
+    }
+    
+    func updateCurrencySymbol() {
+        amountTextField.placeholder = "\(currencySymbol)..    "
     }
     
     func resignFirstResponders() {

@@ -13,7 +13,7 @@ class ChartCell: UICollectionViewCell {
     
     var barView: UIView = {
         let view = UIView()
-        view.backgroundColor = .systemRed
+        view.backgroundColor = UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed
         return view
     }()
     
@@ -27,7 +27,7 @@ class ChartCell: UICollectionViewCell {
     var cellLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        label.textColor = .systemBlue
+        label.textColor = UserDefaults.standard.colorForKey(key: "label color") ?? .systemBlue
         label.backgroundColor = CustomColors.systemBackground
         label.textAlignment = .right
         label.numberOfLines = 0

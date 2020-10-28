@@ -69,8 +69,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             let item = viewModel.searchResults[indexPath.row]
-            tableView.performBatchUpdates({
-                viewModel.deleteItem(item: item, at: indexPath)
+            tableView.performBatchUpdates({ [weak self] in
+                do {
+                    try self?.viewModel.deleteItem(item: item, at: indexPath)
+                } catch let err {
+                    self?.presentError(error: err)
+                }
                 tableView.deleteRows(at: [indexPath], with: .automatic)
             }, completion: nil)
         }
@@ -91,7 +95,11 @@ extension SearchViewController: UISearchResultsUpdating {
     
     func updateSearchResults(for searchController: UISearchController) {
         if let searchText = searchController.searchBar.text {
-            viewModel.search(name: searchText)
+            do {
+                try viewModel.search(name: searchText)
+            } catch let err {
+                presentError(error: err)
+            }
             searchTable.reloadData()
         }
       

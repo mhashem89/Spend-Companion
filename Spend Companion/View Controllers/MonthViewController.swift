@@ -8,7 +8,7 @@
 
 import UIKit
 
-class MonthViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, CategoryViewControllerDelegate {
+class MonthViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, CategoryViewControllerDelegate, MonthViewModelDelegate {
     
     
     func categoryChanged() {
@@ -63,6 +63,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     override func viewDidLoad() {
         super.viewDidLoad()
         self.viewModel = MonthViewModel(monthString: monthString)
+        self.viewModel.delegate = self
         self.viewModel.fetchData()
         view.addSubview(plusButton)
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editCollectionView))

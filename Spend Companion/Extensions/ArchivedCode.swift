@@ -117,3 +117,10 @@ import Foundation
 //        } catch let err {
 //            print(err.localizedDescription)
 //        }
+
+
+
+//let button = UITabBarItem(title: "Settings", image: nil, selectedImage: nil)
+//button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
+//button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
+//navigationController?.tabBarItem = button

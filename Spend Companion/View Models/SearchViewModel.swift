@@ -19,29 +19,20 @@ class SearchViewModel {
     var searchResults = [Item]()
     
     
-    func search(name: String) {
+    func search(name: String) throws {
         let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
         fetchRequest.predicate = NSPredicate(format: "detail BEGINSWITH[c] %@", name)
-        do {
-            searchResults = try context.fetch(fetchRequest)
-        } catch let err {
-            print(err.localizedDescription)
-        }
-    
+        searchResults = try context.fetch(fetchRequest)
     }
     
     
-    func deleteItem(item: Item, at indexPath: IndexPath) {
+    func deleteItem(item: Item, at indexPath: IndexPath) throws {
         if let reminuderUID = item.reminderUID {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminuderUID])
         }
         context.delete(item)
         searchResults.remove(at: indexPath.row)
-        do {
-            try context.save()
-        } catch let err {
-            print(err.localizedDescription)
-        }
+        try context.save()
     }
     
     

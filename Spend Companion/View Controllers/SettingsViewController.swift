@@ -9,6 +9,8 @@ import UIKit
 import StoreKit
 import CloudKit
 import LocalAuthentication
+import SwiftUI
+import Combine
 
 
 protocol SettingsCellDelegate: class {
@@ -18,6 +20,7 @@ protocol SettingsCellDelegate: class {
     
 }
 
+@available(iOS 13, *)
 class SettingsViewController: UITableViewController {
     
     
@@ -28,6 +31,7 @@ class SettingsViewController: UITableViewController {
     var iCloudKeyStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
     let iCloudPurchaseProductID = "MohamedHashem.Spend_Companion.iCloud_sync"
+    
     
     var settings: [String] {
         var settingsList = ["iCloudSync"]
@@ -40,7 +44,11 @@ class SettingsViewController: UITableViewController {
             default:
                 break
             }
+        } else {
+            settingsList.append("Enable passcode")
         }
+        settingsList.append("Select currency")
+        settingsList.append("Choose colors")
        return settingsList
     }
     
@@ -48,14 +56,7 @@ class SettingsViewController: UITableViewController {
     
     override init(style: UITableView.Style) {
         super.init(style: style)
-        if #available(iOS 13, *) {
-            tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 3)
-        } else {
-            let button = UITabBarItem(title: "Settings", image: nil, selectedImage: nil)
-            button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
-            button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
-            navigationController?.tabBarItem = button
-        }
+        tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 3)
     }
     
     required init?(coder: NSCoder) {
@@ -67,7 +68,6 @@ class SettingsViewController: UITableViewController {
         tableView.register(SettingsCell.self, forCellReuseIdentifier: cellId)
         navigationController?.navigationBar.prefersLargeTitles = true
         title = "Settings"
-        tableView.allowsSelection = false
         SKPaymentQueue.default().add(self)
     }
     
@@ -88,24 +88,46 @@ class SettingsViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! SettingsCell
-        cell.textLabel?.text = settings[indexPath.row]
         cell.textLabel?.font = UIFont.systemFont(ofSize: 18)
-        cell.setupUI()
+        
         switch indexPath.row {
         case 0:
             cell.settingsToggle.isOn = iCloudKeyStore.bool(forKey: "iCloud sync")
+            cell.setupUI()
+            cell.textLabel?.text = settings[indexPath.row]
+            cell.selectionStyle = .none
         case 1:
             cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: "EnableBiometrics")
+            cell.setupUI()
+            cell.textLabel?.text = settings[indexPath.row]
+            cell.selectionStyle = .none
+        case 2:
+            cell.textLabel?.text = settings[indexPath.row]
+            cell.accessoryType = .disclosureIndicator
+        case 3:
+            if #available(iOS 14, *) {
+                cell.textLabel?.text = "Customize Appearance"
+                cell.accessoryType = .disclosureIndicator
+            }
         default:
             break
         }
-       
         cell.delegate = self
         return cell
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50
+    }
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: false)
+        if indexPath.row == 2 {
+            navigationController?.pushViewController(CurrencyViewController(), animated: true)
+        }
+        if indexPath.row == 3, #available(iOS 14, *) {
+            navigationController?.pushViewController(CustomizeAppearanceController(), animated: true)
+        }
     }
     
     func buyiCloudSync() {
@@ -138,6 +160,7 @@ class SettingsViewController: UITableViewController {
 }
 
 
+@available(iOS 13, *)
 extension SettingsViewController: SettingsCellDelegate {
     
     
@@ -183,6 +206,7 @@ extension SettingsViewController: SettingsCellDelegate {
 }
 
 
+@available(iOS 13, *)
 extension SettingsViewController: SKPaymentTransactionObserver {
     
     

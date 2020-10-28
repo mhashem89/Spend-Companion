@@ -13,6 +13,7 @@ import UserNotifications
 protocol InitialViewModelDelegate: class {
     func recentItemsChanged()
     func monthTotalChanged(forMonth: Month)
+    func presentError(error: Error)
 }
 
 
@@ -97,6 +98,7 @@ class InitialViewModel: NSObject {
                 try context.save()
             } catch let err {
                 print(err.localizedDescription)
+                delegate?.presentError(error: err)
             }
         }
     }
@@ -125,6 +127,7 @@ class InitialViewModel: NSObject {
                 try context.save()
             } catch let err {
                 print(err.localizedDescription)
+                delegate?.presentError(error: err)
             }
         }
         return item
@@ -177,6 +180,7 @@ class InitialViewModel: NSObject {
                     try context.save()
                 } catch let err {
                     print(err.localizedDescription)
+                    delegate?.presentError(error: err)
                 }
             }
         } else {
@@ -188,9 +192,10 @@ class InitialViewModel: NSObject {
     func scheduleReminderForExistingItem(for item: Item, with itemRecurrence: ItemRecurrence) {
         guard item.date != nil, item.date! > Date()  else { return }
         
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (success, error) in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] (success, error) in
             if let err = error {
                 print(err.localizedDescription)
+                self?.delegate?.presentError(error: err)
                 return
             }
         }
@@ -218,6 +223,7 @@ class InitialViewModel: NSObject {
             try fetchedMonth = context.fetch(fetchRequest).first
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
         if let fetchedMonth = fetchedMonth {
             return fetchedMonth
@@ -247,6 +253,7 @@ class InitialViewModel: NSObject {
             try context.execute(favoriteDeleteRequest)
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     
@@ -256,6 +263,7 @@ class InitialViewModel: NSObject {
             try controller.performFetch()
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
         if let fetchedMonth = controller.fetchedObjects?.first {
             return fetchedMonth
@@ -350,6 +358,7 @@ class InitialViewModel: NSObject {
             }
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     
@@ -363,6 +372,7 @@ class InitialViewModel: NSObject {
             try context.save()
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
     
@@ -416,6 +426,7 @@ class InitialViewModel: NSObject {
             }
         } catch let err {
             print(err.localizedDescription)
+            delegate?.presentError(error: err)
         }
     }
 }

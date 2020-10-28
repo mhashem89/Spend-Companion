@@ -101,15 +101,11 @@ class CategoryViewModel {
     }
     
     func save() throws {
-        do {
-            guard context.hasChanges else { print("WTF"); return }
-            if reminderUIDsForDeletion.count > 0 {
-                UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: reminderUIDsForDeletion)
-            }
-            try context.save()
-        } catch let err {
-            throw err
+        guard context.hasChanges else { print("WTF"); return }
+        if reminderUIDsForDeletion.count > 0 {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: reminderUIDsForDeletion)
         }
+        try context.save()
     }
     
     func cancel() {

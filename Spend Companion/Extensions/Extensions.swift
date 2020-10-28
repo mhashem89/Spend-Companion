@@ -91,7 +91,17 @@ extension UIView {
     
 }
 
-
+extension UIViewController {
+    
+    func presentError(error: Error) {
+        DispatchQueue.main.async { [weak self] in
+            let alertController = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            self?.present(alertController, animated: true)
+        }
+    }
+    
+}
 
 extension UIImageView {
     var contentClippingRect: CGRect {
@@ -183,4 +193,38 @@ extension Array where Element == Double {
         }
         return total > 0 ? total : nil
     }
+}
+
+
+
+extension UserDefaults {
+    
+  func colorForKey(key: String) -> UIColor? {
+    var colorReturned: UIColor?
+    if let colorData = data(forKey: key) {
+      do {
+        if let color = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(colorData) as? UIColor {
+          colorReturned = color
+        } else {
+            colorReturned = nil
+        }
+      } catch {
+        print("Error UserDefaults")
+      }
+    }
+    return colorReturned
+  }
+  
+  func setColor(color: UIColor?, forKey key: String) {
+    var colorData: NSData?
+    if let color = color {
+      do {
+        let data = try NSKeyedArchiver.archivedData(withRootObject: color, requiringSecureCoding: false) as NSData?
+        colorData = data
+      } catch {
+        print("Error UserDefaults")
+      }
+    }
+    set(colorData, forKey: key)
+  }
 }
