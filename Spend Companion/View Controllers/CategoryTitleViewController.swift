@@ -61,7 +61,10 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
     
     init(categoryName: String? = nil) {
         super.init(nibName: nil, bundle: nil)
-        if categoryName != "Category" { self.categoryName = categoryName }
+        if categoryName != nil, categoryName != "Category" {
+            self.categoryName = categoryName
+            fixedCategories.removeAll()
+        }
     }
     
     required init?(coder: NSCoder) {

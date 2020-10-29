@@ -38,7 +38,7 @@ class InitialViewModel: NSObject {
         return frc
     }()
     
-    var monthTotalFetchedResultController: NSFetchedResultsController<Month>!
+    var monthTotalFetchedResultController: NSFetchedResultsController<Item>!
     
     var yearTotalFetchedResultController: NSFetchedResultsController<Month>!
     
@@ -311,13 +311,14 @@ class InitialViewModel: NSObject {
         currentMonthTotalSpending = 0
         currentMonthTotalIncome = 0
         
-        let fetchRequest = NSFetchRequest<Month>(entityName: "Month")
-        fetchRequest.predicate = NSPredicate(format: "date = %@", monthString)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "year", ascending: true)]
+        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
+        fetchRequest.predicate = NSPredicate(format: "month.date = %@", monthString)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "amount", ascending: true)]
         monthTotalFetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         monthTotalFetchedResultController.delegate = self
+        try? monthTotalFetchedResultController.performFetch()
         
-        if let currentMonth = checkMonth(with: monthTotalFetchedResultController) {
+        if let currentMonth = checkMonth(monthString: monthString, createNew: false) {
             let totals = calcTotalsForMonth(month: currentMonth)
             self.currentMonthTotalIncome = totals[.income] ?? 0
             self.currentMonthTotalSpending = totals[.spending] ?? 0
@@ -438,8 +439,12 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
         if controller == recentItemsFetchedResultControl {
             delegate?.recentItemsChanged()
         } else if controller == monthTotalFetchedResultController {
-            let changedMonth = anObject as! Month
-            delegate?.monthTotalChanged(forMonth: changedMonth)
+            let changedItem = anObject as! Item
+            let monthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: changedItem.date!)
+            let changedMonth = changedItem.month ?? checkMonth(monthString: monthString, createNew: false)
+            if let changedMonth = changedMonth {
+                delegate?.monthTotalChanged(forMonth: changedMonth)
+            }
         } else if controller == remindersFetchedResultsController, let item = anObject as? Item {
             switch type {
             case .update, .insert:
