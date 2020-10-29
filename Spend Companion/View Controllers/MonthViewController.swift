@@ -219,13 +219,13 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         switch collectionView.allowsMultipleSelection {
         case false:
             let categoryVC = CategoryViewController(month: viewModel.month, category: category)
-            if category?.name == "Income" {
-                categoryVC.headerView.favoriteButton.isHidden = true
-                categoryVC.headerView.titleButton.isUserInteractionEnabled = false
-            } else {
-                categoryVC.headerView.favoriteButton.isHidden = false
-                categoryVC.headerView.titleButton.isUserInteractionEnabled = true
-            }
+//            if category?.name == "Income" {
+//                categoryVC.headerView.favoriteButton.isHidden = true
+//                categoryVC.headerView.titleButton.isUserInteractionEnabled = false
+//            } else {
+//                categoryVC.headerView.favoriteButton.isHidden = false
+//                categoryVC.headerView.titleButton.isUserInteractionEnabled = true
+//            }
             categoryVC.delegate = self
             let navVC = UINavigationController(rootViewController: categoryVC)
             navVC.modalPresentationStyle = .overCurrentContext

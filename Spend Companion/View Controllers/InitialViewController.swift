@@ -56,6 +56,8 @@ class InitialViewController: UIViewController {
         return lbl
     }()
     
+   
+    
 // MARK:- Life cycle functions
     
     override func viewDidLoad() {
@@ -461,7 +463,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         cell.textLabel?.attributedText = titleString
         cell.detailTextLabel?.text = viewModel.recentItems[indexPath.row].category?.name
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
-        cell.amountLabel.text = String(format: "%g", viewModel.recentItems[indexPath.row].amount)
+        cell.formatAmountLabel(with: viewModel.recentItems[indexPath.row].amount)
         if item.recurringNum != nil && item.recurringUnit != nil {
             cell.addRecurrence()
         } else {

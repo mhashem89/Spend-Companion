@@ -43,6 +43,14 @@ class CustomColors {
         }
     }
     
+    static var mediumGray: UIColor {
+        if #available(iOS 13, *) {
+            return .systemGray3
+        } else {
+            return .darkGray
+        }
+    }
+    
     
 }
 

@@ -11,6 +11,20 @@ import UIKit
 
 class RecentItemCell: UITableViewCell {
     
+    
+    var userCurrency: String? {
+        return UserDefaults.standard.value(forKey: "currency") as? String
+    }
+    
+    var currencySymbol: String {
+        if let storedCurrency = userCurrency {
+            return CurrencyViewController.extractSymbol(from: storedCurrency)
+        } else {
+            return "$"
+        }
+    }
+    
+    
     var amountLabel: UILabel = {
         let lbl = UILabel()
         lbl.textColor = CustomColors.label
@@ -43,5 +57,17 @@ class RecentItemCell: UITableViewCell {
         addSubview(recurringCircleButton)
         recurringCircleButton.anchor(leading: textLabel?.trailingAnchor, leadingConstant: 10, centerY: centerYAnchor)
     }
+    
+    func formatAmountLabel(with amount: Double) {
+        let amountString = String(format: "%g", amount)
+        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+            amountLabel.text = currencyPosition == .left ? "\(currencySymbol)\(amountString)" : "\(amountString) \(currencySymbol)"
+        } else {
+            amountLabel.text = "$\(amountString)"
+        }
+    }
+    
+    
+    
     
 }

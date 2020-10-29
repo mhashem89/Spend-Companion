@@ -41,17 +41,6 @@ class CalendarCell: UICollectionViewCell {
         return label
     }()
     
-    var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: "currency") as? String
-    }
-    
-    var currencySymbol: String {
-        if let storedCurrency = userCurrency {
-            return CurrencyViewController.extractSymbol(from: storedCurrency)
-        } else {
-            return "$"
-        }
-    }
     
     var stack = UIStackView()
     
@@ -68,13 +57,8 @@ class CalendarCell: UICollectionViewCell {
     func addTotalLabel(income: String, spending: String) {
         stack.insertArrangedSubview(incomeLabel, at: 1)
         stack.insertArrangedSubview(spendingLabel, at: 2)
-        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-            incomeLabel.text = currencyPosition == .left ? "\(currencySymbol)\(income)" : "\(income) \(currencySymbol)"
-            spendingLabel.text = currencyPosition == .left ? "\(currencySymbol)\(spending)" : "\(spending) \(currencySymbol)"
-        } else {
-            incomeLabel.text = "$\(income)"
-            spendingLabel.text = "$\(spending)"
-        }
+        incomeLabel.text = "\(income)"
+        spendingLabel.text = "\(spending)"
     }
     
     func removeTotalLabel() {

@@ -144,8 +144,16 @@ extension UITextField {
         return tf
     }
     
-    func addLeftPadding(_ padding: CGFloat) {
-        self.leftView = UIView(frame: CGRect(x: 0, y: 0, width: padding, height: self.frame.height))
+    func addLeftPadding(_ padding: CGFloat, withSymbol symbol: String? = nil) {
+        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: padding, height: self.frame.height))
+        if let symbol = symbol {
+            let symbolLabel = UILabel()
+            symbolLabel.text = symbol
+            symbolLabel.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
+            leftView.addSubview(symbolLabel)
+            symbolLabel.fillSuperView()
+        }
+        self.leftView = leftView
         self.leftViewMode = .always
     }
 }

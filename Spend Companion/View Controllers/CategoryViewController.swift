@@ -57,6 +57,13 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         if let category = category {
             self.viewModel = CategoryViewModel(month: month, category: category)
             enableHeaderButtons()
+            if category.name == "Income" {
+                headerView.favoriteButton.isHidden = true
+                headerView.titleButton.isUserInteractionEnabled = false
+            } else {
+                headerView.favoriteButton.isHidden = false
+                headerView.titleButton.isUserInteractionEnabled = true
+            }
         } else {
             headerView.plusButton.isEnabled = false
             headerView.favoriteButton.isEnabled = false

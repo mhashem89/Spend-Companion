@@ -71,7 +71,8 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         let tf = UITextField()
         tf.tag = 3
         tf.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        tf.placeholder = "$..     "
+        tf.placeholder = "...     "
+        tf.addLeftPadding(10, withSymbol: currencySymbol)
         tf.keyboardType = .decimalPad
         return tf
     }()
@@ -81,6 +82,18 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         view.backgroundColor = CustomColors.darkGray
         return view
     }()
+    
+    var userCurrency: String? {
+        return UserDefaults.standard.value(forKey: "currency") as? String
+    }
+    
+    var currencySymbol: String {
+        if let storedCurrency = userCurrency {
+            return CurrencyViewController.extractSymbol(from: storedCurrency)
+        } else {
+            return "$"
+        }
+    }
     
     let dayPicker = UIPickerView()
     
@@ -179,11 +192,13 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
             dayLabel.textColor = .systemBlue
             detailTextField.textColor = .systemBlue
             amountTextField.textColor = .systemBlue
+            (amountTextField.leftView?.subviews.first as? UILabel)?.textColor = .systemBlue
         } else {
             backgroundColor = CustomColors.systemBackground
-            dayLabel.textColor = dayLabel.text == "Day" ? CustomColors.lightGray : CustomColors.label
+            dayLabel.textColor = dayLabel.text == "Day" ? CustomColors.mediumGray : CustomColors.label
             detailTextField.textColor = CustomColors.label
             amountTextField.textColor = CustomColors.label
+            (amountTextField.leftView?.subviews.first as? UILabel)?.textColor = amountTextField.hasText ? CustomColors.label : CustomColors.mediumGray
         }
     }
     
@@ -218,7 +233,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
             delegate?.dataChanged()
         case dayTextField:
             dayTextField.backgroundColor = .clear
-            dayLabel.textColor = dayLabel.text == "Day" ?  CustomColors.lightGray : CustomColors.label
+            dayLabel.textColor = .systemBlue
         default:
             return
         }
