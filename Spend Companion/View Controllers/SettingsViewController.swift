@@ -31,10 +31,13 @@ class SettingsViewController: UITableViewController {
     var iCloudKeyStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
     let iCloudPurchaseProductID = "MohamedHashem.Spend_Companion.iCloud_sync"
+    let iCloudPurchased = "iCloudSync Purchased"
     
+    let reminderPurchaseProductId = "MohamedHashem.Spend_Companion.reminders_purchase"
+    let remindersPurchased = "remindersPurchased"
     
     var settings: [String] {
-        var settingsList = ["iCloudSync"]
+        var settingsList = ["iCloud sync"]
         if let biometricType = biometricType() {
             switch biometricType {
             case .faceID:
@@ -69,6 +72,7 @@ class SettingsViewController: UITableViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         title = "Settings"
         SKPaymentQueue.default().add(self)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Restore purchases", style: .plain, target: self, action: #selector(restorePurchases))
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -95,6 +99,7 @@ class SettingsViewController: UITableViewController {
             cell.settingsToggle.isOn = iCloudKeyStore.bool(forKey: "iCloud sync")
             cell.setupUI()
             cell.textLabel?.text = settings[indexPath.row]
+            cell.detailTextLabel?.text = "sets iCloud sync across all devices"
             cell.selectionStyle = .none
         case 1:
             cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: "EnableBiometrics")
@@ -106,7 +111,7 @@ class SettingsViewController: UITableViewController {
             cell.accessoryType = .disclosureIndicator
         case 3:
             if #available(iOS 14, *) {
-                cell.textLabel?.text = "Customize Appearance"
+                cell.textLabel?.text = "Customize appearance"
                 cell.accessoryType = .disclosureIndicator
             }
         default:
@@ -142,7 +147,6 @@ class SettingsViewController: UITableViewController {
     
     func toggleiCloudSync(sync: Bool) {
         iCloudKeyStore.set(sync, forKey: "iCloud sync")
-        iCloudKeyStore.synchronize()
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         appDelegate.persistentContainer = appDelegate.setupPersistentContainer()
         InitialViewController.shared.updateData()
@@ -154,6 +158,10 @@ class SettingsViewController: UITableViewController {
         } else {
             return nil
         }
+    }
+    
+    @objc func restorePurchases() {
+        SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
 
@@ -171,8 +179,7 @@ extension SettingsViewController: SettingsCellDelegate {
             CKContainer.default().accountStatus { [self] (status, error) in
                 DispatchQueue.main.async {
                     if status == .available {
-                        toggleiCloudSync(sync: toggleIsON)
-                        buyiCloudSync()
+                        iCloudKeyStore.bool(forKey: iCloudPurchased) ? toggleiCloudSync(sync: toggleIsON) : buyiCloudSync()
                     } else {
                         let alertController = UIAlertController(title: "Error: iCloud not available", message: "Please sign in to your iCloud account and make sure it is enabled for Spend Companion", preferredStyle: .alert)
                         alertController.addAction(UIAlertAction(title: "Done", style: .default, handler: { (action) in
@@ -212,11 +219,30 @@ extension SettingsViewController: SKPaymentTransactionObserver {
     
     func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         for transaction in transactions {
-            
             switch transaction.transactionState {
             case .purchasing: print("WTF 1")
-            case .purchased: print("WTF 2")
-            case .failed: print("WTF 3"); queue.finishTransaction(transaction)
+            case .purchased:
+                guard transaction.payment.productIdentifier == iCloudPurchaseProductID else { return }
+                if iCloudKeyStore.bool(forKey: iCloudPurchased) == false {
+                    iCloudKeyStore.set(true, forKey: iCloudPurchased)
+                    let alertController = UIAlertController(title: "iCloud sync purchased!", message: "Now transactions will sync across all your devices", preferredStyle: .alert)
+                    alertController.addAction(UIAlertAction(title: "Done", style: .default, handler: nil))
+                    present(alertController, animated: true, completion: nil)
+                    toggleiCloudSync(sync: true)
+                    queue.finishTransaction(transaction)
+                }
+            case .failed:
+                print("WTF 3");
+                guard transaction.payment.productIdentifier == iCloudPurchaseProductID else { return }
+                queue.finishTransaction(transaction)
+                (tableView.cellForRow(at: IndexPath(item: 0, section: 0)) as? SettingsCell)?.settingsToggle.setOn(false, animated: true)
+            case .restored:
+                if transaction.original?.payment.productIdentifier == iCloudPurchaseProductID, iCloudKeyStore.bool(forKey: iCloudPurchased) == false {
+                    iCloudKeyStore.set(true, forKey: iCloudPurchased)
+                    toggleiCloudSync(sync: true)
+                } else if transaction.original?.payment.productIdentifier == reminderPurchaseProductId, iCloudKeyStore.bool(forKey: remindersPurchased) == false {
+                    iCloudKeyStore.set(true, forKey: remindersPurchased)
+                }
             case .deferred: print("WTF 4")
             default: break
             }

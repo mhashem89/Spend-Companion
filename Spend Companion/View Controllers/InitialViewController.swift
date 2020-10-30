@@ -81,6 +81,7 @@ class InitialViewController: UIViewController {
         quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * viewsHeightScale)
         setupSummaryView()
         quickAddView.setupUI()
+        viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
         self.scaleFactor = calcScaleFactor()
         viewModel.fetchRecentItems()
         recentItemsRefreshControl.addTarget(self, action: #selector(refreshRecentItems), for: .valueChanged)
@@ -254,7 +255,7 @@ class InitialViewController: UIViewController {
         }
         let valueLabelSize = UILabel.calcSize(for: String(format: "%g", higherValue), withFont: 13 * fontScale)
         let chartLabelMaxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: 16 * fontScale).width
-        return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / higherValue
+        return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - (70 * fontScale)) / higherValue
     }
     
 }

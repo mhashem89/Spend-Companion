@@ -124,8 +124,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         let currentMonthString = viewModel.monthFormatter.string(from: Date())
         self.filteredRowName = "\(currentMonthString)"
         self.filteredRowLabel.text = currentMonthString
-        
-//        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -135,6 +133,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, for: filteredMonth)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
+//        (UIApplication.shared.delegate as? AppDelegate)?.iCloudKeyStore.set(true, forKey: "iCloudSync Purchased")
     }
     
     // MARK:- Selectors

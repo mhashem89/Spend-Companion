@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  Authenticator.swift
 //  Spend Companion
 //
 //  Created by Mohamed Hashem on 10/23/20.

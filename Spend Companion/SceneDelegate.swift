@@ -57,6 +57,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if UserDefaults.standard.bool(forKey: "EnableBiometrics"), tabBar != nil {
             tabBar.authenticate()
         }
+        (UIApplication.shared.delegate as? AppDelegate)?.iCloudKeyStore.synchronize()
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
