@@ -97,12 +97,7 @@ class InitialViewController: UIViewController {
         } else {
             setupRecentItemTable()
         }
-        if monthChanged && summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
-            scaleFactor = calcScaleFactor()
-            summaryView.barChart.reloadData()
-            monthChanged = false
-        }
+        reloadMonthDataAfterChange()
     }
     
     
@@ -120,6 +115,16 @@ class InitialViewController: UIViewController {
         }))
         present(alertController, animated: true) { [weak self] in
             self?.quickAddView.resignFirstResponders()
+        }
+    }
+    
+    func reloadMonthDataAfterChange() {
+        if monthChanged && summaryView.segmentedControl.selectedSegmentIndex == 0 {
+            viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+            viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
+            scaleFactor = calcScaleFactor()
+            summaryView.barChart.reloadData()
+            monthChanged = false
         }
     }
     
@@ -503,7 +508,7 @@ extension InitialViewController: InitialViewModelDelegate {
     
     func monthTotalChanged(forMonth: Month) {
         if forMonth.date == DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth) && summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            if view.window != nil {
+            if view.window != nil && presentedViewController == nil {
                 viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
                 viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
                 scaleFactor = calcScaleFactor()

@@ -115,6 +115,12 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         tableViewFrameHeight = tableView.frame.height
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if let navVC = presentingViewController as? UINavigationController, navVC.viewControllers.contains(InitialViewController.shared) {
+            InitialViewController.shared.reloadMonthDataAfterChange()
+        }
+    }
     
     @objc func selectTitle() {
         let categoryTitleVC = CategoryTitleViewController(categoryName: viewModel?.category?.name)

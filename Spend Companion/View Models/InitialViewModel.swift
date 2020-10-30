@@ -439,7 +439,7 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
         if controller == recentItemsFetchedResultControl {
             delegate?.recentItemsChanged()
         } else if controller == monthTotalFetchedResultController {
-            let changedItem = anObject as! Item
+            guard let changedItem = anObject as? Item, changedItem.date != nil else { return }
             let monthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: changedItem.date!)
             let changedMonth = changedItem.month ?? checkMonth(monthString: monthString, createNew: false)
             if let changedMonth = changedMonth {
