@@ -156,7 +156,21 @@ extension UITextField {
         self.leftView = leftView
         self.leftViewMode = .always
     }
+    
+    func addRightPadding(_ padding: CGFloat, withSymbol symbol: String? = nil) {
+        let rightView = UIView(frame: CGRect(x: 0, y: 0, width: padding, height: self.frame.height))
+        if let symbol = symbol {
+            let symbolLabel = UILabel()
+            symbolLabel.text = " \(symbol)"
+            symbolLabel.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
+            rightView.addSubview(symbolLabel)
+            symbolLabel.fillSuperView()
+        }
+        self.rightView = rightView
+        self.rightViewMode = .always
+    }
 }
+
 
 extension String {
     

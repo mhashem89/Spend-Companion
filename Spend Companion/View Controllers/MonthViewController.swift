@@ -46,6 +46,17 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         return button
     }()
     
+    var userCurrency: String? {
+        return UserDefaults.standard.value(forKey: "currency") as? String
+    }
+    
+    var currencySymbol: (symbol: String, position: CurrencyPosition) {
+        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+            return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
+        } else {
+            return ("$", .left)
+        }
+    }
     
     let centerTextView = UITextView()
     
@@ -165,27 +176,28 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! CategoryCell
         cell.addBorderShadow()
+        var total: String = "0"
         if viewModel.fixedCategories.count > 0 {
             switch indexPath.section {
             case 0:
                 let categoryNames = viewModel.fixedCategories.keys.map({ String($0) }).sorted(by: { $0 < $1 })
                 let categoryName = categoryNames[indexPath.item]
                 cell.nameLabel.text = categoryName
-                let total = viewModel.calcCategoryTotal(category: viewModel.fixedCategories[categoryName])
-                cell.totalLabel.text = "$\(total)"
+                total = viewModel.calcCategoryTotal(category: viewModel.fixedCategories[categoryName])
                 cell.backgroundColor = #colorLiteral(red: 0.638589194, green: 0.7889236992, blue: 0.5326311383, alpha: 1)
             case 1:
                 cell.nameLabel.text = viewModel.otherExpenses[indexPath.item].name
-                cell.totalLabel.text = "$\(viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item]))"
+                total = viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item])
                 cell.backgroundColor = colors[indexPath.item]
             default:
                 break
             }
         } else {
             cell.nameLabel.text = viewModel.otherExpenses[indexPath.item].name
-            cell.totalLabel.text = "$\(viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item]))"
+            total = viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item])
             cell.backgroundColor = colors[indexPath.item]
         }
+        cell.totalLabel.text = currencySymbol.position == .left ? "\(currencySymbol.symbol)\(total)" : "\(total) \(currencySymbol.symbol)"
         cell.editingEnabled = collectionView.allowsMultipleSelection
         cell.setupSubviews()
         return cell
@@ -219,13 +231,6 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         switch collectionView.allowsMultipleSelection {
         case false:
             let categoryVC = CategoryViewController(month: viewModel.month, category: category)
-//            if category?.name == "Income" {
-//                categoryVC.headerView.favoriteButton.isHidden = true
-//                categoryVC.headerView.titleButton.isUserInteractionEnabled = false
-//            } else {
-//                categoryVC.headerView.favoriteButton.isHidden = false
-//                categoryVC.headerView.titleButton.isUserInteractionEnabled = true
-//            }
             categoryVC.delegate = self
             let navVC = UINavigationController(rootViewController: categoryVC)
             navVC.modalPresentationStyle = .overCurrentContext

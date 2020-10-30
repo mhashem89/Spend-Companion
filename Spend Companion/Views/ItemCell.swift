@@ -72,7 +72,12 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         tf.tag = 3
         tf.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
         tf.placeholder = "...     "
-        tf.addLeftPadding(10, withSymbol: currencySymbol)
+        if currencySymbol.position == .left {
+            tf.addLeftPadding(10, withSymbol: currencySymbol.symbol)
+        } else {
+            tf.addRightPadding(10, withSymbol: currencySymbol.symbol)
+        }
+        
         tf.keyboardType = .decimalPad
         return tf
     }()
@@ -87,11 +92,11 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         return UserDefaults.standard.value(forKey: "currency") as? String
     }
     
-    var currencySymbol: String {
-        if let storedCurrency = userCurrency {
-            return CurrencyViewController.extractSymbol(from: storedCurrency)
+    var currencySymbol: (symbol: String, position: CurrencyPosition) {
+        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+            return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
         } else {
-            return "$"
+            return ("$", .left)
         }
     }
     
@@ -193,12 +198,14 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
             detailTextField.textColor = .systemBlue
             amountTextField.textColor = .systemBlue
             (amountTextField.leftView?.subviews.first as? UILabel)?.textColor = .systemBlue
+            (amountTextField.rightView?.subviews.first as? UILabel)?.textColor = .systemBlue
         } else {
             backgroundColor = CustomColors.systemBackground
             dayLabel.textColor = dayLabel.text == "Day" ? CustomColors.mediumGray : CustomColors.label
             detailTextField.textColor = CustomColors.label
             amountTextField.textColor = CustomColors.label
             (amountTextField.leftView?.subviews.first as? UILabel)?.textColor = amountTextField.hasText ? CustomColors.label : CustomColors.mediumGray
+            (amountTextField.rightView?.subviews.first as? UILabel)?.textColor = amountTextField.hasText ? CustomColors.label : CustomColors.mediumGray
         }
     }
     
