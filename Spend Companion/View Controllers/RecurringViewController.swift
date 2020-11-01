@@ -37,6 +37,13 @@ class RecurringViewController: UIViewController {
     
     var upperStack: UIStackView!
     
+    var puchasePrice: String = {
+        let numberFormatter = NumberFormatter()
+        numberFormatter.locale = .current
+        numberFormatter.numberStyle = .currency
+        return numberFormatter.string(from: 0.99)!
+    }()
+    
     var questionLabel: UILabel = {
         let lbl = UILabel()
         lbl.text = "Recurring every:"
@@ -120,6 +127,9 @@ class RecurringViewController: UIViewController {
         toolBar.setItems([cancelButton, spacer, doneButton], animated: false)
         
         dayPicker.datePickerMode = .date
+        if #available(iOS 14.0, *) {
+            dayPicker.preferredDatePickerStyle = .wheels
+        } 
         dayPicker.addTarget(self, action: #selector(datePicked), for: .valueChanged)
         tf.inputView = dayPicker
         tf.inputAccessoryView = toolBar
@@ -262,11 +272,18 @@ class RecurringViewController: UIViewController {
     }
     
     func buyReminders() {
-        if SKPaymentQueue.canMakePayments() {
-            let remindersPayment = SKMutablePayment()
-            remindersPayment.productIdentifier = reminderPurchaseProductId
-            SKPaymentQueue.default().add(remindersPayment)
-        }
+        let alertController = UIAlertController(title: "Purchase Reminders", message: "for \(puchasePrice) you can set custom reminders for any recurring transaction", preferredStyle: .actionSheet)
+        alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { (_) in
+            if SKPaymentQueue.canMakePayments() {
+                let remindersPayment = SKMutablePayment()
+                remindersPayment.productIdentifier = "MohamedHashem.Spend_Companion.reminders_purchase"
+                SKPaymentQueue.default().add(remindersPayment)
+            }
+        }))
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: { [weak self] (_) in
+            self?.reminderSwitch.setOn(false, animated: true)
+        }))
+        present(alertController, animated: true)
     }
     
     @objc func cancel() {
@@ -328,17 +345,19 @@ extension RecurringViewController: SKPaymentTransactionObserver {
                 if iCloudStore.bool(forKey: remindersPurchased) == false {
                     iCloudStore.set(true, forKey: remindersPurchased)
                     upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
+                    queue.finishTransaction(transaction)
                 }
             case .failed:
                 reminderSwitch.setOn(false, animated: true)
+                queue.finishTransaction(transaction)
             case .restored:
                 if iCloudStore.bool(forKey: remindersPurchased) == false {
                     iCloudStore.set(true, forKey: remindersPurchased)
                 }
+                queue.finishTransaction(transaction)
             default:
                 break
             }
-            
         }
     }
     

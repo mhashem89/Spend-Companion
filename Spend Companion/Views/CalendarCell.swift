@@ -30,14 +30,14 @@ class CalendarCell: UICollectionViewCell {
     var incomeLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = #colorLiteral(red: 0.1960784346, green: 0.3411764801, blue: 0.1019607857, alpha: 1)
+        label.textColor = #colorLiteral(red: 0.303809394, green: 0.5380075372, blue: 0.1605153434, alpha: 1)
         return label
     }()
     
     var spendingLabel: UILabel = {
         let label = UILabel()
         label.textAlignment = .center
-        label.textColor = .systemRed
+        label.textColor = CustomColors.red
         return label
     }()
     

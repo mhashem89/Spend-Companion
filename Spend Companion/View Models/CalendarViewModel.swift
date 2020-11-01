@@ -26,7 +26,7 @@ class CalendarViewModel {
                 total += item.amount
             }
         }
-        return total
+        return (total * 100).rounded() / 100
     }
     
     func calcMonthTotal(_ monthString: String, for categoryName: String? = nil) -> Double? {
@@ -49,7 +49,7 @@ class CalendarViewModel {
             }
         }
         if total > 0 {
-            return total
+            return (total * 100).rounded() / 100
         } else {
             return nil
         }

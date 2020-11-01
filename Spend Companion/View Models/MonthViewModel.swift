@@ -117,6 +117,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
                 total += item.amount
             }
         }
+        total = (total * 100).rounded() / 100
         return String(format: "%g", total)
     }
     

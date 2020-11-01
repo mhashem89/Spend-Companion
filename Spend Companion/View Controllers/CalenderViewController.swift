@@ -21,7 +21,7 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
     
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     
-    var colors: [UIColor] = [#colorLiteral(red: 0.4039207829, green: 0.7234769777, blue: 0.8435715419, alpha: 1), #colorLiteral(red: 0.5912354875, green: 0.505434492, blue: 0.8350452094, alpha: 1), #colorLiteral(red: 0.8592758566, green: 0.4597663065, blue: 0.6258551127, alpha: 1), #colorLiteral(red: 0.8599896891, green: 0.5834726084, blue: 0.4939326607, alpha: 1), #colorLiteral(red: 0.8315751904, green: 0.7270336446, blue: 0.4794956649, alpha: 1), #colorLiteral(red: 0.6603464669, green: 0.8209470178, blue: 0.5613906862, alpha: 1), #colorLiteral(red: 0.2146703781, green: 0.6475533781, blue: 0.8289181472, alpha: 1), #colorLiteral(red: 0.4976351081, green: 0.5781822379, blue: 0.8421240482, alpha: 1), #colorLiteral(red: 0.8134517766, green: 0.5566364028, blue: 0.666935728, alpha: 1), #colorLiteral(red: 0.8170407678, green: 0.4356290759, blue: 0.3118896123, alpha: 1), #colorLiteral(red: 0.8326459391, green: 0.676435899, blue: 0.31810554, alpha: 1), #colorLiteral(red: 0.5905677771, green: 0.8358383566, blue: 0.439441635, alpha: 1)]
+    var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
     var chosenColor: UIColor? = #colorLiteral(red: 0.8501421211, green: 0.8527938297, blue: 1, alpha: 1)
     
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date())

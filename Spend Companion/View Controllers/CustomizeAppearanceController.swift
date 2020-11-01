@@ -23,13 +23,23 @@ class CustomizeAppearanceController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 2
+        return 3
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! SettingsCell
         
-        let childView = indexPath.row == 0 ? UIHostingController(rootView: BarColorChooser()) : UIHostingController(rootView: LabelColorChooser())
+        var childView: UIViewController!
+        switch indexPath.row {
+        case 0:
+            childView = UIHostingController(rootView: BarColorChooser())
+        case 1:
+            childView = UIHostingController(rootView: LabelColorChooser())
+        case 2:
+            childView = UIHostingController(rootView: ButtonColorChooser())
+        default:
+            break
+        }
         addChild(childView)
         cell.addSubview(childView.view)
         childView.view.frame = cell.bounds

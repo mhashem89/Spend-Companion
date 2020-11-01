@@ -74,7 +74,7 @@ class ChartViewModel {
                     }
                 }
             }
-            dict[name] = total
+            dict[name] = (total * 100).rounded() / 100
         }
         return dict
     }

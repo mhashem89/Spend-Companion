@@ -51,7 +51,9 @@ class SettingsViewController: UITableViewController {
             settingsList.append("Enable passcode")
         }
         settingsList.append("Select currency")
-        settingsList.append("Choose colors")
+        if #available(iOS 14, *) {
+            settingsList.append("Customize appearance")
+        }
        return settingsList
     }
     
@@ -73,6 +75,7 @@ class SettingsViewController: UITableViewController {
         title = "Settings"
         SKPaymentQueue.default().add(self)
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Restore purchases", style: .plain, target: self, action: #selector(restorePurchases))
+        tableView.tableFooterView = UIView()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -111,7 +114,7 @@ class SettingsViewController: UITableViewController {
             cell.accessoryType = .disclosureIndicator
         case 3:
             if #available(iOS 14, *) {
-                cell.textLabel?.text = "Customize appearance"
+                cell.textLabel?.text = settings[indexPath.row]
                 cell.accessoryType = .disclosureIndicator
             }
         default:
@@ -122,7 +125,7 @@ class SettingsViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 50
+        return 80
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -136,13 +139,20 @@ class SettingsViewController: UITableViewController {
     }
     
     func buyiCloudSync() {
-        if SKPaymentQueue.canMakePayments() {
-            let paymentRequest = SKMutablePayment()
-            paymentRequest.productIdentifier = iCloudPurchaseProductID
-            SKPaymentQueue.default().add(paymentRequest)
-        } else {
-            print("User can't make payment")
-        }
+        let alertController = UIAlertController(title: "Purchase iCloud sync", message: "for $1.99 you can sync your transactions across all devices, syncing happens automatically!", preferredStyle: .actionSheet)
+        alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { [unowned self] (_) in
+            if SKPaymentQueue.canMakePayments() {
+                let paymentRequest = SKMutablePayment()
+                paymentRequest.productIdentifier = iCloudPurchaseProductID
+                SKPaymentQueue.default().add(paymentRequest)
+            } else {
+                print("User can't make payment")
+            }
+        }))
+        alertController.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: { [unowned self] (_) in
+            (tableView.cellForRow(at: IndexPath(item: 0, section: 0)) as? SettingsCell)?.settingsToggle.setOn(false, animated: true)
+        }))
+        present(alertController, animated: true)
     }
     
     func toggleiCloudSync(sync: Bool) {
@@ -220,7 +230,6 @@ extension SettingsViewController: SKPaymentTransactionObserver {
     func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         for transaction in transactions {
             switch transaction.transactionState {
-            case .purchasing: print("WTF 1")
             case .purchased:
                 guard transaction.payment.productIdentifier == iCloudPurchaseProductID else { return }
                 if iCloudKeyStore.bool(forKey: iCloudPurchased) == false {
@@ -232,7 +241,6 @@ extension SettingsViewController: SKPaymentTransactionObserver {
                     queue.finishTransaction(transaction)
                 }
             case .failed:
-                print("WTF 3");
                 guard transaction.payment.productIdentifier == iCloudPurchaseProductID else { return }
                 queue.finishTransaction(transaction)
                 (tableView.cellForRow(at: IndexPath(item: 0, section: 0)) as? SettingsCell)?.settingsToggle.setOn(false, animated: true)
@@ -243,7 +251,6 @@ extension SettingsViewController: SKPaymentTransactionObserver {
                 } else if transaction.original?.payment.productIdentifier == reminderPurchaseProductId, iCloudKeyStore.bool(forKey: remindersPurchased) == false {
                     iCloudKeyStore.set(true, forKey: remindersPurchased)
                 }
-            case .deferred: print("WTF 4")
             default: break
             }
         }
@@ -258,6 +265,14 @@ class SettingsCell: UITableViewCell {
     var settingsToggle = UISwitch()
     
     weak var delegate: SettingsCellDelegate?
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     func setupUI() {
         addSubview(settingsToggle)

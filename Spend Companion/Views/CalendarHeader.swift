@@ -33,7 +33,8 @@ class CalendarHeader: UICollectionViewCell {
     let nextButton: UIButton = {
         let button = UIButton(type: .system)
         if #available(iOS 13, *) {
-            button.setImage(UIImage(systemName: "chevron.right.square")?.withRenderingMode(.alwaysOriginal), for: .normal)
+            button.setImage(UIImage(systemName: "chevron.right.square"), for: .normal)
+            button.tintColor = CustomColors.label
         } else {
             button.setAttributedTitle(NSAttributedString(string: "〉", attributes: [.font: UIFont.boldSystemFont(ofSize: 24), .foregroundColor: CustomColors.label]), for: .normal)
         }
@@ -45,7 +46,8 @@ class CalendarHeader: UICollectionViewCell {
         let button = UIButton(type: .system)
         button.imageView?.contentMode = .scaleAspectFill
         if #available(iOS 13, *) {
-            button.setImage(UIImage(systemName: "chevron.left.square")?.withRenderingMode(.alwaysOriginal), for: .normal)
+            button.setImage(UIImage(systemName: "chevron.left.square"), for: .normal)
+            button.tintColor = CustomColors.label
         } else {
             button.setAttributedTitle(NSAttributedString(string: "〈", attributes: [.font: UIFont.boldSystemFont(ofSize: 24), .foregroundColor: CustomColors.label]), for: .normal)
         }

@@ -54,7 +54,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     var filteredRowLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 18 : 18 * fontScale)
-        label.textColor = .systemRed
+        label.textColor = CustomColors.label
         return label
     }()
     
@@ -133,7 +133,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, for: filteredMonth)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
-//        (UIApplication.shared.delegate as? AppDelegate)?.iCloudKeyStore.set(true, forKey: "iCloudSync Purchased")
+        filterButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
     }
     
     // MARK:- Selectors
@@ -242,7 +242,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     func yearSelected(year: String) {
         self.selectedYear = year
-//        chosenColor = colors.randomElement()
         self.scaleFactor = calcScaleFactor()
         barChart.reloadData()
     }

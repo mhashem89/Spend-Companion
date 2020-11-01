@@ -161,7 +161,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         cell.dayLabel.textColor = cell.dayLabel.text == "Day" ? CustomColors.lightGray : CustomColors.label
         cell.detailTextField.text = item?.detail
         if let amount = item?.amount, amount > 0.0 {
-            cell.amountTextField.text = String(format: "%g", amount)
+            cell.amountTextField.text = String(format: "%g", (amount * 100).rounded() / 100)
         } else {
             cell.amountTextField.text = nil
         }

@@ -16,7 +16,7 @@ class RecentItemCell: UITableViewCell {
         return UserDefaults.standard.value(forKey: "currency") as? String
     }
     
-    var currencySymbol: String {
+    var currencySymbol: String? {
         if let storedCurrency = userCurrency {
             return CurrencyViewController.extractSymbol(from: storedCurrency)
         } else {
@@ -24,6 +24,14 @@ class RecentItemCell: UITableViewCell {
         }
     }
     
+    var numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = .current
+        formatter.numberStyle = .currency
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
     
     var amountLabel: UILabel = {
         let lbl = UILabel()
@@ -60,10 +68,14 @@ class RecentItemCell: UITableViewCell {
     
     func formatAmountLabel(with amount: Double) {
         let amountString = String(format: "%g", amount)
-        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-            amountLabel.text = currencyPosition == .left ? "\(currencySymbol)\(amountString)" : "\(amountString) \(currencySymbol)"
-        } else {
-            amountLabel.text = "$\(amountString)"
+        if let storedCurrency = userCurrency {
+            if storedCurrency == "Local currency" {
+                amountLabel.text = numberFormatter.string(from: NSNumber(value: amount))
+            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+                amountLabel.text = currencyPosition == .left ? "\(currencySymbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol ?? "")"
+            } else {
+                amountLabel.text = amountString
+            }
         }
     }
     

@@ -36,13 +36,13 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     var plusButton: UIButton = {
         let button = UIButton(type: .system)
         if #available(iOS 13, *) {
-            button.setImage(UIImage(systemName: "plus")?.withRenderingMode(.alwaysOriginal), for: .normal)
+            button.setImage(UIImage(systemName: "plus")?.withRenderingMode(.automatic), for: .normal)
         } else {
             button.setAttributedTitle(NSAttributedString(string: "+", attributes: [.font: UIFont.boldSystemFont(ofSize: 30)]), for: .normal)
         }
         button.layer.cornerRadius = 20
         button.clipsToBounds = true
-        button.backgroundColor = #colorLiteral(red: 0.4549019608, green: 0.4549019608, blue: 0.5019607843, alpha: 0.08)
+        button.backgroundColor = CustomColors.lightGray
         return button
     }()
     
@@ -50,13 +50,21 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         return UserDefaults.standard.value(forKey: "currency") as? String
     }
     
-    var currencySymbol: (symbol: String, position: CurrencyPosition) {
-        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-            return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
-        } else {
-            return ("$", .left)
+    var currencySymbol: (symbol: String?, position: CurrencyPosition) {
+        if let storedCurrency = userCurrency {
+            return (CurrencyViewController.extractSymbol(from: storedCurrency), CurrencyViewController.currenciesDict[storedCurrency] ?? .left)
         }
+        return ("$", .left)
     }
+    
+    var numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = .current
+        formatter.numberStyle = .currency
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        return formatter
+    }()
     
     let centerTextView = UITextView()
     
@@ -197,7 +205,11 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
             total = viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item])
             cell.backgroundColor = colors[indexPath.item]
         }
-        cell.totalLabel.text = currencySymbol.position == .left ? "\(currencySymbol.symbol)\(total)" : "\(total) \(currencySymbol.symbol)"
+        if userCurrency == "Local currency" {
+            cell.totalLabel.text = numberFormatter.string(from: NSNumber(value: Double(total)!))
+        } else {
+            cell.totalLabel.text = currencySymbol.position == .left ? "\(currencySymbol.symbol ?? "")\(total)" : "\(total) \(currencySymbol.symbol ?? "")"
+        }
         cell.editingEnabled = collectionView.allowsMultipleSelection
         cell.setupSubviews()
         return cell

@@ -92,12 +92,17 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         return UserDefaults.standard.value(forKey: "currency") as? String
     }
     
-    var currencySymbol: (symbol: String, position: CurrencyPosition) {
-        if let storedCurrency = userCurrency, let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-            return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
-        } else {
-            return ("$", .left)
+    var currencySymbol: (symbol: String?, position: CurrencyPosition) {
+        if let storedCurrency = userCurrency {
+            if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+                return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
+            } else if userCurrency == "Local currency" {
+                return (Locale.current.currencySymbol, .left)
+            } else if userCurrency == "None" {
+                return (nil, .left)
+            }
         }
+        return ("$", .left)
     }
     
     let dayPicker = UIPickerView()

@@ -56,7 +56,28 @@ class InitialViewController: UIViewController {
         return lbl
     }()
     
-   
+    var userCurrency: String? {
+        return UserDefaults.standard.value(forKey: "currency") as? String
+    }
+    
+    var currencySymbol: String? {
+        if let storedCurrency = userCurrency {
+            return CurrencyViewController.extractSymbol(from: storedCurrency)
+        } else {
+            return "$"
+        }
+    }
+    
+    var numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = .current
+        formatter.numberStyle = .currency
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        formatter.minusSign = ""
+        return formatter
+    }()
+    
     
 // MARK:- Life cycle functions
     
@@ -85,9 +106,6 @@ class InitialViewController: UIViewController {
         self.scaleFactor = calcScaleFactor()
         viewModel.fetchRecentItems()
         recentItemsRefreshControl.addTarget(self, action: #selector(refreshRecentItems), for: .valueChanged)
-        if UserDefaults.standard.value(forKey: "currency") == nil {
-            UserDefaults.standard.setValue("USD ($)", forKey: "currency")
-        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -99,6 +117,8 @@ class InitialViewController: UIViewController {
             setupRecentItemTable()
         }
         reloadMonthDataAfterChange()
+        quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
+        quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
     }
     
     
@@ -179,10 +199,11 @@ class InitialViewController: UIViewController {
         if component == .month {
             let dateComponent = Calendar.current.dateComponents([.year, .month], from: Date())
             let monthBeggining = Calendar.current.date(from: dateComponent)!
-            if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0 {
+            if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0, numDays > 7 {
                 let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
                 summaryView.summaryLabel.isHidden = false
-                summaryView.summaryLabel.text = "Average daily spending this month: \(String(format: "%g", average))"
+                let averageString = formatCurrency(with: average)
+                summaryView.summaryLabel.text = "Average daily spending this month: \(averageString ?? "")"
                 summaryView.summaryLabel.sizeToFit()
             } else {
                 summaryView.summaryLabel.isHidden = true
@@ -190,15 +211,28 @@ class InitialViewController: UIViewController {
         } else if component == .year {
             if let averageThisYear = viewModel.calcAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
                 summaryView.summaryLabel.isHidden = false
+                let averageString = formatCurrency(with: Double(averageThisYear))
                 if averageThisYear > 0 {
-                    summaryView.summaryLabel.text = "On average this year, you make $\(averageThisYear) more than you spend per month"
+                    summaryView.summaryLabel.text = "On average this year, you make \(averageString ?? "") more than you spend per month"
                 } else {
-                    summaryView.summaryLabel.text = "On average this year, you spend $\(-averageThisYear) more than you make per month"
+                    summaryView.summaryLabel.text = "On average this year, you spend \(averageString ?? "") more than you make per month"
                 }
             } else {
                 summaryView.summaryLabel.isHidden = true
             }
         }
+    }
+    
+    func formatCurrency(with amount: Double) -> String? {
+        let amountString = String(format: "%g", amount > 0 ? amount : -amount)
+        if let storedCurrency = userCurrency {
+            if storedCurrency == "Local currency" {
+                return numberFormatter.string(from: NSNumber(value: amount))
+            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+                return currencyPosition == .left ? "\(currencySymbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol ?? "")"
+            }
+        }
+        return amountString
     }
     
     
@@ -337,7 +371,7 @@ extension InitialViewController: QuickAddViewDelegate {
         
         let recurringVC = RecurringViewController()
         recurringVC.delegate = self
-        recurringVC.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
+        recurringVC.modalPresentationStyle = fontScale < 0.9 ? .overCurrentContext : .popover
         recurringVC.popoverPresentationController?.delegate = self
         recurringVC.popoverPresentationController?.sourceView = quickAddView.recurringButton
         recurringVC.popoverPresentationController?.sourceRect = quickAddView.recurringButton.bounds
@@ -469,7 +503,8 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         cell.textLabel?.attributedText = titleString
         cell.detailTextLabel?.text = viewModel.recentItems[indexPath.row].category?.name
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
-        cell.formatAmountLabel(with: viewModel.recentItems[indexPath.row].amount)
+        let roundedAmount = (viewModel.recentItems[indexPath.row].amount * 100).rounded() / 100
+        cell.formatAmountLabel(with: roundedAmount)
         if item.recurringNum != nil && item.recurringUnit != nil {
             cell.addRecurrence()
         } else {

@@ -56,3 +56,29 @@ struct LabelColorChooser: View {
         InitialViewController.shared.summaryView.barChart.reloadData()
     }
 }
+
+
+@available(iOS 14, *)
+
+struct ButtonColorChooser: View {
+    
+    @State var bgColor = Color(UserDefaults.standard.colorForKey(key: "button color") ?? .systemBlue)
+    
+    var body: some View {
+        
+        VStack {
+            ColorPicker("Choose button color", selection: Binding(get: {
+                bgColor
+            }, set: { (newValue) in
+                bgColor = newValue
+                updateUserDefaults(with: bgColor)
+            }), supportsOpacity: true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }.padding(20)
+    }
+    
+    func updateUserDefaults(with color: Color) {
+        UserDefaults.standard.setColor(color: UIColor(color), forKey: "button color")
+        InitialViewController.shared.summaryView.barChart.reloadData()
+    }
+}

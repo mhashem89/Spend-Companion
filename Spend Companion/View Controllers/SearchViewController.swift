@@ -43,7 +43,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         cell.textLabel?.attributedText = titleString
         cell.detailTextLabel?.text = item.category?.name
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
-        cell.amountLabel.text = String(format: "%g", item.amount)
+        cell.amountLabel.text = String(format: "%g", (item.amount * 100).rounded() / 100)
         if item.recurringNum != nil && item.recurringUnit != nil {
             cell.addRecurrence()
         } else {

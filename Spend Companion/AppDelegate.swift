@@ -38,6 +38,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         UNUserNotificationCenter.current().delegate = self
         NotificationCenter.default.addObserver(self, selector: #selector(ubiquitousStoreDidChangeExternally), name: NSUbiquitousKeyValueStore.didChangeExternallyNotification, object: NSUbiquitousKeyValueStore.default)
         iCloudKeyStore.synchronize()
+        if UserDefaults.standard.value(forKey: "currency") == nil {
+            UserDefaults.standard.setValue("Local currency", forKey: "currency")
+        }
         return true
     }
     
