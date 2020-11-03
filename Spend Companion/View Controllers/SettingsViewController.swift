@@ -30,11 +30,11 @@ class SettingsViewController: UITableViewController {
     
     var iCloudKeyStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
-    let iCloudPurchaseProductID = "MohamedHashem.Spend_Companion.iCloud_sync"
-    let iCloudPurchased = "iCloudSync Purchased"
+    let iCloudPurchaseProductID = PurchaseIds.iCloudSync.description
+    let iCloudPurchased = SettingNames.iCloudSyncPurchased
     
-    let reminderPurchaseProductId = "MohamedHashem.Spend_Companion.reminders_purchase"
-    let remindersPurchased = "remindersPurchased"
+    let reminderPurchaseProductId = PurchaseIds.reminders.description
+    let remindersPurchased = SettingNames.remindersPurchased
     
     var settings: [String] {
         var settingsList = ["iCloud sync"]
@@ -105,7 +105,7 @@ class SettingsViewController: UITableViewController {
             cell.detailTextLabel?.text = "sets iCloud sync across all devices"
             cell.selectionStyle = .none
         case 1:
-            cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: "EnableBiometrics")
+            cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics)
             cell.setupUI()
             cell.textLabel?.text = settings[indexPath.row]
             cell.selectionStyle = .none
@@ -202,11 +202,11 @@ extension SettingsViewController: SettingsCellDelegate {
         case (0, false):
             toggleiCloudSync(sync: toggleIsON)
         case (1, true):
-            UserDefaults.standard.setValue(true, forKey: "EnableBiometrics")
+            UserDefaults.standard.setValue(true, forKey: SettingNames.enableBiometrics)
         case (1, false):
             Authenticator.authenticate { (success, error) in
                 if success {
-                    UserDefaults.standard.setValue(false, forKey: "EnableBiometrics")
+                    UserDefaults.standard.setValue(false, forKey: SettingNames.enableBiometrics)
                 } else {
                     let ac = UIAlertController(title: "Authentication failed", message: "You could not be verified; please try again.", preferredStyle: .alert)
                     ac.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in

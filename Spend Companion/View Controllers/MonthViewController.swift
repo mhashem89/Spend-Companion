@@ -47,7 +47,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     }()
     
     var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: "currency") as? String
+        return UserDefaults.standard.value(forKey: SettingNames.currency) as? String
     }
     
     var currencySymbol: (symbol: String?, position: CurrencyPosition) {

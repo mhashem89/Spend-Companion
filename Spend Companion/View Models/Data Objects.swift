@@ -16,7 +16,6 @@ enum ItemType: Int16 {
 
 
 enum RecurringUnit: Int, CustomStringConvertible {
-
     case day = 0
     case week = 1
     case month = 2
@@ -30,6 +29,29 @@ enum RecurringUnit: Int, CustomStringConvertible {
     }
 }
 
+
+struct SettingNames {
+    static let iCloudSync = "iCloud sync"
+    static let enableBiometrics = "EnableBiometrics"
+    static let barColor = "bar color"
+    static let buttonColor = "button color"
+    static let labelColor = "label color"
+    static let currency = "currency"
+    static let remindersPurchased = "remindersPurchased"
+    static let iCloudSyncPurchased = "iCloudSync Purchased"
+}
+
+
+enum PurchaseIds: CustomStringConvertible {
+    case reminders, iCloudSync
+    
+    var description: String {
+        switch self {
+        case .reminders: return "MohamedHashem.Spend_Companion.reminders_purchase"
+        case .iCloudSync: return "MohamedHashem.Spend_Companion.iCloud_sync"
+        }
+    }
+}
 
 
 struct ItemRecurrence {

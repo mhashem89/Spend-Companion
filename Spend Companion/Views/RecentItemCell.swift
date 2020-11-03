@@ -13,7 +13,7 @@ class RecentItemCell: UITableViewCell {
     
     
     var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: "currency") as? String
+        return UserDefaults.standard.value(forKey: SettingNames.currency) as? String
     }
     
     var currencySymbol: String? {

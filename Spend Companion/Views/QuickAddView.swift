@@ -54,7 +54,7 @@ class QuickAddView: UIView {
     }()
     
     var currencySymbol: String? {
-        if let storedCurrency = UserDefaults.standard.value(forKey: "currency") as? String {
+        if let storedCurrency = UserDefaults.standard.value(forKey: SettingNames.currency) as? String {
             return CurrencyViewController.extractSymbol(from: storedCurrency)
         } else {
             return "$"

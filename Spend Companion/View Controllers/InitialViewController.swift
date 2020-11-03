@@ -57,7 +57,7 @@ class InitialViewController: UIViewController {
     }()
     
     var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: "currency") as? String
+        return UserDefaults.standard.value(forKey: SettingNames.currency) as? String
     }
     
     var currencySymbol: String? {
@@ -117,8 +117,8 @@ class InitialViewController: UIViewController {
             setupRecentItemTable()
         }
         reloadMonthDataAfterChange()
-        quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
-        quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
+        quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
+        quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
     }
     
     
@@ -309,7 +309,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         cell.cellLabel.text = summaryLabels[indexPath.item]
         let maxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: fontScale < 1 ? 14 : 16 * fontScale).width
         cell.cellLabel.frame = .init(x: 0, y: 0, width: maxWidth + 8, height: cell.frame.height)
-        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: "label color") ?? .systemBlue
+        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         var value: Double = 0
         var priorValue: CGFloat = 0
         switch (summaryView.segmentedControl.selectedSegmentIndex, indexPath.row) {
@@ -330,7 +330,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         }
         cell.valueLabel.text = String(format: "%g", value)
         cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: priorValue, height: 25)
-        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed
+        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + priorValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
         let scaledValue = self.scaleFactor < 1 ? CGFloat(value * self.scaleFactor) : CGFloat(value)
         let distanceToMove = scaledValue - priorValue
