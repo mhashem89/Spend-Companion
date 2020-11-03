@@ -56,28 +56,6 @@ class InitialViewController: UIViewController {
         return lbl
     }()
     
-    var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: SettingNames.currency) as? String
-    }
-    
-    var currencySymbol: String? {
-        if let storedCurrency = userCurrency {
-            return CurrencyViewController.extractSymbol(from: storedCurrency)
-        } else {
-            return "$"
-        }
-    }
-    
-    var numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.locale = .current
-        formatter.numberStyle = .currency
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 2
-        formatter.minusSign = ""
-        return formatter
-    }()
-    
     
 // MARK:- Life cycle functions
     
@@ -202,7 +180,7 @@ class InitialViewController: UIViewController {
             if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0, numDays > 7 {
                 let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
                 summaryView.summaryLabel.isHidden = false
-                let averageString = formatCurrency(with: average)
+                let averageString = CommonObjects.shared.formattedCurrency(with: average)
                 summaryView.summaryLabel.text = "Average daily spending this month: \(averageString ?? "")"
                 summaryView.summaryLabel.sizeToFit()
             } else {
@@ -211,7 +189,7 @@ class InitialViewController: UIViewController {
         } else if component == .year {
             if let averageThisYear = viewModel.calcAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
                 summaryView.summaryLabel.isHidden = false
-                let averageString = formatCurrency(with: Double(averageThisYear))
+                let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
                 if averageThisYear > 0 {
                     summaryView.summaryLabel.text = "On average this year, you make \(averageString ?? "") more than you spend per month"
                 } else {
@@ -222,19 +200,6 @@ class InitialViewController: UIViewController {
             }
         }
     }
-    
-    func formatCurrency(with amount: Double) -> String? {
-        let amountString = String(format: "%g", amount > 0 ? amount : -amount)
-        if let storedCurrency = userCurrency {
-            if storedCurrency == "Local currency" {
-                return numberFormatter.string(from: NSNumber(value: amount))
-            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-                return currencyPosition == .left ? "\(currencySymbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol ?? "")"
-            }
-        }
-        return amountString
-    }
-    
     
     @objc func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
         if summaryView.segmentedControl.selectedSegmentIndex == 0 {

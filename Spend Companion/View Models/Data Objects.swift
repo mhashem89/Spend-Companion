@@ -8,6 +8,54 @@
 import Foundation
 
 
+class CommonObjects {
+    
+    static let shared = CommonObjects()
+    
+    private init() {}
+    
+    var numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = .current
+        formatter.numberStyle = .currency
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        formatter.minusSign = ""
+        return formatter
+    }()
+    
+    var userCurrency: String? {
+        return UserDefaults.standard.value(forKey: SettingNames.currency) as? String
+    }
+    
+    var currencySymbol: (symbol: String?, position: CurrencyPosition) {
+        if let storedCurrency = userCurrency {
+            if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+                return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
+            } else if userCurrency == "Local currency" {
+                return (Locale.current.currencySymbol, .left)
+            } else if userCurrency == "None" {
+                return (nil, .left)
+            }
+        }
+        return ("$", .left)
+    }
+    
+    func formattedCurrency(with amount: Double) -> String? {
+        let amountString = String(format: "%g", amount > 0 ? amount : -amount)
+        if let storedCurrency = userCurrency {
+            if storedCurrency == "Local currency" {
+                return numberFormatter.string(from: NSNumber(value: amount))
+            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+                return currencyPosition == .left ? "\(currencySymbol.symbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol.symbol ?? "")"
+            }
+        }
+        return amountString
+    }
+    
+}
+
+
 
 enum ItemType: Int16 {
     case spending = 0

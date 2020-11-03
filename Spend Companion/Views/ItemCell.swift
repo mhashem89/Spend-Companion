@@ -73,6 +73,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         tf.tag = 3
         tf.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
         tf.placeholder = "...     "
+        let currencySymbol = CommonObjects.shared.currencySymbol
         if currencySymbol.position == .left {
             tf.addLeftPadding(10, withSymbol: currencySymbol.symbol)
         } else {
@@ -88,23 +89,6 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         view.backgroundColor = CustomColors.darkGray
         return view
     }()
-    
-    var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: SettingNames.currency) as? String
-    }
-    
-    var currencySymbol: (symbol: String?, position: CurrencyPosition) {
-        if let storedCurrency = userCurrency {
-            if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-                return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
-            } else if userCurrency == "Local currency" {
-                return (Locale.current.currencySymbol, .left)
-            } else if userCurrency == "None" {
-                return (nil, .left)
-            }
-        }
-        return ("$", .left)
-    }
     
     let dayPicker = UIPickerView()
     
