@@ -126,6 +126,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         let categoryTitleVC = CategoryTitleViewController(categoryName: viewModel?.category?.name)
         categoryTitleVC.delegate = self
         let navVC = UINavigationController(rootViewController: categoryTitleVC)
+        navVC.modalPresentationStyle = .overCurrentContext
         present(navVC, animated: true)
     }
     

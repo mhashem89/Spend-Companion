@@ -51,6 +51,7 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         favorites = CalendarViewModel.shared.fetchFavorites()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -75,6 +76,10 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         if let title = titleTextField.text?.removeTrailingSpace(), !title.isEmpty {
             delegate?.saveCategoryTitle(title: title)
         }
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func cancel() {
         dismiss(animated: true, completion: nil)
     }
     
