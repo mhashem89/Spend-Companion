@@ -176,3 +176,38 @@ import Foundation
 //        self.dateFormatter.dateFormat = dateFormat
 //    }
 //}
+
+
+//func scheduleReminderForExistingItem(for item: Item, with itemRecurrence: ItemRecurrence) {
+//    guard item.date != nil, item.date! > Date()  else { return }
+//    
+//    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] (success, error) in
+//        if let err = error {
+//            print(err.localizedDescription)
+//            self?.delegate?.presentError(error: err)
+//            return
+//        }
+//    }
+//}
+
+
+
+//func deleteAllData() {
+//    let itemFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Item")
+//    let itemDeleteRequest = NSBatchDeleteRequest(fetchRequest: itemFetchRequest)
+//    let monthFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Month")
+//    let monthDeleteRequest = NSBatchDeleteRequest(fetchRequest: monthFetchRequest)
+//    let categoryFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
+//    let categoryDeleteRequest = NSBatchDeleteRequest(fetchRequest: categoryFetchRequest)
+//    let favoriteFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Favorite")
+//    let favoriteDeleteRequest = NSBatchDeleteRequest(fetchRequest: favoriteFetchRequest)
+//    do {
+//        try context.execute(itemDeleteRequest)
+//        try context.execute(monthDeleteRequest)
+//        try context.execute(categoryDeleteRequest)
+//        try context.execute(favoriteDeleteRequest)
+//    } catch let err {
+//        print(err.localizedDescription)
+//        delegate?.presentError(error: err)
+//    }
+//}

@@ -119,7 +119,7 @@ class InitialViewController: UIViewController {
     
     func reloadMonthDataAfterChange() {
         if monthChanged && summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+            viewModel.fetchMonthTotals(forDate: selectedMonth)
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
             scaleFactor = calcScaleFactor()
             summaryView.barChart.reloadData()
@@ -131,7 +131,7 @@ class InitialViewController: UIViewController {
         viewModel.fetchRecentItems()
         recentItemsTable?.reloadData()
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
-        viewModel.calcTotalsCurrentMonth()
+        viewModel.fetchMonthTotals()
         scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
     }
@@ -157,7 +157,7 @@ class InitialViewController: UIViewController {
         viewModel.calcYearTotals(year: currentYear)
         if segmentedControl.selectedSegmentIndex == 0 {
             summaryView.titleLabel.text = "Summary of \(currentMonth)"
-            viewModel.calcTotalsCurrentMonth()
+            viewModel.fetchMonthTotals()
             setupSummaryLabel(for: .month)
         } else {
             summaryView.titleLabel.text = "Summary of \(currentYear)"
@@ -212,7 +212,7 @@ class InitialViewController: UIViewController {
                 break
             }
             summaryView.titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: selectedMonth))"
-            viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+            viewModel.fetchMonthTotals(forDate: selectedMonth)
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
         } else {
             switch gesture.direction {
@@ -510,7 +510,7 @@ extension InitialViewController: InitialViewModelDelegate {
     func monthTotalChanged(forMonth: Month) {
         if forMonth.date == DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth) && summaryView.segmentedControl.selectedSegmentIndex == 0 {
             if view.window != nil && presentedViewController == nil {
-                viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+                viewModel.fetchMonthTotals(forDate: selectedMonth)
                 viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
                 scaleFactor = calcScaleFactor()
                 summaryView.barChart.reloadData()
