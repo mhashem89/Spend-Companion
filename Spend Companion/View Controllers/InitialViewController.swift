@@ -519,7 +519,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         let item = self.viewModel.recentItems[indexPath.row]
         let categoryVC = CategoryViewController(month: item.month!, category: item.category)
         let navVC = UINavigationController(rootViewController: categoryVC)
-        navVC.modalPresentationStyle = .overCurrentContext
+        navVC.modalPresentationStyle = .fullScreen
         if let itemIndex = categoryVC.viewModel?.items?.firstIndex(of: item) {
             present(navVC, animated: true) {
                 let selectedIndexPath = IndexPath(item: itemIndex, section: 0)
