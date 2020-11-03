@@ -172,4 +172,18 @@ class CategoryViewModel {
         self.items = category?.items?.allObjects as? [Item]
     }
     
+    func moveItem(item: Item, to categoryName: String, sisterItems: [Item]?) {
+        guard let categories = month.categories?.allObjects as? [Category] else { return }
+        guard let newCategory = categories.filter({ $0.name == categoryName }).first else { return }
+        item.category = newCategory
+        reloadData()
+        if let sisterItems = sisterItems {
+            sisterItems.forEach({
+                if let categoryName = newCategory.name, let itemMonthString = $0.month?.date {
+                    $0.category = InitialViewModel.shared.checkCategory(categoryName: categoryName, monthString: itemMonthString)
+                }
+            })
+        }
+    }
+    
 }

@@ -13,7 +13,7 @@ import StoreKit
 
 protocol RecurringViewControllerDelegate: class {
     
-    func recurringViewCancel()
+    func recurringViewCancel(viewEmpty: Bool)
     
     func recurringViewDone(with itemRecurrence: ItemRecurrence)
     
@@ -287,11 +287,11 @@ class RecurringViewController: UIViewController {
     }
     
     @objc func cancel() {
-        delegate?.recurringViewCancel()
+        delegate?.recurringViewCancel(viewEmpty: !periodTextField.hasText && !segmentedControl.isSelected)
     }
     
     @objc func done() {
-        if !dataChanged { delegate?.recurringViewCancel(); return }
+        if !dataChanged { delegate?.recurringViewCancel(viewEmpty: false); return }
         
         guard let period = periodTextField.text, let periodNum = Int(period), periodNum > 0 else {
             periodTextField.layer.borderColor = UIColor.systemRed.cgColor

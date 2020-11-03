@@ -11,7 +11,7 @@ import SwiftUI
 
 struct BarColorChooser: View {
     
-    @State var bgColor = Color(UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed)
+    @State private var bgColor = Color(UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed)
     
     var body: some View {
         

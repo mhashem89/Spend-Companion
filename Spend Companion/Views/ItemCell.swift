@@ -62,6 +62,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
     var recurringCircleButton: UIButton = {
         let button = UIButton(type: .system)
         button.setAttributedTitle(NSAttributedString(string: "⟳", attributes: [.font: UIFont.boldSystemFont(ofSize: 34 * fontScale)]), for: .normal)
+        button.isHidden = true
         return button
     }()
     
@@ -129,11 +130,13 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
     
     func setupUI() {
         if !setupUIDone {
-            addSubviews([dayLabel, dayTextField, detailTextField, amountTextField])
+            addSubviews([dayLabel, dayTextField, detailTextField, amountTextField, recurringCircleButton])
             dayLabel.anchor(leading: leadingAnchor, leadingConstant: frame.width * 0.05, centerY: centerYAnchor)
             dayTextField.anchor(top: topAnchor, leading: leadingAnchor, widthConstant: frame.width * 0.25, heightConstant: frame.height)
             detailTextField.anchor(leading: leadingAnchor, leadingConstant: frame.width * 0.27, centerY: centerYAnchor)
             amountTextField.anchor(leading: leadingAnchor, leadingConstant: frame.width * 0.78, centerY: centerYAnchor)
+            recurringCircleButton.anchor(trailing: trailingAnchor, trailingConstant: frame.width * 0.25, centerY: centerYAnchor)
+            recurringCircleButton.addTarget(self, action: #selector(recurrenceButtonPressed), for: .touchUpInside)
             addVerticalSeparator(for: dayLabel)
             addVerticalSeparator(for: detailTextField)
                     
@@ -164,11 +167,6 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         separator.anchor(centerX: centerXAnchor, centerXConstant: view == dayLabel ? -frame.width * 0.25 : frame.width * 0.26, centerY: centerYAnchor, widthConstant: 0.5, heightConstant: frame.height * 0.8)
     }
     
-    func addRecurrence(period: Int, unit: RecurringUnit) {
-        addSubview(recurringCircleButton)
-        recurringCircleButton.anchor(trailing: trailingAnchor, trailingConstant: frame.width * 0.25, centerY: centerYAnchor)
-        recurringCircleButton.addTarget(self, action: #selector(recurrenceButtonPressed), for: .touchUpInside)
-    }
     
     @objc func recurrenceButtonPressed() {
         delegate?.recurrenceButtonPressed(in: self)

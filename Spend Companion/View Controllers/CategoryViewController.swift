@@ -165,11 +165,10 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         } else {
             cell.amountTextField.text = nil
         }
-        if let period = item?.recurringNum, let unit = item?.recurringUnit {
-            let recurringUnit = RecurringUnit(rawValue: Int(truncating: unit))
-            cell.addRecurrence(period: Int(truncating: period), unit: recurringUnit!)
+        if let _ = item?.recurringNum, let _ = item?.recurringUnit {
+            cell.recurringCircleButton.isHidden = false
         } else {
-            cell.recurringCircleButton.removeFromSuperview()
+            cell.recurringCircleButton.isHidden = true
         }
         cell.dayPicker.delegate = self
         cell.dayPicker.dataSource = self
@@ -177,14 +176,50 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         if cell.isHighlighted { cell.isHighlighted = false }
         return cell
     }
+
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            guard let item = viewModel?.items?[indexPath.row] else { return }
-            viewModel?.deleteItem(item: item, at: indexPath)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            dataChanged()
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let item = viewModel?.items?[indexPath.row], let categoryName = item.category?.name else { return nil }
+        let move = UIContextualAction(style: .normal, title: "Move") { [weak self] (_, _, _) in
+            guard let categories = item.month?.categories?.allObjects as? [Category] else { return }
+            let moveItemVC = MoveItemViewController()
+            moveItemVC.delegate = self
+            moveItemVC.item = item
+            moveItemVC.selectedCategory = categoryName
+            moveItemVC.categoryNames = categories.compactMap({ $0.name })
+            self?.present(UINavigationController(rootViewController: moveItemVC), animated: true, completion: nil)
         }
+        move.backgroundColor = CustomColors.indigo
+        
+        let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, _) in
+            if item.recurringNum != nil, let sisterItems = item.sisterItems?.allObjects as? [Item] {
+                let alertController = UIAlertController(title: nil, message: "Delete all future transactions?", preferredStyle: .alert)
+                alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
+                alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { (_) in
+                    sisterItems.forEach({ self?.viewModel?.context.delete($0) })
+                }))
+                self?.present(alertController, animated: true, completion: nil)
+            }
+            self?.viewModel?.deleteItem(item: item, at: indexPath)
+            tableView.deleteRows(at: [indexPath], with: .automatic)
+            self?.dataChanged()
+        }
+
+        let swipe = UISwipeActionsConfiguration(actions: [delete, move])
+        return swipe
+    }
+    
+    func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        guard let item = viewModel?.items?[indexPath.row], item.recurringNum == nil else { return nil }
+        let setRecurring = UIContextualAction(style: .normal, title: "Recurring") { [weak self] (_, _, _) in
+            if let cell = tableView.cellForRow(at: indexPath) as? ItemCell {
+                cell.recurringCircleButton.isHidden = false
+                self?.recurrenceButtonPressed(in: cell)
+            }
+        }
+        setRecurring.backgroundColor = CustomColors.blue
+        let swipe = UISwipeActionsConfiguration(actions: [setRecurring])
+        return swipe
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -258,12 +293,9 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     func recurrenceButtonPressed(in cell: ItemCell) {
-        guard let indexPath = tableView.indexPath(for: cell) else { return }
+        guard let indexPath = tableView.indexPath(for: cell), let item = viewModel?.items?[indexPath.row] else { return }
         activeCell = cell
         scrollToActiveRow()
-        let item = viewModel!.items![indexPath.row]
-        guard let period = item.recurringNum, let unit = item.recurringUnit else { return }
-        let periodInt = Int(truncating: period)
         
         self.recurrenceViewer = RecurringViewController()
         recurrenceViewer.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
@@ -273,10 +305,14 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         recurrenceViewer.preferredContentSize = .init(width: 230 * fontScale, height: 330 * fontScale)
         
         recurrenceViewer.delegate = self
-        recurrenceViewer.periodTextField.text = String(periodInt)
-        recurrenceViewer.segmentedControl.selectedSegmentIndex = Int(truncating: unit)
-        recurrenceViewer.segmentedControl.isSelected = true
         recurrenceViewer.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
+        
+        if let period = item.recurringNum, let unit = item.recurringUnit {
+            let periodInt = Int(truncating: period)
+            recurrenceViewer.periodTextField.text = String(periodInt)
+            recurrenceViewer.segmentedControl.selectedSegmentIndex = Int(truncating: unit)
+            recurrenceViewer.segmentedControl.isSelected = true
+        }
         if let itemDate = item.date, itemDate < Date() { recurrenceViewer.reminderSwitch.removeFromSuperview() }
         if let endDate = item.recurringEndDate {
             recurrenceViewer.dayPicker.date = endDate
@@ -558,9 +594,12 @@ extension CategoryViewController: SortingViewControllerDelegate {
 
 extension CategoryViewController: RecurringViewControllerDelegate {
     
-    func recurringViewCancel() {
+    func recurringViewCancel(viewEmpty: Bool) {
         recurrenceViewer.dismiss(animated: true, completion: nil)
         dimmingView.removeFromSuperview()
+        if viewEmpty {
+            activeCell?.recurringCircleButton.isHidden = true
+        }
     }
     
     func recurringViewDone(with itemRecurrence: ItemRecurrence) {
@@ -584,8 +623,16 @@ extension CategoryViewController: RecurringViewControllerDelegate {
         }
         
     }
+   
+}
+
+extension CategoryViewController: MoveItemVCDelegate {
     
-    
+    func moveItem(item: Item, to category: String, sisterItems: [Item]?) {
+        viewModel?.moveItem(item: item, to: category, sisterItems: sisterItems)
+        tableView.reloadData()
+        dataChanged()
+    }
     
     
     

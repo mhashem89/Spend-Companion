@@ -45,6 +45,7 @@
 		D905F5B7253D584100FE4B59 /* ItemNameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F5AC253D584100FE4B59 /* ItemNameViewController.swift */; };
 		D905F5BD253D5B9A00FE4B59 /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F5BC253D5B9A00FE4B59 /* Extensions.swift */; };
 		D905F5E3253E4A7A00FE4B59 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */; };
+		D9255A5D254FD5C70071B89D /* MoveItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */; };
 		D96FBD0A253F96330025F5CF /* ArchivedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD09253F96330025F5CF /* ArchivedCode.swift */; };
 		D96FBD1225408A480025F5CF /* DateFormatters.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD1125408A480025F5CF /* DateFormatters.swift */; };
 		D96FBD17254090EF0025F5CF /* Data Objects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD16254090EF0025F5CF /* Data Objects.swift */; };
@@ -119,6 +120,7 @@
 		D905F5AC253D584100FE4B59 /* ItemNameViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ItemNameViewController.swift; sourceTree = "<group>"; };
 		D905F5BC253D5B9A00FE4B59 /* Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveItemViewController.swift; sourceTree = "<group>"; };
 		D96FBD09253F96330025F5CF /* ArchivedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArchivedCode.swift; path = "Spend Companion/Extensions/ArchivedCode.swift"; sourceTree = SOURCE_ROOT; };
 		D96FBD1125408A480025F5CF /* DateFormatters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatters.swift; sourceTree = "<group>"; };
 		D96FBD16254090EF0025F5CF /* Data Objects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data Objects.swift"; sourceTree = "<group>"; };
@@ -264,6 +266,7 @@
 				D905F5A2253D584000FE4B59 /* CalenderViewController.swift */,
 				D905F5AB253D584100FE4B59 /* CategoryTitleViewController.swift */,
 				D905F5A9253D584100FE4B59 /* CategoryViewController.swift */,
+				D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */,
 				D905F5AA253D584100FE4B59 /* ChartViewController.swift */,
 				D905F5A5253D584000FE4B59 /* FilterViewController.swift */,
 				D905F5AC253D584100FE4B59 /* ItemNameViewController.swift */,
@@ -456,6 +459,7 @@
 				D96FBD17254090EF0025F5CF /* Data Objects.swift in Sources */,
 				D905F59C253D582000FE4B59 /* ItemTableHeader.swift in Sources */,
 				D905F5AF253D584100FE4B59 /* MonthViewController.swift in Sources */,
+				D9255A5D254FD5C70071B89D /* MoveItemViewController.swift in Sources */,
 				D905F584253D579E00FE4B59 /* CalendarViewModel.swift in Sources */,
 				D96FBD28254125960025F5CF /* CustomColors.swift in Sources */,
 				D905F596253D582000FE4B59 /* RecentItemCell.swift in Sources */,
@@ -629,6 +633,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Spend Companion/Spend Companion.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1.0.1;
 				DEVELOPMENT_TEAM = 2PV3PD3H4V;
 				INFOPLIST_FILE = "Spend Companion/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -636,6 +641,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "MohamedHashem.Spend-Companion";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -652,6 +658,7 @@
 				CODE_SIGN_ENTITLEMENTS = "Spend Companion/Spend Companion.entitlements";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1.0.1;
 				DEVELOPMENT_TEAM = 2PV3PD3H4V;
 				INFOPLIST_FILE = "Spend Companion/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
@@ -659,6 +666,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "MohamedHashem.Spend-Companion";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";

@@ -124,3 +124,55 @@ import Foundation
 //button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
 //button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
 //navigationController?.tabBarItem = button
+
+//
+//
+//class DateFormats {
+//
+//    static let fullDateWithLetters = "E, d, MMM yyyy"
+//
+//    static let fullDate = "MMM d, yyyy"
+//
+//    static let monthYear = "MMMM yyyy"
+//
+//    static let abbreviatedMonthYear = "MMM yyyy"
+//
+//    static let abbreviatedMonth = "MMM"
+//
+//    static let year = "yyyy"
+//}
+//
+//
+//@propertyWrapper
+//struct FormattedDate {
+//
+//    private var dateFormatter = DateFormatter()
+//
+//    var wrappedValue: Date
+//
+//    var projectedValue: String? {
+//        return dateFormatter.string(from: wrappedValue)
+//    }
+//
+//    init(wrappedValue: Date, dateFormat: String) {
+//        self.wrappedValue = wrappedValue
+//        self.dateFormatter.dateFormat = dateFormat
+//    }
+//
+//}
+//
+//
+//@propertyWrapper
+//struct FormattedDateString {
+//
+//    private var dateFormatter = DateFormatter()
+//
+//    var wrappedValue: String
+//
+//    var projectedValue: Date?
+//
+//    init(wrappedValue: String, dateFormat: String) {
+//        self.wrappedValue = wrappedValue
+//        self.dateFormatter.dateFormat = dateFormat
+//    }
+//}

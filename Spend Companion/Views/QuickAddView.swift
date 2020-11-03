@@ -80,7 +80,7 @@ class QuickAddView: UIView {
         tf.tag = 1
         tf.inputView = dayPicker
         tf.tintColor = .clear
-        let toolBar = UIToolbar()
+        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * viewsHeightScale)))
         toolBar.sizeToFit()
 
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
@@ -92,6 +92,9 @@ class QuickAddView: UIView {
         
         dayPicker.datePickerMode = .date
         dayPicker.addTarget(self, action: #selector(datePicked), for: .valueChanged)
+        if #available(iOS 14.0, *) {
+            dayPicker.preferredDatePickerStyle = .wheels
+        }
         tf.inputView = dayPicker
         tf.inputAccessoryView = toolBar
         
@@ -238,7 +241,7 @@ class QuickAddView: UIView {
     }
     
     private func setupAmountToolbar() {
-        let toolBar = UIToolbar()
+        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * viewsHeightScale)))
         toolBar.sizeToFit()
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))

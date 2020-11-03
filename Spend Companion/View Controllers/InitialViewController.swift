@@ -571,7 +571,7 @@ extension InitialViewController: InitialViewModelDelegate {
 
 extension InitialViewController: RecurringViewControllerDelegate {
     
-    func recurringViewCancel() {
+    func recurringViewCancel(viewEmpty: Bool) {
         dismiss(animated: true, completion: nil)
         dimmingView.removeFromSuperview()
     }
