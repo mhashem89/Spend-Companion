@@ -25,17 +25,7 @@ class CategoryViewModel {
     var items: [Item]?
     var isFavorite: Bool = false
     var reminderUIDsForDeletion = [String]()
-    
-    lazy var dataFetcher: NSFetchedResultsController<Item> = {
-        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-        fetchRequest.predicate = NSPredicate(format: "category = %@", category!)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        let frc = NSFetchedResultsController(fetchRequest: fetchRequest,
-                                             managedObjectContext: context,
-                                             sectionNameKeyPath: nil,
-                                             cacheName: nil)
-        return frc
-    }()
+
     
     init(month: Month, category: Category? = nil) {
         self.month = month
@@ -46,12 +36,6 @@ class CategoryViewModel {
         }
     }
     
-    func createNewCategory(name: String) {
-        let newCategory = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context) as! Category
-        newCategory.month = month
-        newCategory.name = name
-        self.category = newCategory
-    }
     
     func createNewItem() {
         let newItem = NSEntityDescription.insertNewObject(forEntityName: "Item", into: context) as! Item
@@ -120,21 +104,21 @@ class CategoryViewModel {
         items?.remove(at: indexPath.row)
     }
     
-    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence, sisterItems: [Item]? = nil) {
-        item.recurringNum = NSNumber(value: itemRecurrence.period)
-        item.recurringUnit = NSNumber(value: itemRecurrence.unit.rawValue)
-        item.recurringEndDate = itemRecurrence.endDate
+    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, sisterItems: [Item]? = nil) {
+        item.recurringNum = NSNumber(value: newRecurrence.period)
+        item.recurringUnit = NSNumber(value: newRecurrence.unit.rawValue)
+        item.recurringEndDate = newRecurrence.endDate
         
-        switch (item.reminderTime, itemRecurrence.reminderTime) {
+        switch (item.reminderTime, newRecurrence.reminderTime) {
         case (nil, nil):
             break
         case (.some(_), nil):
             item.reminderTime = nil
             item.reminderUID = nil
         case (nil, .some(_)):
-            item.reminderTime = NSNumber(value: itemRecurrence.reminderTime!)
+            item.reminderTime = NSNumber(value: newRecurrence.reminderTime!)
         case (.some(_), .some(_)):
-            if let itemReminderTime = item.reminderTime, let itemRecurrenceTime = itemRecurrence.reminderTime, Int(truncating: itemReminderTime) != itemRecurrenceTime {
+            if let itemReminderTime = item.reminderTime, let itemRecurrenceTime = newRecurrence.reminderTime, Int(truncating: itemReminderTime) != itemRecurrenceTime {
                 item.reminderTime = NSNumber(value: itemRecurrenceTime)
             }
         }
@@ -149,17 +133,17 @@ class CategoryViewModel {
             guard var itemDate = item.date else { return }
             var items = [item]
             var dateComponent = DateComponents()
-            switch itemRecurrence.unit {
-            case .day: dateComponent.day = itemRecurrence.period
-            case .month: dateComponent.month = itemRecurrence.period
-            case .week: dateComponent.weekOfYear = itemRecurrence.period
+            switch newRecurrence.unit {
+            case .day: dateComponent.day = newRecurrence.period
+            case .month: dateComponent.month = newRecurrence.period
+            case .week: dateComponent.weekOfYear = newRecurrence.period
             }
             
             repeat {
                 itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-                let newItem = InitialViewModel.shared.createNewItem(date: itemDate, description: item.detail ?? "", type: ItemType(rawValue: item.type)!, category: item.category?.name, amount: item.amount, itemRecurrence: itemRecurrence, save: false)
+                let newItem = InitialViewModel.shared.createNewItem(date: itemDate, description: item.detail ?? "", type: ItemType(rawValue: item.type)!, category: item.category?.name, amount: item.amount, itemRecurrence: newRecurrence, save: false)
                 items.append(newItem)
-            } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= itemRecurrence.endDate
+            } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= newRecurrence.endDate
             
             for item in items {
                 item.sisterItems = NSSet(array: items.filter({ $0 != item }))

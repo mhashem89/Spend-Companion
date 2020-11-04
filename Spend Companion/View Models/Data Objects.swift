@@ -107,12 +107,4 @@ struct ItemRecurrence {
     var unit: RecurringUnit
     var reminderTime: Int?
     var endDate: Date
-    
-//    init?(item: Item) {
-//        guard let recurringNum = item.recurringNum, let recurringUnit = item.recurringUnit, let endDate = item.recurringEndDate else { return }
-//        self.period = Int(truncating: recurringNum)
-//        self.unit = RecurringUnit(rawValue: Int(truncating: recurringUnit))!
-//        if let itemReminderTime = item.reminderTime { self.reminderTime = Int(truncating: itemReminderTime) }
-//        self.endDate = endDate
-//    }
 }

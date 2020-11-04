@@ -211,3 +211,17 @@ import Foundation
 //        delegate?.presentError(error: err)
 //    }
 //}
+
+
+
+
+//    lazy var dataFetcher: NSFetchedResultsController<Item> = {
+//        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
+//        fetchRequest.predicate = NSPredicate(format: "category = %@", category!)
+//        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
+//        let frc = NSFetchedResultsController(fetchRequest: fetchRequest,
+//                                             managedObjectContext: context,
+//                                             sectionNameKeyPath: nil,
+//                                             cacheName: nil)
+//        return frc
+//    }()

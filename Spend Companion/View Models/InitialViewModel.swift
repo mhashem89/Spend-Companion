@@ -233,21 +233,7 @@ class InitialViewModel: NSObject {
             return nil
         }
     }
-    
-    
-    func checkMonth(with controller: NSFetchedResultsController<Month>) -> Month? {
-        do {
-            try controller.performFetch()
-        } catch let err {
-            print(err.localizedDescription)
-            delegate?.presentError(error: err)
-        }
-        if let fetchedMonth = controller.fetchedObjects?.first {
-            return fetchedMonth
-        } else {
-            return nil
-        }
-    }
+
     
     func extractMonthString(from dayString: String) -> String {
         let segments = dayString.split(separator: " ")

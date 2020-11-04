@@ -48,5 +48,9 @@ class DateFormatters {
         return formatter
     }()
     
-    
+    static let monthFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM"
+        return formatter
+    }()
 }

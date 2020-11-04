@@ -121,7 +121,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
         filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
         
-        let currentMonthString = viewModel.monthFormatter.string(from: Date())
+        let currentMonthString = DateFormatters.monthFormatter.string(from: Date())
         self.filteredRowName = "\(currentMonthString)"
         self.filteredRowLabel.text = currentMonthString
     }

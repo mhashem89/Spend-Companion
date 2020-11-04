@@ -23,12 +23,6 @@ class ChartViewModel {
     
     static let shared = ChartViewModel()
     
-    let monthFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM"
-        return formatter
-    }()
-    
     
     func calcMaxInYear(year: String, forIncome income: Bool = false) -> Double? {
         var totals = [Double]()
