@@ -38,11 +38,21 @@ class RecentItemCell: UITableViewCell {
     func setupUI() {
         addSubview(amountLabel)
         amountLabel.anchor(trailing: trailingAnchor, trailingConstant: 10, centerY: centerYAnchor)
+        detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
     }
     
     func addRecurrence() {
         addSubview(recurringCircleButton)
         recurringCircleButton.anchor(leading: textLabel?.trailingAnchor, leadingConstant: 10, centerY: centerYAnchor)
+    }
+    
+    func formatTitleLabel(itemName name: String?, on date: String) {
+        let titleString = NSMutableAttributedString(string: name ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
+        
+        let formattedDayString = NSAttributedString(string: "   \(date)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.systemGray])
+        titleString.append(formattedDayString)
+        
+        textLabel?.attributedText = titleString
     }
     
     func formatAmountLabel(with amount: Double) {

@@ -113,9 +113,7 @@ class CategoryViewController: UIViewController {
         headerView.sortButton.addTarget(self, action: #selector(self.sort), for: .touchUpInside)
         headerView.favoriteButton.addTarget(self, action: #selector(favoriteCategory), for: .touchUpInside)
         toggleFavoriteButton()
-        
         headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * viewsHeightScale)
-        
         headerView.setupUI()
         headerView.titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
         headerView.delegate = self
@@ -125,14 +123,11 @@ class CategoryViewController: UIViewController {
         tableView.register(ItemCell.self, forCellReuseIdentifier: itemId)
         tableView.delegate = self
         tableView.dataSource = self
-        
         tableView.tableFooterView = UIView()
         tableView.allowsSelection = false
         tableView.keyboardDismissMode = .interactive
-        
         tableView.anchor(top: headerView.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
     }
-    
     
     @objc func selectTitle() {
         let categoryTitleVC = CategoryTitleViewController(categoryName: viewModel?.category?.name)
@@ -416,10 +411,7 @@ extension CategoryViewController: CategoryTitleViewControllerDelegate {
     }
 }
 
-
-
 // MARK:- Item Cell Delegate
-
 
 extension CategoryViewController: ItemCellDelegate {
     

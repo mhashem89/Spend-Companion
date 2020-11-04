@@ -444,14 +444,10 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = recentItemsTable?.dequeueReusableCell(withIdentifier: tableCellId, for: indexPath) as! RecentItemCell
         let item = viewModel.recentItems[indexPath.row]
-        let titleString = NSMutableAttributedString(string: item.detail ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
         let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
         let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
-        let formattedDayString = NSAttributedString(string: "   \(dayString)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.systemGray])
-        titleString.append(formattedDayString)
-        cell.textLabel?.attributedText = titleString
+        cell.formatTitleLabel(itemName: item.detail, on: dayString)
         cell.detailTextLabel?.text = viewModel.recentItems[indexPath.row].category?.name
-        cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
         let roundedAmount = (viewModel.recentItems[indexPath.row].amount * 100).rounded() / 100
         cell.formatAmountLabel(with: roundedAmount)
         if item.recurringNum != nil && item.recurringUnit != nil {
