@@ -521,83 +521,36 @@ extension CategoryViewController: UIPickerViewDelegate, UIPickerViewDataSource, 
 
 extension CategoryViewController: SortingViewControllerDelegate {
     
-    func dateAscending() {
+    func sortingChosen(option: SortingOption, direction: SortingDirection) {
         var nilItems = [Item]()
         var nonNilItems = [Item]()
-        for item in viewModel!.items! {
-            item.date == nil ? nilItems.append(item) : nonNilItems.append(item)
+        guard let viewModelItems = viewModel?.items else { return }
+        switch option {
+        case .date:
+            nonNilItems = viewModelItems.filter({ $0.date != nil })
+            nilItems  = viewModelItems.filter({ !nonNilItems.contains($0) })
+            nonNilItems = nonNilItems.sorted(by: {
+                direction == .ascending ? $0.date! < $1.date! : $0.date! > $1.date!
+            })
+            viewModel?.items = nonNilItems + nilItems
+        case .name:
+            nonNilItems = viewModelItems.filter({ $0.detail != nil })
+            nilItems  = viewModelItems.filter({ !nonNilItems.contains($0) })
+            nonNilItems = nonNilItems.sorted(by: {
+                direction == .ascending ? $0.detail! < $1.detail! : $0.detail! > $1.detail!
+            })
+            viewModel?.items = nonNilItems + nilItems
+        case .amount:
+            viewModel?.items = viewModel?.items?.sorted(by: {
+                direction == .ascending ? $0.amount < $1.amount : $0.amount > $1.amount
+            })
         }
-        nonNilItems = nonNilItems.sorted( by: { $0.date! < $1.date! } )
-        viewModel?.items = nonNilItems + nilItems
         tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
         sortingVC.dismiss(animated: true) {
             self.dimmingView.removeFromSuperview()
             nilItems.removeAll(); nonNilItems.removeAll()
         }
     }
-    
-    func dateDescending() {
-        var nilItems = [Item]()
-        var nonNilItems = [Item]()
-        for item in viewModel!.items! {
-            item.date == nil ? nilItems.append(item) : nonNilItems.append(item)
-        }
-        nonNilItems = nonNilItems.sorted( by: { $0.date! > $1.date! } )
-        viewModel?.items = nonNilItems + nilItems
-        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-        sortingVC.dismiss(animated: true) {
-            self.dimmingView.removeFromSuperview()
-            nilItems.removeAll(); nonNilItems.removeAll()
-        }
-    }
-    
-    func amountAscending() {
-        viewModel?.items = viewModel?.items?.sorted( by: { $0.amount < $1.amount } )
-        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-        sortingVC.dismiss(animated: true) {
-            self.dimmingView.removeFromSuperview()
-        }
-    }
-    
-    func amountDescending() {
-        viewModel?.items = viewModel?.items?.sorted( by: { $0.amount > $1.amount } )
-        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-        sortingVC.dismiss(animated: true) {
-            self.dimmingView.removeFromSuperview()
-        }
-    }
-    
-    func nameAscending() {
-        var nilItems = [Item]()
-        var nonNilItems = [Item]()
-        for item in viewModel!.items! {
-            item.detail == nil ? nilItems.append(item) : nonNilItems.append(item)
-        }
-        nonNilItems = nonNilItems.sorted( by: { $0.detail! < $1.detail! } )
-        viewModel?.items = nonNilItems + nilItems
-        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-        sortingVC.dismiss(animated: true) {
-            self.dimmingView.removeFromSuperview()
-            nilItems.removeAll(); nonNilItems.removeAll()
-        }
-    }
-    
-    func nameDescending() {
-        var nilItems = [Item]()
-        var nonNilItems = [Item]()
-        for item in viewModel!.items! {
-            item.detail == nil ? nilItems.append(item) : nonNilItems.append(item)
-        }
-        nonNilItems = nonNilItems.sorted( by: { $0.detail! > $1.detail! } )
-        viewModel?.items = nonNilItems + nilItems
-        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-        sortingVC.dismiss(animated: true) {
-            self.dimmingView.removeFromSuperview()
-            nilItems.removeAll(); nonNilItems.removeAll()
-        }
-    }
-    
-    
 }
 
 // MARK:- Recurring View Controller Deleagte

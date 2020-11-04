@@ -11,12 +11,13 @@ import UIKit
 
 protocol SortingViewControllerDelegate: class {
     
-    func dateAscending()
-    func dateDescending()
-    func amountAscending()
-    func amountDescending()
-    func nameAscending()
-    func nameDescending()
+//    func dateAscending()
+//    func dateDescending()
+//    func amountAscending()
+//    func amountDescending()
+//    func nameAscending()
+//    func nameDescending()
+    func sortingChosen(option: SortingOption, direction: SortingDirection)
 }
 
 class SortingViewController: UITableViewController {
@@ -54,17 +55,17 @@ class SortingViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: false)
         switch indexPath.row {
         case 0:
-            delegate?.dateAscending()
+            delegate?.sortingChosen(option: .date, direction: .ascending)
         case 1:
-            delegate?.dateDescending()
+            delegate?.sortingChosen(option: .date, direction: .descending)
         case 2:
-            delegate?.amountAscending()
+            delegate?.sortingChosen(option: .amount, direction: .ascending)
         case 3:
-            delegate?.amountDescending()
+            delegate?.sortingChosen(option: .amount, direction: .descending)
         case 4:
-            delegate?.nameAscending()
+            delegate?.sortingChosen(option: .name, direction: .ascending)
         case 5:
-            delegate?.nameDescending()
+            delegate?.sortingChosen(option: .name, direction: .descending)
         default:
             break
         }

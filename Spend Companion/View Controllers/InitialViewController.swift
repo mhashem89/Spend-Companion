@@ -340,7 +340,7 @@ extension InitialViewController: QuickAddViewDelegate {
         recurringVC.popoverPresentationController?.sourceView = quickAddView.recurringButton
         recurringVC.popoverPresentationController?.sourceRect = quickAddView.recurringButton.bounds
         recurringVC.popoverPresentationController?.permittedArrowDirections = [.down, .right]
-        recurringVC.preferredContentSize = .init(width: 220 * fontScale, height: 330 * fontScale)
+        recurringVC.preferredContentSize = .init(width: fontScale < 1 ? 220 : 220 * fontScale, height: fontScale < 1 ? 330 : 330 * fontScale)
         recurringVC.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: quickAddView.dayPickerDate ?? Date())
         present(recurringVC, animated: true)
         dimBackground()

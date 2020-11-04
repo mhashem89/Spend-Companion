@@ -236,3 +236,84 @@ import Foundation
 //        })
 //    }
 //}
+
+
+
+//
+//    func dateAscending() {
+//        var nilItems = [Item]()
+//        var nonNilItems = [Item]()
+//        for item in viewModel!.items! {
+//            item.date == nil ? nilItems.append(item) : nonNilItems.append(item)
+//        }
+//        nonNilItems = nonNilItems.sorted( by: { $0.date! < $1.date! } )
+//        viewModel?.items = nonNilItems + nilItems
+//        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+//        sortingVC.dismiss(animated: true) {
+//            self.dimmingView.removeFromSuperview()
+//            nilItems.removeAll(); nonNilItems.removeAll()
+//        }
+//    }
+//
+//    func dateDescending() {
+//        var nilItems = [Item]()
+//        var nonNilItems = [Item]()
+//        for item in viewModel!.items! {
+//            item.date == nil ? nilItems.append(item) : nonNilItems.append(item)
+//        }
+//        nonNilItems = nonNilItems.sorted( by: { $0.date! > $1.date! } )
+//        viewModel?.items = nonNilItems + nilItems
+//        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+//        sortingVC.dismiss(animated: true) {
+//            self.dimmingView.removeFromSuperview()
+//            nilItems.removeAll(); nonNilItems.removeAll()
+//        }
+//    }
+//
+//    func amountAscending() {
+//        viewModel?.items = viewModel?.items?.sorted( by: { $0.amount < $1.amount } )
+//        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+//        sortingVC.dismiss(animated: true) {
+//            self.dimmingView.removeFromSuperview()
+//        }
+//    }
+//
+//    func amountDescending() {
+//        viewModel?.items = viewModel?.items?.sorted( by: { $0.amount > $1.amount } )
+//        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+//        sortingVC.dismiss(animated: true) {
+//            self.dimmingView.removeFromSuperview()
+//        }
+//    }
+//
+//    func nameAscending() {
+//        var nilItems = [Item]()
+//        var nonNilItems = [Item]()
+//        for item in viewModel!.items! {
+//            item.detail == nil ? nilItems.append(item) : nonNilItems.append(item)
+//        }
+//        nonNilItems = nonNilItems.sorted( by: { $0.detail! < $1.detail! } )
+//        viewModel?.items = nonNilItems + nilItems
+//        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+//        sortingVC.dismiss(animated: true) {
+//            self.dimmingView.removeFromSuperview()
+//            nilItems.removeAll(); nonNilItems.removeAll()
+//        }
+//    }
+//
+//    func nameDescending() {
+//        var nilItems = [Item]()
+//        var nonNilItems = [Item]()
+//        for item in viewModel!.items! {
+//            item.detail == nil ? nilItems.append(item) : nonNilItems.append(item)
+//        }
+//        nonNilItems = nonNilItems.sorted( by: { $0.detail! > $1.detail! } )
+//        viewModel?.items = nonNilItems + nilItems
+//        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+//        sortingVC.dismiss(animated: true) {
+//            self.dimmingView.removeFromSuperview()
+//            nilItems.removeAll(); nonNilItems.removeAll()
+//        }
+//    }
+    
+    

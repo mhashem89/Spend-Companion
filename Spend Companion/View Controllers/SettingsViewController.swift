@@ -143,7 +143,7 @@ class SettingsViewController: UITableViewController {
 // MARK:- Methods
     
     func buyiCloudSync() {
-        let alertController = UIAlertController(title: "Purchase iCloud sync", message: "for $1.99 you can sync your transactions across all devices, syncing happens automatically!", preferredStyle: .actionSheet)
+        let alertController = UIAlertController(title: "Purchase iCloud sync", message: "for $1.99 (or equivalent in local currency) you can sync your transactions across all devices, syncing happens automatically!", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { [unowned self] (_) in
             if SKPaymentQueue.canMakePayments() {
                 let paymentRequest = SKMutablePayment()
@@ -160,7 +160,7 @@ class SettingsViewController: UITableViewController {
     }
     
     func toggleiCloudSync(sync: Bool) {
-        iCloudKeyStore.set(sync, forKey: "iCloud sync")
+        iCloudKeyStore.set(sync, forKey: SettingNames.iCloudSync)
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         appDelegate.persistentContainer = appDelegate.setupPersistentContainer()
         InitialViewController.shared.updateData()

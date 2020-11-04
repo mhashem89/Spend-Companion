@@ -56,6 +56,14 @@ class CommonObjects {
 }
 
 
+enum SortingOption {
+    case date, amount, name
+}
+
+enum SortingDirection {
+    case ascending, descending
+}
+
 
 enum ItemType: Int16 {
     case spending = 0

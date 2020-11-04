@@ -101,7 +101,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-            if !iCloudKeyStore.bool(forKey: "iCloud sync") {
+            if !iCloudKeyStore.bool(forKey: SettingNames.iCloudSync) {
                 description.cloudKitContainerOptions = nil
             }
             

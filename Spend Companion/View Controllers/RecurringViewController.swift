@@ -37,13 +37,6 @@ class RecurringViewController: UIViewController {
     
     var upperStack: UIStackView!
     
-    var puchasePrice: String = {
-        let numberFormatter = NumberFormatter()
-        numberFormatter.locale = .current
-        numberFormatter.numberStyle = .currency
-        return numberFormatter.string(from: 0.99)!
-    }()
-    
     var questionLabel: UILabel = {
         let lbl = UILabel()
         lbl.text = "Recurring every:"
@@ -166,6 +159,7 @@ class RecurringViewController: UIViewController {
     }()
     
     
+    
 // MARK:- Life Cycle Methods
     
     init(itemRecurrence: ItemRecurrence? = nil) {
@@ -206,7 +200,6 @@ class RecurringViewController: UIViewController {
         
         let lowerStack = UIStackView(arrangedSubviews: [cancelButton, doneButton])
         lowerStack.axis = .horizontal; lowerStack.spacing = 15; lowerStack.distribution = .fillEqually
-        upperStack.anchor(widthConstant: fontScale < 1 ? 200 : 200 * fontScale)
         
         let stack = UIStackView(arrangedSubviews: [upperStack, lowerStack])
         stack.axis = .vertical; stack.spacing = 15
@@ -297,7 +290,7 @@ class RecurringViewController: UIViewController {
     }
     
     func buyReminders() {
-        let alertController = UIAlertController(title: "Purchase Reminders", message: "for \(puchasePrice) you can set custom reminders for any recurring transaction", preferredStyle: .actionSheet)
+        let alertController = UIAlertController(title: "Purchase Reminders", message: "for $0.99 (or equivalent in local currency) you can set custom reminders for any recurring transaction", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { (_) in
             if SKPaymentQueue.canMakePayments() {
                 let remindersPayment = SKMutablePayment()
