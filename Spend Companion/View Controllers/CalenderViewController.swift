@@ -56,12 +56,6 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = false
         collectionView.reloadSections(IndexSet(arrayLiteral: 1))
-        
-//        UNUserNotificationCenter.current().getPendingNotificationRequests { (requests) in
-//            DispatchQueue.main.async {
-//                requests.forEach({ print("WTF", $0.content.title, $0.trigger) })
-//            }
-//        }
     }
     
     func setupNavBar() {

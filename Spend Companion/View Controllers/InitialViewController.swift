@@ -29,6 +29,7 @@ class InitialViewController: UIViewController {
     var selectedYear = Date()
     var selectedMonthScaledData: (CGFloat, CGFloat) = (0,0)
     var selectedYearScaledData: (CGFloat, CGFloat) = (0,0)
+    var monthChanged: Bool = false
     
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
@@ -46,36 +47,12 @@ class InitialViewController: UIViewController {
     
     var recentItemsTable: UITableView?
     
-    var monthChanged: Bool = false
-    
     var emptyItemsLabel: UILabel = {
         let lbl = UILabel()
         lbl.text = "Items from last 7 days will appear here"
         lbl.textColor = CustomColors.darkGray
         lbl.font = UIFont.italicSystemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
         return lbl
-    }()
-    
-    var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: "currency") as? String
-    }
-    
-    var currencySymbol: String? {
-        if let storedCurrency = userCurrency {
-            return CurrencyViewController.extractSymbol(from: storedCurrency)
-        } else {
-            return "$"
-        }
-    }
-    
-    var numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.locale = .current
-        formatter.numberStyle = .currency
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 2
-        formatter.minusSign = ""
-        return formatter
     }()
     
     
@@ -85,6 +62,7 @@ class InitialViewController: UIViewController {
         super.viewDidLoad()
         quickAddView.delegate = self
         viewModel.delegate = self
+        
         if #available(iOS 13, *) {
             tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house.fill"), tag: 0)
         } else {
@@ -93,6 +71,7 @@ class InitialViewController: UIViewController {
             button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
             navigationController?.tabBarItem = button
         }
+        
         navigationController?.navigationBar.isHidden = true
         view.backgroundColor = CustomColors.systemBackground
         view.addSubview(scrollView)
@@ -117,8 +96,8 @@ class InitialViewController: UIViewController {
             setupRecentItemTable()
         }
         reloadMonthDataAfterChange()
-        quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
-        quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
+        quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
+        quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
     }
     
     
@@ -141,7 +120,7 @@ class InitialViewController: UIViewController {
     
     func reloadMonthDataAfterChange() {
         if monthChanged && summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+            viewModel.fetchMonthTotals(forDate: selectedMonth)
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
             scaleFactor = calcScaleFactor()
             summaryView.barChart.reloadData()
@@ -153,7 +132,7 @@ class InitialViewController: UIViewController {
         viewModel.fetchRecentItems()
         recentItemsTable?.reloadData()
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
-        viewModel.calcTotalsCurrentMonth()
+        viewModel.fetchMonthTotals()
         scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
     }
@@ -179,7 +158,7 @@ class InitialViewController: UIViewController {
         viewModel.calcYearTotals(year: currentYear)
         if segmentedControl.selectedSegmentIndex == 0 {
             summaryView.titleLabel.text = "Summary of \(currentMonth)"
-            viewModel.calcTotalsCurrentMonth()
+            viewModel.fetchMonthTotals()
             setupSummaryLabel(for: .month)
         } else {
             summaryView.titleLabel.text = "Summary of \(currentYear)"
@@ -202,7 +181,7 @@ class InitialViewController: UIViewController {
             if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0, numDays > 7 {
                 let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
                 summaryView.summaryLabel.isHidden = false
-                let averageString = formatCurrency(with: average)
+                let averageString = CommonObjects.shared.formattedCurrency(with: average)
                 summaryView.summaryLabel.text = "Average daily spending this month: \(averageString ?? "")"
                 summaryView.summaryLabel.sizeToFit()
             } else {
@@ -211,7 +190,7 @@ class InitialViewController: UIViewController {
         } else if component == .year {
             if let averageThisYear = viewModel.calcAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
                 summaryView.summaryLabel.isHidden = false
-                let averageString = formatCurrency(with: Double(averageThisYear))
+                let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
                 if averageThisYear > 0 {
                     summaryView.summaryLabel.text = "On average this year, you make \(averageString ?? "") more than you spend per month"
                 } else {
@@ -222,19 +201,6 @@ class InitialViewController: UIViewController {
             }
         }
     }
-    
-    func formatCurrency(with amount: Double) -> String? {
-        let amountString = String(format: "%g", amount > 0 ? amount : -amount)
-        if let storedCurrency = userCurrency {
-            if storedCurrency == "Local currency" {
-                return numberFormatter.string(from: NSNumber(value: amount))
-            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-                return currencyPosition == .left ? "\(currencySymbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol ?? "")"
-            }
-        }
-        return amountString
-    }
-    
     
     @objc func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
         if summaryView.segmentedControl.selectedSegmentIndex == 0 {
@@ -247,7 +213,7 @@ class InitialViewController: UIViewController {
                 break
             }
             summaryView.titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: selectedMonth))"
-            viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+            viewModel.fetchMonthTotals(forDate: selectedMonth)
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
         } else {
             switch gesture.direction {
@@ -309,7 +275,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         cell.cellLabel.text = summaryLabels[indexPath.item]
         let maxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: fontScale < 1 ? 14 : 16 * fontScale).width
         cell.cellLabel.frame = .init(x: 0, y: 0, width: maxWidth + 8, height: cell.frame.height)
-        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: "label color") ?? .systemBlue
+        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         var value: Double = 0
         var priorValue: CGFloat = 0
         switch (summaryView.segmentedControl.selectedSegmentIndex, indexPath.row) {
@@ -330,7 +296,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         }
         cell.valueLabel.text = String(format: "%g", value)
         cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: priorValue, height: 25)
-        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed
+        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + priorValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
         let scaledValue = self.scaleFactor < 1 ? CGFloat(value * self.scaleFactor) : CGFloat(value)
         let distanceToMove = scaledValue - priorValue
@@ -365,11 +331,9 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
 
 extension InitialViewController: QuickAddViewDelegate {
     
-    
-    
     func openRecurringWindow() {
         
-        let recurringVC = RecurringViewController()
+        let recurringVC = RecurringViewController(itemRecurrence: quickAddView.itemRecurrence)
         recurringVC.delegate = self
         recurringVC.modalPresentationStyle = fontScale < 0.9 ? .overCurrentContext : .popover
         recurringVC.popoverPresentationController?.delegate = self
@@ -378,22 +342,9 @@ extension InitialViewController: QuickAddViewDelegate {
         recurringVC.popoverPresentationController?.permittedArrowDirections = [.down, .right]
         recurringVC.preferredContentSize = .init(width: 220 * fontScale, height: 330 * fontScale)
         recurringVC.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: quickAddView.dayPickerDate ?? Date())
-        if let itemRecurrence = quickAddView.itemRecurrence {
-            recurringVC.periodTextField.text = String(itemRecurrence.period)
-            recurringVC.segmentedControl.selectedSegmentIndex = itemRecurrence.unit.rawValue
-            recurringVC.segmentedControl.isSelected = true
-            recurringVC.endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: itemRecurrence.endDate))"
-            recurringVC.endDateLabel.textColor = CustomColors.label
-            if let reminderTime = itemRecurrence.reminderTime {
-                recurringVC.reminderSwitch.isOn = true
-                recurringVC.reminderSegmentedControl.isSelected = true
-                recurringVC.reminderSegmentedControl.selectedSegmentIndex = reminderTime - 1 
-            }
-        }
         present(recurringVC, animated: true)
         dimBackground()
     }
-    
     
     func saveItem() {
         guard
@@ -414,7 +365,7 @@ extension InitialViewController: QuickAddViewDelegate {
         showSavedAlert()
        
         if self.summaryView.segmentedControl.selectedSegmentIndex == 1 {
-            let itemDate = quickAddView.dayLabel.text == "Today" ? Date() : quickAddView.dayFormatter.date(from: quickAddView.dayLabel.text!)
+            let itemDate = quickAddView.dayLabel.text == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: quickAddView.dayLabel.text!)
             let itemYear = DateFormatters.yearFormatter.string(from: itemDate!)
             if itemYear == DateFormatters.yearFormatter.string(from: selectedYear) {
                 self.viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
@@ -423,8 +374,6 @@ extension InitialViewController: QuickAddViewDelegate {
             }
         }
     }
-    
-    
     
     func showCategoryTitleVC() {
         let categoryTitleVC = CategoryTitleViewController(categoryName: quickAddView.categoryLabel.text)
@@ -497,7 +446,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         let item = viewModel.recentItems[indexPath.row]
         let titleString = NSMutableAttributedString(string: item.detail ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
         let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
-        let dayString = quickAddView.dayFormatter.string(from: item.date!) == todayDate ? "Today" : quickAddView.dayFormatter.string(from: item.date!)
+        let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
         let formattedDayString = NSAttributedString(string: "   \(dayString)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.systemGray])
         titleString.append(formattedDayString)
         cell.textLabel?.attributedText = titleString
@@ -541,11 +490,10 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
 
 extension InitialViewController: InitialViewModelDelegate {
     
-    
     func monthTotalChanged(forMonth: Month) {
         if forMonth.date == DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth) && summaryView.segmentedControl.selectedSegmentIndex == 0 {
             if view.window != nil && presentedViewController == nil {
-                viewModel.calcTotalsCurrentMonth(forDate: selectedMonth)
+                viewModel.fetchMonthTotals(forDate: selectedMonth)
                 viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
                 scaleFactor = calcScaleFactor()
                 summaryView.barChart.reloadData()
@@ -565,7 +513,6 @@ extension InitialViewController: InitialViewModelDelegate {
     }
     
 }
-
 
 // MARK:- Recurring View Controller Delegate
 

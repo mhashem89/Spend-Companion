@@ -17,10 +17,10 @@ class CurrencyViewController: UITableViewController {
     
     var userCurrency: String {
         get {
-            return UserDefaults.standard.value(forKey: "currency") as! String
+            return UserDefaults.standard.value(forKey: SettingNames.currency) as! String
         }
         set {
-            UserDefaults.standard.setValue(newValue, forKey: "currency")
+            UserDefaults.standard.setValue(newValue, forKey: SettingNames.currency)
         }
     }
         

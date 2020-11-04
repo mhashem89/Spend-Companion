@@ -19,6 +19,9 @@ protocol InitialViewModelDelegate: class {
 
 class InitialViewModel: NSObject {
     
+    
+// MARK:- Properties
+    
     static let shared = InitialViewModel()
     
     var context: NSManagedObjectContext {
@@ -27,6 +30,15 @@ class InitialViewModel: NSObject {
     
     weak var delegate: InitialViewModelDelegate?
     
+    var recentItems = [Item]()
+    
+    var currentMonthTotalIncome: Double = 0
+    var currentMonthTotalSpending: Double = 0
+    var currentYearTotalSpending: Double = 0
+    var currentYearTotalIncome: Double = 0
+    var maxMonthSpendingInYear: Double = 0
+    
+// MARK:- Fetched Result Controllers
     
     var recentItemsFetchedResultControl: NSFetchedResultsController<Item>!
     
@@ -42,17 +54,13 @@ class InitialViewModel: NSObject {
     
     var yearTotalFetchedResultController: NSFetchedResultsController<Month>!
     
-    var recentItems = [Item]()
     
-    var currentMonthTotalIncome: Double = 0
-    var currentMonthTotalSpending: Double = 0
-    var currentYearTotalSpending: Double = 0
-    var currentYearTotalIncome: Double = 0
-    var maxMonthSpendingInYear: Double = 0
+    
+// MARK:- Methods
     
     private override init() {
         super.init()
-        calcTotalsCurrentMonth()
+        fetchMonthTotals()
         calcYearTotals(year: DateFormatters.yearFormatter.string(from: Date()))
         fetchRecentItems()
         remindersFetchedResultsController.delegate = self
@@ -189,17 +197,6 @@ class InitialViewModel: NSObject {
         }
     }
     
-    func scheduleReminderForExistingItem(for item: Item, with itemRecurrence: ItemRecurrence) {
-        guard item.date != nil, item.date! > Date()  else { return }
-        
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { [weak self] (success, error) in
-            if let err = error {
-                print(err.localizedDescription)
-                self?.delegate?.presentError(error: err)
-                return
-            }
-        }
-    }
     
     func checkCategory(categoryName: String, monthString: String) -> Category {
         let month = checkMonth(monthString: monthString, createNew: true)
@@ -236,41 +233,7 @@ class InitialViewModel: NSObject {
             return nil
         }
     }
-    
-    func deleteAllData() {
-        let itemFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Item")
-        let itemDeleteRequest = NSBatchDeleteRequest(fetchRequest: itemFetchRequest)
-        let monthFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Month")
-        let monthDeleteRequest = NSBatchDeleteRequest(fetchRequest: monthFetchRequest)
-        let categoryFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
-        let categoryDeleteRequest = NSBatchDeleteRequest(fetchRequest: categoryFetchRequest)
-        let favoriteFetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Favorite")
-        let favoriteDeleteRequest = NSBatchDeleteRequest(fetchRequest: favoriteFetchRequest)
-        do {
-            try context.execute(itemDeleteRequest)
-            try context.execute(monthDeleteRequest)
-            try context.execute(categoryDeleteRequest)
-            try context.execute(favoriteDeleteRequest)
-        } catch let err {
-            print(err.localizedDescription)
-            delegate?.presentError(error: err)
-        }
-    }
-    
-    
-    func checkMonth(with controller: NSFetchedResultsController<Month>) -> Month? {
-        do {
-            try controller.performFetch()
-        } catch let err {
-            print(err.localizedDescription)
-            delegate?.presentError(error: err)
-        }
-        if let fetchedMonth = controller.fetchedObjects?.first {
-            return fetchedMonth
-        } else {
-            return nil
-        }
-    }
+
     
     func extractMonthString(from dayString: String) -> String {
         let segments = dayString.split(separator: " ")
@@ -282,12 +245,14 @@ class InitialViewModel: NSObject {
     func calcYearTotals(year: String) {
         currentYearTotalIncome = 0
         currentYearTotalSpending = 0
+        var maxAmountPerMonth = [Month: Double]()
+        
         let fetchRequest  = NSFetchRequest<Month>(entityName: "Month")
         fetchRequest.predicate = NSPredicate(format: "year = %@", year)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
         yearTotalFetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         yearTotalFetchedResultController.delegate = self
-        var maxSpendingPerMonth = [Month: Double]()
+        
         do {
             try yearTotalFetchedResultController.performFetch()
             if let fetchedMonths = yearTotalFetchedResultController.fetchedObjects {
@@ -295,19 +260,19 @@ class InitialViewModel: NSObject {
                     let totals = calcTotalsForMonth(month: month)
                     currentYearTotalIncome += totals[.income] ?? 0
                     currentYearTotalSpending += totals[.spending] ?? 0
-                    maxSpendingPerMonth[month] = max(totals[.income] ?? 0, totals[.spending] ?? 0)
+                    maxAmountPerMonth[month] = max(totals[.income] ?? 0, totals[.spending] ?? 0)
                 }
             }
-            maxMonthSpendingInYear = maxSpendingPerMonth.values.max() ?? 0
+            maxMonthSpendingInYear = maxAmountPerMonth.values.max() ?? 0
         } catch let err {
             print(err.localizedDescription)
         }
         
     }
     
-    func calcTotalsCurrentMonth(forDate date: Date = Date()) {
-        let todayString = DateFormatters.fullDateFormatter.string(from: date)
-        let monthString = extractMonthString(from: todayString)
+    func fetchMonthTotals(forDate date: Date = Date()) {
+        let dayString = DateFormatters.fullDateFormatter.string(from: date)
+        let monthString = extractMonthString(from: dayString)
         currentMonthTotalSpending = 0
         currentMonthTotalIncome = 0
         
@@ -363,19 +328,6 @@ class InitialViewModel: NSObject {
         }
     }
     
-    func deleteItem(item: Item, at indexPath: IndexPath) {
-        recentItems.remove(at: indexPath.row)
-        if let reminderUID = item.reminderUID {
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderUID])
-        }
-        context.delete(item)
-        do {
-            try context.save()
-        } catch let err {
-            print(err.localizedDescription)
-            delegate?.presentError(error: err)
-        }
-    }
     
     func getCommonItemNames() -> [String] {
         var commonItemNames = [String]()
@@ -387,15 +339,12 @@ class InitialViewModel: NSObject {
         if let items = try? context.fetch(fetchRequest) {
             let itemNames = items.compactMap({ $0.detail })
             var itemCounts = [String: Int]()
-            for item in itemNames {
-                if itemNames.countOf(element: item) > 1 {
-                    itemCounts[item] = itemNames.countOf(element: item)
-                }
-            }
+            itemNames.forEach({ itemCounts[$0] = itemNames.countOf(element: $0) })
             commonItemNames = Array(itemCounts.keys).sorted(by: { itemCounts[$0]! > itemCounts[$1]! })
         }
-        return commonItemNames
+        return commonItemNames.count > 14 ? Array(commonItemNames[0...14]) : commonItemNames
     }
+    
     
     func calcAverage(for year: String) -> Int? {
         let startDate = DateFormatters.yearFormatter.date(from: year)
@@ -414,7 +363,7 @@ class InitialViewModel: NSObject {
     }
     
     func syncReminders() {
-        guard NSUbiquitousKeyValueStore.default.bool(forKey: "iCloud sync") else { return }
+        guard NSUbiquitousKeyValueStore.default.bool(forKey: SettingNames.iCloudSync) else { return }
         do {
             try remindersFetchedResultsController.performFetch()
             UNUserNotificationCenter.current().removeAllPendingNotificationRequests()

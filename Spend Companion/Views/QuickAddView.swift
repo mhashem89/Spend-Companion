@@ -41,25 +41,6 @@ class QuickAddView: UIView {
         return lbl
     }()
     
-    var monthFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter
-    }()
-    
-    let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter
-    }()
-    
-    var currencySymbol: String? {
-        if let storedCurrency = UserDefaults.standard.value(forKey: "currency") as? String {
-            return CurrencyViewController.extractSymbol(from: storedCurrency)
-        } else {
-            return "$"
-        }
-    }
     
     var dayLabel: UILabel = {
         let label = UILabel()
@@ -156,7 +137,7 @@ class QuickAddView: UIView {
         let tf = UITextField()
         tf.tag = 3
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        tf.placeholder = "\(currencySymbol ?? "")...    "
+        tf.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")...    "
         tf.textAlignment = .center
         tf.keyboardType = .decimalPad
         tf.layer.cornerRadius = 5
@@ -207,6 +188,10 @@ class QuickAddView: UIView {
         }
     }
         
+    
+    
+// MARK:- UI Methods
+    
     @objc func isRecurringToggle() {
         if isRecurring {
             isRecurring = false
@@ -222,7 +207,7 @@ class QuickAddView: UIView {
     }
     
     @objc func datePicked() {
-        dayLabel.text = dayFormatter.string(from: dayPicker.date)
+        dayLabel.text = DateFormatters.fullDateFormatter.string(from: dayPicker.date)
         dayLabel.textColor = CustomColors.label
         dayLabel.layer.borderColor = CustomColors.label.cgColor
     }
@@ -270,7 +255,7 @@ class QuickAddView: UIView {
         if amountTextField.isFirstResponder {
             amountTextField.resignFirstResponder()
         } else if dayTextField.isFirstResponder {
-            dayLabel.text = dayPickerDate == nil ? "Today" : dayFormatter.string(from: dayPickerDate!)
+            dayLabel.text = dayPickerDate == nil ? "Today" : DateFormatters.fullDateFormatter.string(from: dayPickerDate!)
             dayTextField.resignFirstResponder()
         }
     }
@@ -292,7 +277,7 @@ class QuickAddView: UIView {
     }
     
     func updateCurrencySymbol() {
-        amountTextField.placeholder = "\(currencySymbol ?? "")..    "
+        amountTextField.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")..    "
     }
     
     func resignFirstResponders() {
@@ -387,9 +372,9 @@ class QuickAddView: UIView {
 }
 
 
+// MARK:- UITextField Delegate
 
 extension QuickAddView: UITextFieldDelegate {
-    
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentString: NSString = textField.text! as NSString

@@ -30,8 +30,6 @@ var fontScale: CGFloat {
 
 class ChartViewController: UIViewController, YearHeaderDelegate  {
     
-    
-    
     // MARK:- Properties
     
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -102,8 +100,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
             button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
             tabBarItem = button
         }
-        
-        
     }
     
     required init?(coder: NSCoder) {
@@ -116,12 +112,9 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         setupBarChart()
         setupHeader()
         view.addSubviews([filterButton, filteredRowLabel])
-        filterButton.anchor(top: header.bottomAnchor, topConstant: 10, trailing: view.trailingAnchor, trailingConstant: 10 * viewsWidthScale)
-        filterButton.setAttributedTitle(NSAttributedString(string: " Filter", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)]), for: .normal)
-        filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
-        filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
+        setupFilterButton()
         
-        let currentMonthString = viewModel.monthFormatter.string(from: Date())
+        let currentMonthString = DateFormatters.monthFormatter.string(from: Date())
         self.filteredRowName = "\(currentMonthString)"
         self.filteredRowLabel.text = currentMonthString
     }
@@ -133,10 +126,18 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, for: filteredMonth)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
-        filterButton.tintColor = UserDefaults.standard.colorForKey(key: "button color") ?? CustomColors.blue
+        filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
     }
     
     // MARK:- Selectors
+    
+    func setupFilterButton() {
+         filterButton.anchor(top: header.bottomAnchor, topConstant: 10, trailing: view.trailingAnchor, trailingConstant: 10 * viewsWidthScale)
+         filterButton.setAttributedTitle(NSAttributedString(string: " Filter", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)]), for: .normal)
+         filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
+         filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
+     }
+    
     
     @objc func showFilter() {
         dimBackground()
@@ -232,7 +233,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     }
     
     
-    
     func dimBackground() {
         dimmingView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         tabBarController?.view.addSubview(dimmingView)
@@ -289,9 +289,9 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: yearBarChartCell, for: indexPath) as! ChartCell
         cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : viewModel.fetchUniqueCategoryNames(for: selectedYear)[indexPath.row]
         cell.cellLabel.frame = .init(x: 0, y: 0, width: chartLabelMaxWidth, height: cell.frame.height)
-        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: "label color") ?? .systemBlue
+        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * viewsWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
-        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed
+        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
             if let total = CalendarViewModel.shared.calcMonthTotal(monthString, for: selectedSegment == 1 ? filteredRowName : "Income") {

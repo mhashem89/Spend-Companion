@@ -11,7 +11,7 @@ import SwiftUI
 
 struct BarColorChooser: View {
     
-    @State private var bgColor = Color(UserDefaults.standard.colorForKey(key: "bar color") ?? .systemRed)
+    @State private var bgColor = Color(UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed)
     
     var body: some View {
         
@@ -27,7 +27,7 @@ struct BarColorChooser: View {
     }
     
     func updateUserDefaults(with color: Color) {
-        UserDefaults.standard.setColor(color: UIColor(color), forKey: "bar color")
+        UserDefaults.standard.setColor(color: UIColor(color), forKey: SettingNames.barColor)
         InitialViewController.shared.summaryView.barChart.reloadData()
     }
 }
@@ -36,7 +36,7 @@ struct BarColorChooser: View {
 
 struct LabelColorChooser: View {
     
-    @State var bgColor = Color(UserDefaults.standard.colorForKey(key: "label color") ?? .systemBlue)
+    @State var bgColor = Color(UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue)
     
     var body: some View {
         
@@ -52,7 +52,7 @@ struct LabelColorChooser: View {
     }
     
     func updateUserDefaults(with color: Color) {
-        UserDefaults.standard.setColor(color: UIColor(color), forKey: "label color")
+        UserDefaults.standard.setColor(color: UIColor(color), forKey: SettingNames.labelColor)
         InitialViewController.shared.summaryView.barChart.reloadData()
     }
 }
@@ -62,7 +62,7 @@ struct LabelColorChooser: View {
 
 struct ButtonColorChooser: View {
     
-    @State var bgColor = Color(UserDefaults.standard.colorForKey(key: "button color") ?? .systemBlue)
+    @State var bgColor = Color(UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? .systemBlue)
     
     var body: some View {
         
@@ -78,7 +78,7 @@ struct ButtonColorChooser: View {
     }
     
     func updateUserDefaults(with color: Color) {
-        UserDefaults.standard.setColor(color: UIColor(color), forKey: "button color")
+        UserDefaults.standard.setColor(color: UIColor(color), forKey: SettingNames.buttonColor)
         InitialViewController.shared.summaryView.barChart.reloadData()
     }
 }

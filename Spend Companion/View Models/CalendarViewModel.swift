@@ -49,7 +49,7 @@ class CalendarViewModel {
             }
         }
         if total > 0 {
-            return (total * 100).rounded() / 100
+            return total
         } else {
             return nil
         }

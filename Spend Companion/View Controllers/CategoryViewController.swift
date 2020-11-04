@@ -14,9 +14,8 @@ protocol CategoryViewControllerDelegate: class {
 
 
 
-class CategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate, UIPickerViewDelegate, UIPickerViewDataSource, ItemCellDelegate, UIPopoverPresentationControllerDelegate, CategoryTitleViewControllerDelegate, ItemTableHeaderDelegate {
+class CategoryViewController: UIViewController {
     
-
     // MARK:- Properties
     
     let titleId = "cellId"
@@ -49,7 +48,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
     var itemsToBeScheduled = [Item: ItemRecurrence]()
     
     
-    // MARK:- Lifecycle Methods
+// MARK:- Lifecycle Methods
     
     init(month: Month, category: Category? = nil) {
         super.init(nibName: nil, bundle: nil)
@@ -75,36 +74,20 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         fatalError("init(coder:) has not been implemented")
     }
    
-    
     override func viewDidLoad() {
+        
         super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground
         title = month.date
         view.addSubviews([tableView, headerView])
-        tableView.register(ItemCell.self, forCellReuseIdentifier: itemId)
-        tableView.delegate = self
-        tableView.dataSource = self
-        
-        tableView.tableFooterView = UIView()
-        tableView.allowsSelection = false
-        tableView.keyboardDismissMode = .interactive
+        setupTableView()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save))
         navigationItem.rightBarButtonItem?.isEnabled = false
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
        
-        headerView.plusButton.addTarget(self, action: #selector(self.addItem), for: .touchUpInside)
-        headerView.sortButton.addTarget(self, action: #selector(self.sort), for: .touchUpInside)
-        headerView.favoriteButton.addTarget(self, action: #selector(favoriteCategory), for: .touchUpInside)
-        toggleFavoriteButton()
-        
-        headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * viewsHeightScale)
-        tableView.anchor(top: headerView.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
-        headerView.setupUI()
-        headerView.titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
-        headerView.delegate = self
-        
-        
+        setupHeaderView()
+    
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillShow(notification:)), name: UIResponder.keyboardDidShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
@@ -122,16 +105,41 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         }
     }
     
+    
+// MARK:- Methods
+    
+    func setupHeaderView() {
+        headerView.plusButton.addTarget(self, action: #selector(self.addItem), for: .touchUpInside)
+        headerView.sortButton.addTarget(self, action: #selector(self.sort), for: .touchUpInside)
+        headerView.favoriteButton.addTarget(self, action: #selector(favoriteCategory), for: .touchUpInside)
+        toggleFavoriteButton()
+        
+        headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * viewsHeightScale)
+        
+        headerView.setupUI()
+        headerView.titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
+        headerView.delegate = self
+    }
+    
+    func setupTableView() {
+        tableView.register(ItemCell.self, forCellReuseIdentifier: itemId)
+        tableView.delegate = self
+        tableView.dataSource = self
+        
+        tableView.tableFooterView = UIView()
+        tableView.allowsSelection = false
+        tableView.keyboardDismissMode = .interactive
+        
+        tableView.anchor(top: headerView.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
+    }
+    
+    
     @objc func selectTitle() {
         let categoryTitleVC = CategoryTitleViewController(categoryName: viewModel?.category?.name)
         categoryTitleVC.delegate = self
         let navVC = UINavigationController(rootViewController: categoryTitleVC)
         navVC.modalPresentationStyle = .overCurrentContext
         present(navVC, animated: true)
-    }
-    
-    func titleLabelTapped() {
-        selectTitle()
     }
     
     func enableHeaderButtons() {
@@ -142,7 +150,157 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         }
     }
     
-    // MARK:- Table View Methods
+    func handleFutureItems(for item: Item?, amount: Double? = nil, detail: String? = nil) {
+        let alertController = UIAlertController(title: nil, message: "Apply the change to all future transactions?", preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
+        alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { [weak self] (action) in
+            if let sisterItems = item?.sisterItems?.allObjects as? [Item], let itemDate = item?.date {
+                let futureItems = sisterItems.filter({ $0.date! > itemDate })
+                for item in futureItems {
+                    if let amount = amount { item.amount = amount }
+                    if let detail = detail { item.detail = detail }
+                }
+                self?.viewModel?.reloadData()
+                self?.tableView.reloadData()
+            }
+        }))
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    
+    @objc private func save() {
+        do {
+            try viewModel?.save()
+            if itemsToBeScheduled.count > 0 {
+                for item in itemsToBeScheduled.keys {
+                    InitialViewModel.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
+                    if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
+                        for item in sisterItems {
+                            if let itemRecurrence = InitialViewModel.shared.createItemRecurrence(from: item) {
+                                InitialViewModel.shared.scheduleReminder(for: item, with: itemRecurrence)
+                            }
+                        }
+                    }
+                }
+            }
+        } catch let err {
+            print(err.localizedDescription)
+        }
+        delegate?.categoryChanged()
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc private func cancel() {
+        if navigationItem.rightBarButtonItem!.isEnabled {
+            viewModel?.cancel()
+        }
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc private func addItem() {
+        tableView.performBatchUpdates({
+            viewModel?.createNewItem()
+            let itemCount = viewModel?.items?.count ?? 1
+            let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
+            tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
+        }, completion: { [self]_ in
+            scrollToLastRow()
+        })
+        if viewModel!.items!.count > 1 {
+            headerView.sortButton.isEnabled = true
+        }
+    }
+    
+    @objc private func favoriteCategory() {
+        guard viewModel != nil else { return }
+        viewModel?.favoriteCategory()
+        toggleFavoriteButton()
+        dataChanged()
+    }
+    
+    func toggleFavoriteButton() {
+        guard viewModel != nil else { return }
+        switch viewModel!.isFavorite {
+        case true:
+            if #available(iOS 13, *) {
+                headerView.favoriteButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+            }
+            headerView.favoriteButton.tintColor = .red
+        case false:
+            if #available(iOS 13, *) {
+                headerView.favoriteButton.setImage(UIImage(systemName: "heart"), for: .normal)
+            }
+            headerView.favoriteButton.tintColor = .systemBlue
+        }
+    }
+    
+    @objc private func sort() {
+        dimBackground()
+        sortingVC.modalPresentationStyle = .popover
+        sortingVC.delegate = self
+        sortingVC.preferredContentSize = .init(width: 200 * viewsWidthScale, height: 240 * viewsHeightScale)
+        sortingVC.popoverPresentationController?.delegate = self
+        sortingVC.popoverPresentationController?.sourceView = headerView.sortButton
+        sortingVC.popoverPresentationController?.sourceRect = headerView.sortButton.bounds
+        present(sortingVC, animated: true)
+    }
+    
+    @objc func handleKeyboardWillShow(notification: NSNotification) {
+        guard UIDevice.current.userInterfaceIdiom != .pad else { return }
+        guard let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect else { return }
+        view.frame.size.height = viewFrameHeight - keyboardFrame.height
+        tableView.frame.size.height = tableViewFrameHeight - keyboardFrame.height
+        scrollToActiveRow()
+    }
+    
+    @objc func handleKeyboardWillHide(notification: NSNotification) {
+        guard UIDevice.current.userInterfaceIdiom != .pad else { return }
+        if view.frame.height != viewFrameHeight {
+            view.frame.size.height = viewFrameHeight
+            tableView.frame.size.height = tableViewFrameHeight
+            tableView.setContentOffset(.zero, animated: true)
+        }
+    }
+    
+    private func dimBackground() {
+        navigationController?.view.addSubview(dimmingView)
+        dimmingView.anchor(top: navigationController?.view.topAnchor, leading: navigationController?.view.leadingAnchor, trailing: navigationController?.view.trailingAnchor, bottom: navigationController?.view.bottomAnchor)
+    }
+    
+    func scrollToLastRow() {
+        guard let itemCount = viewModel?.items?.count else { return }
+        let lastIndexPath = IndexPath(item: itemCount - 1, section: 0)
+        tableView.scrollToRow(at: lastIndexPath, at: .bottom, animated: true)
+    }
+   
+    func scrollToActiveRow() {
+        guard let activeCell = activeCell, let activeIndexPath = tableView.indexPath(for: activeCell) else { return }
+        tableView.scrollToRow(at: activeIndexPath, at: .none, animated: true)
+        if let visiblePaths = tableView.indexPathsForVisibleRows {
+            for indexPath in visiblePaths {
+                tableView.cellForRow(at: indexPath)?.isHighlighted = false
+            }
+        }
+        activeCell.isHighlighted = true
+    }
+    
+    private func calcDaysRange(month: Month) -> [String] {
+        
+        let firstDay = DateFormatters.monthYearFormatter.date(from: month.date!)!
+        let calendar = Calendar.current
+        let dayOfMonth = calendar.component(.day, from: firstDay)
+        let monthDays = calendar.range(of: .day, in: .month, for: firstDay)!
+        let days = (monthDays.lowerBound..<monthDays.upperBound)
+            .compactMap( { calendar.date(byAdding: .day, value: $0 - dayOfMonth, to: firstDay) } )
+        let dayStrings = days.compactMap({ DateFormatters.fullDateFormatterWithLetters.string(from: $0) })
+        return dayStrings
+    }
+
+}
+
+// MARK:- Table View Methods
+
+extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -226,248 +384,22 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50 * viewsHeightScale
     }
+    
+}
 
+
+// MARK:- Item Table Header Delegate
+
+extension CategoryViewController: ItemTableHeaderDelegate {
     
-    
-// MARK:- Item Cell Delegate
-    
-    func donePressedInDayPicker(selected day: Int, for cell: ItemCell) {
-        DispatchQueue.main.async { [self] in
-            guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
-            let selectedDay = calcDaysRange(month: month)[day]
-            viewModel?.items?[selectedIndexPath.row].date = DateFormatters.fullDateFormatterWithLetters.date(from: selectedDay)
-            (tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.text = calcDaysRange(month: month)[day].extractDate()
-            (tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.textColor = CustomColors.label
-            scrollToActiveRow()
-        }
-        
+    func titleLabelTapped() {
+        selectTitle()
     }
-    
-    func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool) {
-        scrollToActiveRow()
-        guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
-        viewModel?.items?[selectedIndexPath.row].detail = text
-     
-        if withMessage == true {
-            let alertController = UIAlertController(title: nil, message: "Apply the change to all future transactions?", preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
-            alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { [weak self] (action) in
-                let item = self?.viewModel?.items?[selectedIndexPath.row]
-                if let sisterItems = item?.sisterItems?.allObjects as? [Item], let itemDate = item?.date {
-                    let futureItems = sisterItems.filter({ $0.date! > itemDate })
-                    for item in futureItems {
-                        item.detail = text
-                    }
-                    self?.viewModel?.reloadData()
-                    self?.tableView.reloadData()
-                }
-            }))
-            present(alertController, animated: true, completion: nil)
-        }
-    }
-    
-    func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool) {
-        scrollToActiveRow()
-        guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
-        viewModel?.items?[selectedIndexPath.row].amount = amount
-        
-        if withMessage == true {
-            let alertController = UIAlertController(title: nil, message: "Apply the change to all future transactions?", preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
-            alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { [weak self] (action) in
-                let item = self?.viewModel?.items?[selectedIndexPath.row]
-                if let sisterItems = item?.sisterItems?.allObjects as? [Item], let itemDate = item?.date {
-                    let futureItems = sisterItems.filter({ $0.date! > itemDate })
-                    for item in futureItems {
-                        item.amount = amount
-                    }
-                    self?.viewModel?.reloadData()
-                    self?.tableView.reloadData()
-                }
-            }))
-            present(alertController, animated: true, completion: nil)
-        }
-    }
-    
-    func dataChanged() {
-        navigationItem.rightBarButtonItem?.isEnabled = true
-    }
-    
-    func recurrenceButtonPressed(in cell: ItemCell) {
-        guard let indexPath = tableView.indexPath(for: cell), let item = viewModel?.items?[indexPath.row] else { return }
-        activeCell = cell
-        scrollToActiveRow()
-        
-        self.recurrenceViewer = RecurringViewController()
-        recurrenceViewer.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
-        recurrenceViewer.popoverPresentationController?.delegate = fontScale < 1 ? nil : self
-        recurrenceViewer.popoverPresentationController?.sourceView = cell
-        recurrenceViewer.popoverPresentationController?.sourceRect = cell.recurringCircleButton.frame
-        recurrenceViewer.preferredContentSize = .init(width: 230 * fontScale, height: 330 * fontScale)
-        
-        recurrenceViewer.delegate = self
-        recurrenceViewer.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
-        
-        if let period = item.recurringNum, let unit = item.recurringUnit {
-            let periodInt = Int(truncating: period)
-            recurrenceViewer.periodTextField.text = String(periodInt)
-            recurrenceViewer.segmentedControl.selectedSegmentIndex = Int(truncating: unit)
-            recurrenceViewer.segmentedControl.isSelected = true
-        }
-        if let itemDate = item.date, itemDate < Date() { recurrenceViewer.reminderSwitch.removeFromSuperview() }
-        if let endDate = item.recurringEndDate {
-            recurrenceViewer.dayPicker.date = endDate
-            recurrenceViewer.endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: endDate))"
-            recurrenceViewer.endDateLabel.textColor = CustomColors.label
-        }
-        if let reminderTime = item.reminderTime {
-            recurrenceViewer.reminderSwitch.isOn = true
-            recurrenceViewer.reminderSegmentedControl.isSelected = true
-            recurrenceViewer.reminderSegmentedControl.selectedSegmentIndex = Int(truncating: reminderTime) - 1
-        }
-        dimBackground()
-        present(recurrenceViewer, animated: true, completion: nil)
-    }
-    
-    
-    // MARK:- Methods
-    
-    @objc private func save() {
-        do {
-            try viewModel?.save()
-            if itemsToBeScheduled.count > 0 {
-                for item in itemsToBeScheduled.keys {
-                    InitialViewModel.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
-                    if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
-                        for item in sisterItems {
-                            if let itemRecurrence = InitialViewModel.shared.createItemRecurrence(from: item) {
-                                InitialViewModel.shared.scheduleReminder(for: item, with: itemRecurrence)
-                            }
-                        }
-                    }
-                }
-            }
-        } catch let err {
-            print(err.localizedDescription)
-        }
-        delegate?.categoryChanged()
-        dismiss(animated: true, completion: nil)
-    }
-    
-    @objc private func cancel() {
-        if navigationItem.rightBarButtonItem!.isEnabled {
-            viewModel?.cancel()
-        }
-        dismiss(animated: true, completion: nil)
-    }
-    
-    @objc private func addItem() {
-        tableView.performBatchUpdates({
-            viewModel?.createNewItem()
-            let itemCount = viewModel?.items?.count ?? 1
-            let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
-            tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
-        }, completion: { [self]_ in
-            scrollToLastRow()
-        })
-        if viewModel!.items!.count > 1 {
-            headerView.sortButton.isEnabled = true
-        }
-    }
-    
-    @objc private func favoriteCategory() {
-        guard viewModel != nil else { return }
-        viewModel?.favoriteCategory()
-        toggleFavoriteButton()
-        dataChanged()
-    }
-    
-    func toggleFavoriteButton() {
-        guard viewModel != nil else { return }
-        switch viewModel!.isFavorite {
-        case true:
-            if #available(iOS 13, *) {
-                headerView.favoriteButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
-            }
-            headerView.favoriteButton.tintColor = .red
-        case false:
-            if #available(iOS 13, *) {
-                headerView.favoriteButton.setImage(UIImage(systemName: "heart"), for: .normal)
-            }
-            headerView.favoriteButton.tintColor = .systemBlue
-        }
-    }
-    
-    @objc private func sort() {
-        dimBackground()
-        sortingVC.modalPresentationStyle = .popover
-        sortingVC.delegate = self
-        sortingVC.preferredContentSize = .init(width: 200 * viewsWidthScale, height: 240 * viewsHeightScale)
-        sortingVC.popoverPresentationController?.delegate = self
-        sortingVC.popoverPresentationController?.sourceView = headerView.sortButton
-        sortingVC.popoverPresentationController?.sourceRect = headerView.sortButton.bounds
-        present(sortingVC, animated: true)
-    }
-    
-    func editingStarted(in textField: UITextField, of cell: ItemCell) {
-        self.activeCell = cell
-    }
-    
-    
-    @objc func handleKeyboardWillShow(notification: NSNotification) {
-        guard UIDevice.current.userInterfaceIdiom != .pad else { return }
-        guard let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect else { return }
-        view.frame.size.height = viewFrameHeight - keyboardFrame.height
-        tableView.frame.size.height = tableViewFrameHeight - keyboardFrame.height
-        scrollToActiveRow()
-    }
-    
-    @objc func handleKeyboardWillHide(notification: NSNotification) {
-        guard UIDevice.current.userInterfaceIdiom != .pad else { return }
-        if view.frame.height != viewFrameHeight {
-            view.frame.size.height = viewFrameHeight
-            tableView.frame.size.height = tableViewFrameHeight
-            tableView.setContentOffset(.zero, animated: true)
-        }
-    }
-    
-    private func dimBackground() {
-        navigationController?.view.addSubview(dimmingView)
-        dimmingView.anchor(top: navigationController?.view.topAnchor, leading: navigationController?.view.leadingAnchor, trailing: navigationController?.view.trailingAnchor, bottom: navigationController?.view.bottomAnchor)
-    }
-    
-    func scrollToLastRow() {
-        guard let itemCount = viewModel?.items?.count else { return }
-        let lastIndexPath = IndexPath(item: itemCount - 1, section: 0)
-        tableView.scrollToRow(at: lastIndexPath, at: .bottom, animated: true)
-    }
-   
-    func scrollToActiveRow() {
-        guard let activeCell = activeCell, let activeIndexPath = tableView.indexPath(for: activeCell) else { return }
-        tableView.scrollToRow(at: activeIndexPath, at: .none, animated: true)
-        if let visiblePaths = tableView.indexPathsForVisibleRows {
-            for indexPath in visiblePaths {
-                tableView.cellForRow(at: indexPath)?.isHighlighted = false
-            }
-        }
-        activeCell.isHighlighted = true
-    }
-    
-    
-    
-    private func calcDaysRange(month: Month) -> [String] {
-        
-        let firstDay = DateFormatters.monthYearFormatter.date(from: month.date!)!
-        let calendar = Calendar.current
-        let dayOfMonth = calendar.component(.day, from: firstDay)
-        let monthDays = calendar.range(of: .day, in: .month, for: firstDay)!
-        let days = (monthDays.lowerBound..<monthDays.upperBound)
-            .compactMap( { calendar.date(byAdding: .day, value: $0 - dayOfMonth, to: firstDay) } )
-        let dayStrings = days.compactMap({ DateFormatters.fullDateFormatterWithLetters.string(from: $0) })
-        return dayStrings
-    }
-    
+}
+
 // MARK:- Category Title View Controller Delegate
+
+extension CategoryViewController: CategoryTitleViewControllerDelegate {
     
     func saveCategoryTitle(title: String) {
         if self.viewModel == nil {
@@ -478,12 +410,89 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         } else {
             viewModel?.editCategoryName(name: title)
         }
-        headerView.favoriteButton.isHidden = title == "Income" || title == "Recurring Expenses" 
+        headerView.favoriteButton.isHidden = title == "Income" || title == "Recurring Expenses"
         headerView.titleButton.setTitle(title, for: .normal)
         navigationItem.rightBarButtonItem?.isEnabled = true
     }
+}
+
+
+
+// MARK:- Item Cell Delegate
+
+
+extension CategoryViewController: ItemCellDelegate {
     
+    func donePressedInDayPicker(selected day: Int, for cell: ItemCell) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            guard let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
+            let selectedDay = self.calcDaysRange(month: self.month)[day]
+            self.viewModel?.items?[selectedIndexPath.row].date = DateFormatters.fullDateFormatterWithLetters.date(from: selectedDay)
+            (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.text = self.calcDaysRange(month: self.month)[day].extractDate()
+            (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.textColor = CustomColors.label
+            self.scrollToActiveRow()
+        }
+    }
+    
+    func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool) {
+        scrollToActiveRow()
+        guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
+        let item = viewModel?.items?[selectedIndexPath.row]
+        item?.detail = text
+     
+        if withMessage == true {
+            handleFutureItems(for: item, amount: nil, detail: text)
+        }
+    }
+    
+    func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool) {
+        scrollToActiveRow()
+        guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
+        let item = viewModel?.items?[selectedIndexPath.row]
+        item?.amount = amount
+        
+        if withMessage == true {
+           handleFutureItems(for: item, amount: amount, detail: nil)
+        }
+    }
+    
+    func dataChanged() {
+        navigationItem.rightBarButtonItem?.isEnabled = true
+    }
+    
+    func editingStarted(in textField: UITextField, of cell: ItemCell) {
+        self.activeCell = cell
+    }
+    
+    func recurrenceButtonPressed(in cell: ItemCell) {
+        guard let indexPath = tableView.indexPath(for: cell), let item = viewModel?.items?[indexPath.row] else { return }
+        activeCell = cell
+        scrollToActiveRow()
+        
+        self.recurrenceViewer = RecurringViewController(itemRecurrence: InitialViewModel.shared.createItemRecurrence(from: item))
+        recurrenceViewer.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
+        recurrenceViewer.popoverPresentationController?.delegate = fontScale < 1 ? nil : self
+        recurrenceViewer.popoverPresentationController?.sourceView = cell
+        recurrenceViewer.popoverPresentationController?.sourceRect = cell.recurringCircleButton.frame
+        recurrenceViewer.preferredContentSize = .init(width: 230 * fontScale, height: 330 * fontScale)
+        
+        recurrenceViewer.delegate = self
+        recurrenceViewer.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
+
+        if let itemDate = item.date, itemDate < Date() { recurrenceViewer.reminderSwitch.removeFromSuperview() }
+       
+        dimBackground()
+        present(recurrenceViewer, animated: true, completion: nil)
+    }
+
+}
+
+
 // MARK:- PickerView Delegate
+
+
+extension CategoryViewController: UIPickerViewDelegate, UIPickerViewDataSource, UIPopoverPresentationControllerDelegate {
     
     func numberOfComponents(in pickerView: UIPickerView) -> Int {
         1
@@ -505,12 +514,12 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         dimmingView.removeFromSuperview()
         return true
     }
+    
 }
 
 // MARK:- Sorting View Controller Delegate
 
 extension CategoryViewController: SortingViewControllerDelegate {
-    
     
     func dateAscending() {
         var nilItems = [Item]()
@@ -627,6 +636,8 @@ extension CategoryViewController: RecurringViewControllerDelegate {
    
 }
 
+// MARK:- Move Item View Controller Delegate
+
 extension CategoryViewController: MoveItemVCDelegate {
     
     func moveItem(item: Item, to category: String, sisterItems: [Item]?) {
@@ -634,9 +645,6 @@ extension CategoryViewController: MoveItemVCDelegate {
         tableView.reloadData()
         dataChanged()
     }
-    
-    
-    
 }
 
 

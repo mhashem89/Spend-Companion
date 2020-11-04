@@ -87,29 +87,6 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
         }
     }
     
-    
-    func updateCategory(category: Category, newName: String? = nil, newItems: [Item]? = nil) {
-        guard let fetchedCategory = dataFetcher.fetchedObjects?.filter({ $0.uid == category.uid }).first else { return }
-        if let newName = newName {
-            fetchedCategory.name = newName
-        }
-    }
-    
-    func createItem(category: Category, amount: Double, date: Date, detail: String? = nil) {
-        let newItem = NSEntityDescription.insertNewObject(forEntityName: "Item", into: context) as! Item
-        newItem.amount = amount
-        newItem.date = date
-        newItem.detail = detail ?? nil
-        newItem.category = category
-        newItem.month = category.month
-        do {
-            try context.save()
-        } catch let err {
-            print(err.localizedDescription)
-            delegate?.presentError(error: err)
-        }
-    }
-    
     func calcCategoryTotal(category: Category?) -> String {
         var total: Double = 0
         if let items = category?.items?.allObjects as? [Item] {

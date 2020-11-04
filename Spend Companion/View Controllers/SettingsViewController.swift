@@ -24,17 +24,17 @@ protocol SettingsCellDelegate: class {
 class SettingsViewController: UITableViewController {
     
     
-    // MARK:- Properties
+// MARK:- Properties
     
     var cellId = "cellId"
     
     var iCloudKeyStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
-    let iCloudPurchaseProductID = "MohamedHashem.Spend_Companion.iCloud_sync"
-    let iCloudPurchased = "iCloudSync Purchased"
+    let iCloudPurchaseProductID = PurchaseIds.iCloudSync.description
+    let iCloudPurchased = SettingNames.iCloudSyncPurchased
     
-    let reminderPurchaseProductId = "MohamedHashem.Spend_Companion.reminders_purchase"
-    let remindersPurchased = "remindersPurchased"
+    let reminderPurchaseProductId = PurchaseIds.reminders.description
+    let remindersPurchased = SettingNames.remindersPurchased
     
     var settings: [String] {
         var settingsList = ["iCloud sync"]
@@ -57,7 +57,7 @@ class SettingsViewController: UITableViewController {
        return settingsList
     }
     
-    // MARK:- Lifecycle Methods
+// MARK:- Lifecycle Methods
     
     override init(style: UITableView.Style) {
         super.init(style: style)
@@ -87,7 +87,8 @@ class SettingsViewController: UITableViewController {
         super.viewDidAppear(animated)
     }
     
-    // MARK:- Table View Methods
+    
+// MARK:- Table View Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return settings.count
@@ -105,7 +106,7 @@ class SettingsViewController: UITableViewController {
             cell.detailTextLabel?.text = "sets iCloud sync across all devices"
             cell.selectionStyle = .none
         case 1:
-            cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: "EnableBiometrics")
+            cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics)
             cell.setupUI()
             cell.textLabel?.text = settings[indexPath.row]
             cell.selectionStyle = .none
@@ -137,6 +138,9 @@ class SettingsViewController: UITableViewController {
             navigationController?.pushViewController(CustomizeAppearanceController(), animated: true)
         }
     }
+    
+    
+// MARK:- Methods
     
     func buyiCloudSync() {
         let alertController = UIAlertController(title: "Purchase iCloud sync", message: "for $1.99 you can sync your transactions across all devices, syncing happens automatically!", preferredStyle: .actionSheet)
@@ -174,13 +178,12 @@ class SettingsViewController: UITableViewController {
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
-
 }
 
+// MARK:- Settings Cell Delegate
 
 @available(iOS 13, *)
 extension SettingsViewController: SettingsCellDelegate {
-    
     
     func settingsTogglePressed(toggleIsON: Bool, in cell: SettingsCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
@@ -202,11 +205,11 @@ extension SettingsViewController: SettingsCellDelegate {
         case (0, false):
             toggleiCloudSync(sync: toggleIsON)
         case (1, true):
-            UserDefaults.standard.setValue(true, forKey: "EnableBiometrics")
+            UserDefaults.standard.setValue(true, forKey: SettingNames.enableBiometrics)
         case (1, false):
             Authenticator.authenticate { (success, error) in
                 if success {
-                    UserDefaults.standard.setValue(false, forKey: "EnableBiometrics")
+                    UserDefaults.standard.setValue(false, forKey: SettingNames.enableBiometrics)
                 } else {
                     let ac = UIAlertController(title: "Authentication failed", message: "You could not be verified; please try again.", preferredStyle: .alert)
                     ac.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in
@@ -222,6 +225,7 @@ extension SettingsViewController: SettingsCellDelegate {
     
 }
 
+// MARK:- SKPayment Transaction Observer
 
 @available(iOS 13, *)
 extension SettingsViewController: SKPaymentTransactionObserver {
@@ -258,7 +262,7 @@ extension SettingsViewController: SKPaymentTransactionObserver {
     
 }
 
-
+// MARK:- Settings Cell
 
 class SettingsCell: UITableViewCell {
     

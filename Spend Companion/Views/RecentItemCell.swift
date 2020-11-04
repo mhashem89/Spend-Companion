@@ -12,27 +12,6 @@ import UIKit
 class RecentItemCell: UITableViewCell {
     
     
-    var userCurrency: String? {
-        return UserDefaults.standard.value(forKey: "currency") as? String
-    }
-    
-    var currencySymbol: String? {
-        if let storedCurrency = userCurrency {
-            return CurrencyViewController.extractSymbol(from: storedCurrency)
-        } else {
-            return "$"
-        }
-    }
-    
-    var numberFormatter: NumberFormatter = {
-        let formatter = NumberFormatter()
-        formatter.locale = .current
-        formatter.numberStyle = .currency
-        formatter.minimumFractionDigits = 0
-        formatter.maximumFractionDigits = 2
-        return formatter
-    }()
-    
     var amountLabel: UILabel = {
         let lbl = UILabel()
         lbl.textColor = CustomColors.label
@@ -67,16 +46,7 @@ class RecentItemCell: UITableViewCell {
     }
     
     func formatAmountLabel(with amount: Double) {
-        let amountString = String(format: "%g", amount)
-        if let storedCurrency = userCurrency {
-            if storedCurrency == "Local currency" {
-                amountLabel.text = numberFormatter.string(from: NSNumber(value: amount))
-            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-                amountLabel.text = currencyPosition == .left ? "\(currencySymbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol ?? "")"
-            } else {
-                amountLabel.text = amountString
-            }
-        }
+        amountLabel.text = CommonObjects.shared.formattedCurrency(with: amount)
     }
     
     
