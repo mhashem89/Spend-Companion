@@ -19,7 +19,7 @@ protocol ItemCellDelegate: class {
 }
 
 
-class ItemCell: UITableViewCell, UITextFieldDelegate {
+class ItemCell: UITableViewCell {
         
 // MARK:- Properties
     
@@ -38,7 +38,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         tf.tintColor = .clear
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
-
+        toolBar.backgroundColor = CustomColors.mediumGray
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
@@ -101,7 +101,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
     var amountTextChanged: Bool = false
     
     
-// MARK:- Methods
+// MARK:- Life Cycle Methods
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -111,6 +111,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         fatalError("init(coder:) has not been implemented")
     }
     
+// MARK:- UI Methods
     
     func setupUI() {
         if !setupUIDone {
@@ -137,6 +138,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
     private func setupAmountToolbar() {
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
+        toolBar.backgroundColor = CustomColors.mediumGray
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneEnteringAmount))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
@@ -173,7 +175,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
     @objc private func doneEnteringAmount() {
         amountTextField.resignFirstResponder()
         guard let text = amountTextField.text, let amount = Double(text) else { return }
-        delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: subviews.contains(recurringCircleButton) && amountTextChanged)
+        delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: !recurringCircleButton.isHidden && amountTextChanged)
         amountTextChanged = false
         delegate?.dataChanged()
     }
@@ -195,10 +197,10 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
             (amountTextField.rightView?.subviews.first as? UILabel)?.textColor = amountTextField.hasText ? CustomColors.label : CustomColors.mediumGray
         }
     }
-    
-    
-// MARK:- TextField Delegate
-    
+}
+
+
+extension ItemCell: UITextFieldDelegate {
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
         delegate?.editingStarted(in: textField, of: self)
@@ -208,7 +210,7 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         guard let text = textField.text else { return false }
         if textField == detailTextField {
             detailTextField.resignFirstResponder()
-            delegate?.detailTextFieldReturn(text: text, for: self, withMessage: subviews.contains(recurringCircleButton) && detailTextChanged)
+            delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged)
             detailTextChanged = false
         }
         return true
@@ -255,7 +257,5 @@ class ItemCell: UITableViewCell, UITextFieldDelegate {
         }
         
     }
-    
 }
-
 

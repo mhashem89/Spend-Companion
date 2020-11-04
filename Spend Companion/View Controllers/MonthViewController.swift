@@ -99,7 +99,6 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     // MARK:- Collection View Methods
     
-    
     @objc func editCollectionView() {
         collectionView.allowsMultipleSelection = true
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelEditingCollectionView))
@@ -246,9 +245,6 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         present(navVC, animated: true)
     }
        
-    
-    
-    
 }
 
 

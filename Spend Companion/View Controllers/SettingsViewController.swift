@@ -24,7 +24,7 @@ protocol SettingsCellDelegate: class {
 class SettingsViewController: UITableViewController {
     
     
-    // MARK:- Properties
+// MARK:- Properties
     
     var cellId = "cellId"
     
@@ -57,7 +57,7 @@ class SettingsViewController: UITableViewController {
        return settingsList
     }
     
-    // MARK:- Lifecycle Methods
+// MARK:- Lifecycle Methods
     
     override init(style: UITableView.Style) {
         super.init(style: style)
@@ -87,7 +87,8 @@ class SettingsViewController: UITableViewController {
         super.viewDidAppear(animated)
     }
     
-    // MARK:- Table View Methods
+    
+// MARK:- Table View Methods
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return settings.count
@@ -138,6 +139,9 @@ class SettingsViewController: UITableViewController {
         }
     }
     
+    
+// MARK:- Methods
+    
     func buyiCloudSync() {
         let alertController = UIAlertController(title: "Purchase iCloud sync", message: "for $1.99 you can sync your transactions across all devices, syncing happens automatically!", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { [unowned self] (_) in
@@ -174,13 +178,12 @@ class SettingsViewController: UITableViewController {
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
     
-
 }
 
+// MARK:- Settings Cell Delegate
 
 @available(iOS 13, *)
 extension SettingsViewController: SettingsCellDelegate {
-    
     
     func settingsTogglePressed(toggleIsON: Bool, in cell: SettingsCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
@@ -222,6 +225,7 @@ extension SettingsViewController: SettingsCellDelegate {
     
 }
 
+// MARK:- SKPayment Transaction Observer
 
 @available(iOS 13, *)
 extension SettingsViewController: SKPaymentTransactionObserver {
@@ -258,7 +262,7 @@ extension SettingsViewController: SKPaymentTransactionObserver {
     
 }
 
-
+// MARK:- Settings Cell
 
 class SettingsCell: UITableViewCell {
     

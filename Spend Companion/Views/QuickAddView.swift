@@ -41,17 +41,6 @@ class QuickAddView: UIView {
         return lbl
     }()
     
-    var monthFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter
-    }()
-    
-    let dayFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        return formatter
-    }()
     
     var dayLabel: UILabel = {
         let label = UILabel()
@@ -199,6 +188,10 @@ class QuickAddView: UIView {
         }
     }
         
+    
+    
+// MARK:- UI Methods
+    
     @objc func isRecurringToggle() {
         if isRecurring {
             isRecurring = false
@@ -214,7 +207,7 @@ class QuickAddView: UIView {
     }
     
     @objc func datePicked() {
-        dayLabel.text = dayFormatter.string(from: dayPicker.date)
+        dayLabel.text = DateFormatters.fullDateFormatter.string(from: dayPicker.date)
         dayLabel.textColor = CustomColors.label
         dayLabel.layer.borderColor = CustomColors.label.cgColor
     }
@@ -262,7 +255,7 @@ class QuickAddView: UIView {
         if amountTextField.isFirstResponder {
             amountTextField.resignFirstResponder()
         } else if dayTextField.isFirstResponder {
-            dayLabel.text = dayPickerDate == nil ? "Today" : dayFormatter.string(from: dayPickerDate!)
+            dayLabel.text = dayPickerDate == nil ? "Today" : DateFormatters.fullDateFormatter.string(from: dayPickerDate!)
             dayTextField.resignFirstResponder()
         }
     }
@@ -379,9 +372,9 @@ class QuickAddView: UIView {
 }
 
 
+// MARK:- UITextField Delegate
 
 extension QuickAddView: UITextFieldDelegate {
-    
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentString: NSString = textField.text! as NSString

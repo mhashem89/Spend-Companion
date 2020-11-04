@@ -166,6 +166,28 @@ class RecurringViewController: UIViewController {
     }()
     
     
+// MARK:- Life Cycle Methods
+    
+    init(itemRecurrence: ItemRecurrence? = nil) {
+        super.init(nibName: nil, bundle: nil)
+        if let itemRecurrence = itemRecurrence {
+            periodTextField.text = String(itemRecurrence.period)
+            segmentedControl.selectedSegmentIndex = itemRecurrence.unit.rawValue
+            segmentedControl.isSelected = true
+            endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: itemRecurrence.endDate))"
+            endDateLabel.textColor = CustomColors.label
+            if let reminderTime = itemRecurrence.reminderTime {
+                reminderSwitch.isOn = true
+                reminderSegmentedControl.isSelected = true
+                reminderSegmentedControl.selectedSegmentIndex = reminderTime - 1
+            }
+        }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         view.backgroundColor = CustomColors.systemBackground.withAlphaComponent(fontScale < 1 ? 1 : 0.6)
         let reminderStack = UIStackView(arrangedSubviews: [reminderSwitch, reminderLabel])
@@ -205,6 +227,9 @@ class RecurringViewController: UIViewController {
         dayPicker.date = DateFormatters.fullDateFormatter.date(from: endDateLabel.text ?? "") ?? Date()
         SKPaymentQueue.default().add(self)
     }
+    
+    
+// MARK:- UI Methods
     
     private func setupAmountToolbar() {
         let toolBar = UIToolbar()
@@ -320,6 +345,7 @@ class RecurringViewController: UIViewController {
     
 }
 
+// MARK:- Text Field Delegate
 
 extension RecurringViewController: UITextFieldDelegate {
     
@@ -334,6 +360,7 @@ extension RecurringViewController: UITextFieldDelegate {
     
 }
 
+// MARK:- SKPayment Transaction Observer
 
 extension RecurringViewController: SKPaymentTransactionObserver {
     

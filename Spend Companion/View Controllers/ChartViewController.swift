@@ -30,8 +30,6 @@ var fontScale: CGFloat {
 
 class ChartViewController: UIViewController, YearHeaderDelegate  {
     
-    
-    
     // MARK:- Properties
     
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -102,8 +100,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
             button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
             tabBarItem = button
         }
-        
-        
     }
     
     required init?(coder: NSCoder) {
@@ -116,10 +112,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         setupBarChart()
         setupHeader()
         view.addSubviews([filterButton, filteredRowLabel])
-        filterButton.anchor(top: header.bottomAnchor, topConstant: 10, trailing: view.trailingAnchor, trailingConstant: 10 * viewsWidthScale)
-        filterButton.setAttributedTitle(NSAttributedString(string: " Filter", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)]), for: .normal)
-        filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
-        filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
+        setupFilterButton()
         
         let currentMonthString = DateFormatters.monthFormatter.string(from: Date())
         self.filteredRowName = "\(currentMonthString)"
@@ -137,6 +130,14 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     }
     
     // MARK:- Selectors
+    
+    func setupFilterButton() {
+         filterButton.anchor(top: header.bottomAnchor, topConstant: 10, trailing: view.trailingAnchor, trailingConstant: 10 * viewsWidthScale)
+         filterButton.setAttributedTitle(NSAttributedString(string: " Filter", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)]), for: .normal)
+         filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
+         filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
+     }
+    
     
     @objc func showFilter() {
         dimBackground()
@@ -230,7 +231,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         barChart.showsHorizontalScrollIndicator = false
         barChart.showsVerticalScrollIndicator = false
     }
-    
     
     
     func dimBackground() {

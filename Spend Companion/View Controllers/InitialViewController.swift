@@ -29,6 +29,7 @@ class InitialViewController: UIViewController {
     var selectedYear = Date()
     var selectedMonthScaledData: (CGFloat, CGFloat) = (0,0)
     var selectedYearScaledData: (CGFloat, CGFloat) = (0,0)
+    var monthChanged: Bool = false
     
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
@@ -46,8 +47,6 @@ class InitialViewController: UIViewController {
     
     var recentItemsTable: UITableView?
     
-    var monthChanged: Bool = false
-    
     var emptyItemsLabel: UILabel = {
         let lbl = UILabel()
         lbl.text = "Items from last 7 days will appear here"
@@ -63,6 +62,7 @@ class InitialViewController: UIViewController {
         super.viewDidLoad()
         quickAddView.delegate = self
         viewModel.delegate = self
+        
         if #available(iOS 13, *) {
             tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house.fill"), tag: 0)
         } else {
@@ -71,6 +71,7 @@ class InitialViewController: UIViewController {
             button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
             navigationController?.tabBarItem = button
         }
+        
         navigationController?.navigationBar.isHidden = true
         view.backgroundColor = CustomColors.systemBackground
         view.addSubview(scrollView)
@@ -330,11 +331,9 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
 
 extension InitialViewController: QuickAddViewDelegate {
     
-    
-    
     func openRecurringWindow() {
         
-        let recurringVC = RecurringViewController()
+        let recurringVC = RecurringViewController(itemRecurrence: quickAddView.itemRecurrence)
         recurringVC.delegate = self
         recurringVC.modalPresentationStyle = fontScale < 0.9 ? .overCurrentContext : .popover
         recurringVC.popoverPresentationController?.delegate = self
@@ -343,22 +342,9 @@ extension InitialViewController: QuickAddViewDelegate {
         recurringVC.popoverPresentationController?.permittedArrowDirections = [.down, .right]
         recurringVC.preferredContentSize = .init(width: 220 * fontScale, height: 330 * fontScale)
         recurringVC.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: quickAddView.dayPickerDate ?? Date())
-        if let itemRecurrence = quickAddView.itemRecurrence {
-            recurringVC.periodTextField.text = String(itemRecurrence.period)
-            recurringVC.segmentedControl.selectedSegmentIndex = itemRecurrence.unit.rawValue
-            recurringVC.segmentedControl.isSelected = true
-            recurringVC.endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: itemRecurrence.endDate))"
-            recurringVC.endDateLabel.textColor = CustomColors.label
-            if let reminderTime = itemRecurrence.reminderTime {
-                recurringVC.reminderSwitch.isOn = true
-                recurringVC.reminderSegmentedControl.isSelected = true
-                recurringVC.reminderSegmentedControl.selectedSegmentIndex = reminderTime - 1 
-            }
-        }
         present(recurringVC, animated: true)
         dimBackground()
     }
-    
     
     func saveItem() {
         guard
@@ -379,7 +365,7 @@ extension InitialViewController: QuickAddViewDelegate {
         showSavedAlert()
        
         if self.summaryView.segmentedControl.selectedSegmentIndex == 1 {
-            let itemDate = quickAddView.dayLabel.text == "Today" ? Date() : quickAddView.dayFormatter.date(from: quickAddView.dayLabel.text!)
+            let itemDate = quickAddView.dayLabel.text == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: quickAddView.dayLabel.text!)
             let itemYear = DateFormatters.yearFormatter.string(from: itemDate!)
             if itemYear == DateFormatters.yearFormatter.string(from: selectedYear) {
                 self.viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
@@ -388,8 +374,6 @@ extension InitialViewController: QuickAddViewDelegate {
             }
         }
     }
-    
-    
     
     func showCategoryTitleVC() {
         let categoryTitleVC = CategoryTitleViewController(categoryName: quickAddView.categoryLabel.text)
@@ -462,7 +446,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         let item = viewModel.recentItems[indexPath.row]
         let titleString = NSMutableAttributedString(string: item.detail ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
         let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
-        let dayString = quickAddView.dayFormatter.string(from: item.date!) == todayDate ? "Today" : quickAddView.dayFormatter.string(from: item.date!)
+        let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
         let formattedDayString = NSAttributedString(string: "   \(dayString)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.systemGray])
         titleString.append(formattedDayString)
         cell.textLabel?.attributedText = titleString
@@ -506,7 +490,6 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
 
 extension InitialViewController: InitialViewModelDelegate {
     
-    
     func monthTotalChanged(forMonth: Month) {
         if forMonth.date == DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth) && summaryView.segmentedControl.selectedSegmentIndex == 0 {
             if view.window != nil && presentedViewController == nil {
@@ -530,7 +513,6 @@ extension InitialViewController: InitialViewModelDelegate {
     }
     
 }
-
 
 // MARK:- Recurring View Controller Delegate
 
