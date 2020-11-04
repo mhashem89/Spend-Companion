@@ -65,4 +65,32 @@ class SummaryView: UIView {
     }
     
     
+    func setupSummaryLabel(with viewModel: InitialViewModel, for component: Calendar.Component) {
+        if component == .month {
+            let dateComponent = Calendar.current.dateComponents([.year, .month], from: Date())
+            let monthBeggining = Calendar.current.date(from: dateComponent)!
+            if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0, numDays > 7 {
+                let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
+                summaryLabel.isHidden = false
+                let averageString = CommonObjects.shared.formattedCurrency(with: average)
+                summaryLabel.text = "Average daily spending this month: \(averageString ?? "")"
+                summaryLabel.sizeToFit()
+            } else {
+                summaryLabel.isHidden = true
+            }
+        } else if component == .year {
+            if let averageThisYear = viewModel.calcAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
+                summaryLabel.isHidden = false
+                let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
+                if averageThisYear > 0 {
+                    summaryLabel.text = "On average this year, you make \(averageString ?? "") more than you spend per month"
+                } else {
+                    summaryLabel.text = "On average this year, you spend \(averageString ?? "") more than you make per month"
+                }
+            } else {
+                summaryLabel.isHidden = true
+            }
+        }
+    }
+    
 }

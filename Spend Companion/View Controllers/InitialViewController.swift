@@ -175,31 +175,7 @@ class InitialViewController: UIViewController {
     }
     
     func setupSummaryLabel(for component: Calendar.Component) {
-        if component == .month {
-            let dateComponent = Calendar.current.dateComponents([.year, .month], from: Date())
-            let monthBeggining = Calendar.current.date(from: dateComponent)!
-            if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0, numDays > 7 {
-                let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
-                summaryView.summaryLabel.isHidden = false
-                let averageString = CommonObjects.shared.formattedCurrency(with: average)
-                summaryView.summaryLabel.text = "Average daily spending this month: \(averageString ?? "")"
-                summaryView.summaryLabel.sizeToFit()
-            } else {
-                summaryView.summaryLabel.isHidden = true
-            }
-        } else if component == .year {
-            if let averageThisYear = viewModel.calcAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
-                summaryView.summaryLabel.isHidden = false
-                let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
-                if averageThisYear > 0 {
-                    summaryView.summaryLabel.text = "On average this year, you make \(averageString ?? "") more than you spend per month"
-                } else {
-                    summaryView.summaryLabel.text = "On average this year, you spend \(averageString ?? "") more than you make per month"
-                }
-            } else {
-                summaryView.summaryLabel.isHidden = true
-            }
-        }
+        summaryView.setupSummaryLabel(with: viewModel, for: component)
     }
     
     @objc func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
@@ -259,7 +235,6 @@ class InitialViewController: UIViewController {
     }
     
 }
-
 
 // MARK:- Bar Chart Delegate
 
@@ -457,7 +432,6 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         }
         return cell
     }
-
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -474,13 +448,11 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         }
     }
     
-    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return viewsHeightScale < 1 ? 44 : 44 * fontScale
     }
     
 }
-
 
 // MARK:- View Model Delegate
 
@@ -527,9 +499,7 @@ extension InitialViewController: RecurringViewControllerDelegate {
     
 }
 
-
 // MARK:- UIPopover presentation controller delegate
-
 
 extension InitialViewController: UIPopoverPresentationControllerDelegate {
     

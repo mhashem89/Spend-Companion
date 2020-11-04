@@ -9,9 +9,6 @@
 import UIKit
 import CoreData
 
-
-
-
 class ChartViewModel {
     
     
