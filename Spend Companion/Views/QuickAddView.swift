@@ -12,7 +12,7 @@ protocol QuickAddViewDelegate: class {
     
     func showCategoryTitleVC()
     
-    func saveItem()
+    func saveItem(itemStruct: ItemStruct)
     
     func openRecurringWindow()
     
@@ -249,6 +249,7 @@ class QuickAddView: UIView {
     
     @objc func todayButtonDayPicker() {
         dayPicker.date = Date()
+        dayLabel.text = "Today"
     }
     
     @objc private func cancelButtonPressed() {
@@ -291,21 +292,27 @@ class QuickAddView: UIView {
     
     @objc func saveButtonPressed() {
         
-        guard detailLabel.text != nil, !detailLabel.text!.isEmpty else {
-            detailLabel.layer.borderColor = UIColor.red.cgColor
-            return
-        }
-        
-        guard segmentedControl.isSelected else {
+        guard segmentedControl.isSelected,
+              let type = ItemType(rawValue: Int16(segmentedControl.selectedSegmentIndex))
+        else {
             segmentedControl.layer.borderColor = UIColor.red.cgColor
             return
         }
-        guard amountTextField.text != nil, !amountTextField.text!.isEmpty else {
+        guard let amountString = amountTextField.text, let amount = Double(amountString) else {
             amountTextField.layer.borderColor = UIColor.red.cgColor
             return
         }
+        
+        var category: String?
+        switch type {
+        case .spending:
+            category = categoryLabel.text == "Category" ? nil : categoryLabel.text
+        case .income:
+            category = "Income"
+        }
+        let itemStruct = ItemStruct(amount: amount, type: type, date: dayLabel.text ?? "Today", detail: detailLabel.text, itemRecurrence: self.itemRecurrence, categoryName: category)
         amountTextField.resignFirstResponder()
-        delegate?.saveItem()
+        delegate?.saveItem(itemStruct: itemStruct)
     }
     
     func clearView() {

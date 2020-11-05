@@ -123,8 +123,8 @@ class CategoryViewModel {
             }
         }
       
-        if let sisterItems = sisterItems {
-            sisterItems.forEach({
+        if let futureSisterItems = sisterItems?.filter({ $0.date! > item.date! }) {
+            futureSisterItems.forEach({
                 if let reminderUID = $0.reminderUID {
                     reminderUIDsForDeletion.append(reminderUID)
                 }
@@ -141,7 +141,8 @@ class CategoryViewModel {
             
             repeat {
                 itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-                let newItem = InitialViewModel.shared.createNewItem(date: itemDate, description: item.detail ?? "", type: ItemType(rawValue: item.type)!, category: item.category?.name, amount: item.amount, itemRecurrence: newRecurrence, save: false)
+                let itemStruct = ItemStruct.itemStruct(from: item)
+                let newItem = InitialViewModel.shared.createNewItem(date: itemDate, itemStruct: itemStruct, save: false)
                 items.append(newItem)
             } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= newRecurrence.endDate
             

@@ -78,11 +78,11 @@ class InitialViewModel: NSObject {
         return itemRecurrence
     }
     
-    func saveItem(dayString: String, description: String?, type: ItemType, category: String? = nil, amount: Double, withRecurrence itemRecurrence: ItemRecurrence? = nil) {
-        guard var itemDate = dayString == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: dayString) else { return }
-        let createdItem = createNewItem(date: itemDate, description: description, type: type, category: category, amount: amount, itemRecurrence: itemRecurrence)
+    func saveItem(itemStruct: ItemStruct) {
+        guard var itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
+        let createdItem = createNewItem(date: itemDate, itemStruct: itemStruct)
         
-        if let itemRecurrence = itemRecurrence, itemRecurrence.endDate > itemDate {
+        if let itemRecurrence = itemStruct.itemRecurrence, itemRecurrence.endDate > itemDate {
             var items = [createdItem]
             let additionalHours = Calendar.current.dateComponents([.hour, .minute, .second, .nanosecond], from: Date())
             let adjustedEndDate = Calendar.current.date(byAdding: additionalHours, to: itemRecurrence.endDate)!
@@ -95,7 +95,7 @@ class InitialViewModel: NSObject {
             
             repeat {
                 itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-                let newItem = createNewItem(date: itemDate, description: description, type: type, category: category, amount: amount, itemRecurrence: itemRecurrence)
+                let newItem = createNewItem(date: itemDate, itemStruct: itemStruct)
                 items.append(newItem)
             } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate
             
@@ -111,17 +111,17 @@ class InitialViewModel: NSObject {
         }
     }
     
-    func createNewItem(date: Date, description: String?, type: ItemType, category: String? = nil, amount: Double, itemRecurrence: ItemRecurrence? = nil, save: Bool = true) -> Item {
+    func createNewItem(date: Date, itemStruct: ItemStruct, save: Bool = true) -> Item {
         let dayString = DateFormatters.fullDateFormatter.string(from: date)
         let monthString = extractMonthString(from: dayString)
         let item = NSEntityDescription.insertNewObject(forEntityName: "Item", into: context) as! Item
         item.date = date
-        item.detail = description == "Description" ? nil : description
-        item.type = type.rawValue
-        item.amount = amount
-        item.category = checkCategory(categoryName: category ?? "Other", monthString: monthString)
+        item.detail = itemStruct.detail == "Description" ? nil : itemStruct.detail
+        item.type = itemStruct.type.rawValue
+        item.amount = itemStruct.amount
+        item.category = checkCategory(categoryName: itemStruct.categoryName ?? "Other", monthString: monthString)
         item.month = item.category?.month
-        if let itemRecurrence = itemRecurrence {
+        if let itemRecurrence = itemStruct.itemRecurrence {
             item.recurringNum = NSNumber(value: itemRecurrence.period)
             item.recurringUnit = NSNumber(value: itemRecurrence.unit.rawValue)
             if let reminderTime = itemRecurrence.reminderTime {

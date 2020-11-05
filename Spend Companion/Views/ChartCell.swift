@@ -11,6 +11,17 @@ import UIKit
 
 class ChartCell: UICollectionViewCell {
     
+    var numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.locale = .current
+        formatter.numberStyle = .currency
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 2
+        formatter.minusSign = ""
+        formatter.currencySymbol = ""
+        return formatter
+    }()
+    
     var barView: UIView = {
         let view = UIView()
         view.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
@@ -47,5 +58,9 @@ class ChartCell: UICollectionViewCell {
     private func setupUI() {
         backgroundColor = CustomColors.systemBackground
         addSubviews([cellLabel, barView, valueLabel])
+    }
+    
+    func formatValueLabel(with amount: Double) {
+        valueLabel.text = numberFormatter.string(from: NSNumber(value: amount))
     }
 }

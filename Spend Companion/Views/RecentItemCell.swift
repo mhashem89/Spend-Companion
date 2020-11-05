@@ -41,6 +41,20 @@ class RecentItemCell: UITableViewCell {
         detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
     }
     
+    func configureCell(for item: Item) {
+        let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
+        let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
+        formatTitleLabel(itemName: item.detail, on: dayString)
+        detailTextLabel?.text = item.category?.name
+        let roundedAmount = (item.amount * 100).rounded() / 100
+        formatAmountLabel(with: roundedAmount)
+        if item.recurringNum != nil && item.recurringUnit != nil {
+            addRecurrence()
+        } else {
+            recurringCircleButton.removeFromSuperview()
+        }
+    }
+    
     func addRecurrence() {
         addSubview(recurringCircleButton)
         recurringCircleButton.anchor(leading: textLabel?.trailingAnchor, leadingConstant: 10, centerY: centerYAnchor)

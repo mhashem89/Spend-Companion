@@ -70,6 +70,21 @@ enum ItemType: Int16 {
     case income = 1
 }
 
+struct ItemStruct {
+    var amount: Double
+    var type: ItemType
+    var date: String
+    var detail: String?
+    var itemRecurrence: ItemRecurrence?
+    var categoryName: String?
+    
+    static func itemStruct(from item: Item) -> ItemStruct {
+        let date = DateFormatters.fullDateFormatter.string(from: item.date!)
+        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: date, detail: item.detail, itemRecurrence: InitialViewModel.shared.createItemRecurrence(from: item), categoryName: item.category?.name)
+    }
+    
+}
+
 
 enum RecurringUnit: Int, CustomStringConvertible {
     case day = 0
@@ -121,7 +136,7 @@ struct ItemRecurrence {
 
 class DateFormatters {
     
-    
+    /// "MMM d, yyyy"
     static let fullDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM d, yyyy"

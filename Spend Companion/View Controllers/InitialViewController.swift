@@ -180,26 +180,12 @@ class InitialViewController: UIViewController {
     
     @objc func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
         if summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            switch gesture.direction {
-            case .left:
-                selectedMonth = Calendar.current.date(byAdding: .month, value: 1, to: selectedMonth)!
-            case .right:
-                selectedMonth = Calendar.current.date(byAdding: .month, value: -1, to: selectedMonth)!
-            default:
-                break
-            }
+            selectedMonth = Calendar.current.date(byAdding: .month, value: gesture.direction == .left ? 1 : -1, to: selectedMonth)!
             summaryView.titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: selectedMonth))"
             viewModel.fetchMonthTotals(forDate: selectedMonth)
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
         } else {
-            switch gesture.direction {
-            case .left:
-                selectedYear = Calendar.current.date(byAdding: .year, value: 1, to: selectedYear)!
-            case .right:
-                selectedYear = Calendar.current.date(byAdding: .year, value: -1, to: selectedYear)!
-            default:
-                break
-            }
+            selectedYear = Calendar.current.date(byAdding: .year, value: gesture.direction == .left ? 1 : -1, to: selectedYear)!
             summaryView.titleLabel.text = "Summary of \(DateFormatters.yearFormatter.string(from: selectedYear))"
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
         }
@@ -269,7 +255,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         default:
             break
         }
-        cell.valueLabel.text = String(format: "%g", value)
+        cell.formatValueLabel(with: value)
         cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: priorValue, height: 25)
         cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + priorValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
@@ -321,21 +307,8 @@ extension InitialViewController: QuickAddViewDelegate {
         dimBackground()
     }
     
-    func saveItem() {
-        guard
-              let type = ItemType(rawValue: Int16(quickAddView.segmentedControl.selectedSegmentIndex)),
-              let amountString = quickAddView.amountTextField.text,
-              let amount = Double(amountString) else { return }
-        
-        let description = quickAddView.detailLabel.text
-        var category: String?
-        switch type {
-        case .spending:
-            category = quickAddView.categoryLabel.text == "Category" ? nil : quickAddView.categoryLabel.text
-        case .income:
-            category = "Income"
-        }
-        viewModel.saveItem(dayString: quickAddView.dayLabel.text ?? "Today", description: description, type: type, category: category, amount: amount, withRecurrence: quickAddView.itemRecurrence)
+    func saveItem(itemStruct: ItemStruct) {
+        viewModel.saveItem(itemStruct: itemStruct)
         
         showSavedAlert()
        
@@ -394,7 +367,6 @@ extension InitialViewController: ItemNameViewControllerDelegate {
     
 }
 
-
 // MARK:- Recent Items Table Delegate
 
 
@@ -419,17 +391,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = recentItemsTable?.dequeueReusableCell(withIdentifier: tableCellId, for: indexPath) as! RecentItemCell
         let item = viewModel.recentItems[indexPath.row]
-        let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
-        let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
-        cell.formatTitleLabel(itemName: item.detail, on: dayString)
-        cell.detailTextLabel?.text = viewModel.recentItems[indexPath.row].category?.name
-        let roundedAmount = (viewModel.recentItems[indexPath.row].amount * 100).rounded() / 100
-        cell.formatAmountLabel(with: roundedAmount)
-        if item.recurringNum != nil && item.recurringUnit != nil {
-            cell.addRecurrence()
-        } else {
-            cell.recurringCircleButton.removeFromSuperview()
-        }
+        cell.configureCell(for: item)
         return cell
     }
     
