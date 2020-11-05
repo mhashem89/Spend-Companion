@@ -309,21 +309,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: itemId, for: indexPath) as! ItemCell
         cell.setupUI()
-        let day = viewModel?.items?[indexPath.row].date
-        let item = viewModel?.items?[indexPath.item]
-        cell.dayLabel.text = day != nil ? DateFormatters.fullDateFormatterWithLetters.string(from: day!).extractDate() : "Day"
-        cell.dayLabel.textColor = cell.dayLabel.text == "Day" ? CustomColors.lightGray : CustomColors.label
-        cell.detailTextField.text = item?.detail
-        if let amount = item?.amount, amount > 0.0 {
-            cell.amountTextField.text = String(format: "%g", (amount * 100).rounded() / 100)
-        } else {
-            cell.amountTextField.text = nil
-        }
-        if let _ = item?.recurringNum, let _ = item?.recurringUnit {
-            cell.recurringCircleButton.isHidden = false
-        } else {
-            cell.recurringCircleButton.isHidden = true
-        }
+        cell.configure(for: viewModel?.items?[indexPath.row])
         cell.dayPicker.delegate = self
         cell.dayPicker.dataSource = self
         cell.delegate = self

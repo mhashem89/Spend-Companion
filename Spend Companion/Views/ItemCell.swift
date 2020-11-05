@@ -135,6 +135,19 @@ class ItemCell: UITableViewCell {
         
     }
     
+    func configure(for item: Item?) {
+        let date = item?.date
+        dayLabel.text = item?.date != nil ? DateFormatters.fullDateFormatterWithLetters.string(from: date!).extractDate() : "Day"
+        dayLabel.textColor = dayLabel.text == "Day" ? CustomColors.lightGray : CustomColors.label
+        detailTextField.text = item?.detail
+        if let amount = item?.amount, amount > 0.0 {
+            amountTextField.text = String(format: "%g", (amount * 100).rounded() / 100)
+        } else {
+            amountTextField.text = nil
+        }
+        recurringCircleButton.isHidden = item?.recurringNum == nil && item?.recurringUnit == nil
+    }
+    
     private func setupAmountToolbar() {
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
