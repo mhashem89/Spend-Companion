@@ -153,37 +153,42 @@ class DateFormatters {
         return formatter
     }()
     
+    /// "MMMM yyyy"
     static let monthYearFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMMM yyyy"
         return formatter
     }()
     
+    /// "MMM yyyy"
     static let abbreviatedMonthYearFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM yyyy"
         return formatter
     }()
     
+    /// "MMM"
     static let abbreviatedMonthFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
         return formatter
     }()
     
+    /// "yyyy"
     static let yearFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy"
         return formatter
     }()
     
-    
+    /// "E, d, MMM yyyy"
     static let fullDateFormatterWithLetters: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "E, d, MMM yyyy"
         return formatter
     }()
     
+    /// "MMM"
     static let monthFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "MMM"
