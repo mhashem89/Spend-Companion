@@ -79,7 +79,6 @@ class ItemCell: UITableViewCell {
         } else {
             tf.addRightPadding(10, withSymbol: currencySymbol.symbol)
         }
-        
         tf.keyboardType = .decimalPad
         return tf
     }()
@@ -136,9 +135,12 @@ class ItemCell: UITableViewCell {
     }
     
     func configure(for item: Item?) {
-        let date = item?.date
-        dayLabel.text = item?.date != nil ? DateFormatters.fullDateFormatterWithLetters.string(from: date!).extractDate() : "Day"
-        dayLabel.textColor = dayLabel.text == "Day" ? CustomColors.lightGray : CustomColors.label
+        if let itemDate = item?.date {
+            dayLabel.text = itemDate.dayMatches(Date()) ? "Today" : DateFormatters.fullDateWithLetters.string(from: itemDate).extractDate()
+        } else {
+            dayLabel.text = "Today"
+        }
+        dayLabel.textColor = CustomColors.label
         detailTextField.text = item?.detail
         if let amount = item?.amount, amount > 0.0 {
             amountTextField.text = String(format: "%g", (amount * 100).rounded() / 100)
@@ -272,3 +274,10 @@ extension ItemCell: UITextFieldDelegate {
     }
 }
 
+
+
+extension Date {
+    func dayMatches(_ date: Date) -> Bool {
+        return DateFormatters.fullDateFormatter.string(from: date) == DateFormatters.fullDateFormatter.string(from: self)
+    }
+}

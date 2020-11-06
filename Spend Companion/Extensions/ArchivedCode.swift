@@ -317,3 +317,15 @@ import Foundation
 //    }
     
     
+
+
+//
+//guard viewModel?.items?.filter({ $0.date == nil }).count == 0 else {
+//    let itemsWithoutDate = viewModel?.items?.filter({ $0.date == nil })
+//    itemsWithoutDate?.forEach({ (item) in
+//        let itemIndex = viewModel?.items?.firstIndex(of: item)
+//        let cell = tableView.cellForRow(at: IndexPath(row: itemIndex!, section: 0)) as! ItemCell
+//        cell.dayLabel.textColor = .systemRed
+//    })
+//    return
+//}

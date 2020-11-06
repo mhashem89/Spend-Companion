@@ -20,25 +20,16 @@ class CategoryViewController: UIViewController {
     
     let titleId = "cellId"
     let itemId = "itemId"
-    
     var viewModel: CategoryViewModel?
-    
     var month: Month!
-    
     var delegate: CategoryViewControllerDelegate?
-    
     var tableView = UITableView(frame: .zero, style: .plain)
-    
     var viewFrameHeight: CGFloat = 0
     var tableViewFrameHeight: CGFloat = 0
     var activeCell: ItemCell?
-    
     var headerView = ItemTableHeader()
-    
     var recurrenceViewer: RecurringViewController?
-
     let sortingVC = SortingViewController()
-    
     var dimmingView: UIView = {
         let view = UIView()
         view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
@@ -154,14 +145,12 @@ class CategoryViewController: UIViewController {
     @objc private func save() {
         do {
             try viewModel?.save()
-            if itemsToBeScheduled.count > 0 {
-                for item in itemsToBeScheduled.keys {
-                    InitialViewModel.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
-                    if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
-                        for item in sisterItems {
-                            if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
-                                InitialViewModel.shared.scheduleReminder(for: item, with: itemRecurrence)
-                            }
+            itemsToBeScheduled.keys.forEach { (item) in
+                InitialViewModel.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
+                if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
+                    for item in sisterItems {
+                        if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
+                            InitialViewModel.shared.scheduleReminder(for: item, with: itemRecurrence)
                         }
                     }
                 }
@@ -188,6 +177,7 @@ class CategoryViewController: UIViewController {
             tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
         }, completion: { [self]_ in
             scrollToLastRow()
+            dataChanged()
         })
         if viewModel!.items!.count > 1 {
             headerView.sortButton.isEnabled = true
@@ -275,7 +265,7 @@ class CategoryViewController: UIViewController {
         let monthDays = calendar.range(of: .day, in: .month, for: firstDay)!
         let days = (monthDays.lowerBound..<monthDays.upperBound)
             .compactMap( { calendar.date(byAdding: .day, value: $0 - dayOfMonth, to: firstDay) } )
-        let dayStrings = days.compactMap({ DateFormatters.fullDateFormatterWithLetters.string(from: $0) })
+        let dayStrings = days.compactMap({ DateFormatters.fullDateWithLetters.string(from: $0) })
         return dayStrings
     }
 
@@ -404,8 +394,9 @@ extension CategoryViewController: ItemCellDelegate {
             guard let self = self else { return }
             guard let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
             let selectedDay = self.calcDaysRange(month: self.month)[day]
-            self.viewModel?.items?[selectedIndexPath.row].date = DateFormatters.fullDateFormatterWithLetters.date(from: selectedDay)
-            (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.text = self.calcDaysRange(month: self.month)[day].extractDate()
+            let selectedDate = DateFormatters.fullDateWithLetters.date(from: selectedDay)!
+            self.viewModel?.items?[selectedIndexPath.row].date = selectedDate
+            (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.text = selectedDate.dayMatches(Date()) ? "Today" : self.calcDaysRange(month: self.month)[day].extractDate()
             (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.textColor = CustomColors.label
             self.scrollToActiveRow()
         }

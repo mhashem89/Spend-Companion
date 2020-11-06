@@ -41,6 +41,7 @@ class CategoryViewModel {
         let newItem = Item(context: context)
         newItem.category = category
         newItem.month = month
+        newItem.date = Date()
         if self.items == nil {
             self.items = [newItem]
         } else {

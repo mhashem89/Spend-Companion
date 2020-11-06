@@ -182,7 +182,7 @@ class DateFormatters {
     }()
     
     /// "E, d, MMM yyyy"
-    static let fullDateFormatterWithLetters: DateFormatter = {
+    static let fullDateWithLetters: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "E, d, MMM yyyy"
         return formatter
