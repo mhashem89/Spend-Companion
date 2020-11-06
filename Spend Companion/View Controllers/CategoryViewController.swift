@@ -310,11 +310,11 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         move.backgroundColor = CustomColors.indigo
         
         let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, _) in
-            if item.recurringNum != nil, let sisterItems = item.sisterItems?.allObjects as? [Item] {
+            if let futureItems = item.futureItems() {
                 let alertController = UIAlertController(title: nil, message: "Delete all future transactions?", preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
                 alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { (_) in
-                    sisterItems.filter({ $0.date! > item.date! }).forEach({
+                    futureItems.forEach({
                         if let itemIndex = self?.viewModel?.items?.firstIndex(of: $0) {
                             self?.viewModel?.deleteItem(item: $0, at: itemIndex)
                             self?.tableView.reloadData()
@@ -532,7 +532,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
         }
     }
     
-    func recurringViewDone(with itemRecurrence: ItemRecurrence) {
+    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool) {
         dimmingView.removeFromSuperview()
         recurrenceViewer?.dismiss(animated: true) { [unowned self] in
             guard let activeCell = self.activeCell,
@@ -542,16 +542,18 @@ extension CategoryViewController: RecurringViewControllerDelegate {
             let alertController = UIAlertController(title: nil, message: "This change will be applied to all future transactions", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: nil))
             alertController.addAction(UIAlertAction(title: "Apply", style: .default, handler: { (action) in
-                self.viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, sisterItems: item.sisterItems?.allObjects as? [Item])
-                itemsToBeScheduled[item] = itemRecurrence
-                viewModel?.reloadData()
-                tableView.reloadData()
-                dataChanged()
+                updateItemRecurrence(for: item, with: itemRecurrence)
             }))
-            
-            self.present(alertController, animated: true, completion: nil)
+            new ? updateItemRecurrence(for: item, with: itemRecurrence) : self.present(alertController, animated: true, completion: nil)
         }
-        
+    }
+    
+    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence) {
+        viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, sisterItems: item.futureItems())
+        itemsToBeScheduled[item] = itemRecurrence
+        viewModel?.reloadData()
+        tableView.reloadData()
+        dataChanged()
     }
    
 }

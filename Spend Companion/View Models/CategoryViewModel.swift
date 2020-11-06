@@ -142,25 +142,25 @@ class CategoryViewModel {
                 }
                 context.delete($0)
             })
-            guard var itemDate = item.date else { return }
-            var items = [item]
-            var dateComponent = DateComponents()
-            switch newRecurrence.unit {
-            case .day: dateComponent.day = newRecurrence.period
-            case .month: dateComponent.month = newRecurrence.period
-            case .week: dateComponent.weekOfYear = newRecurrence.period
-            }
-            
-            repeat {
-                itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-                let itemStruct = ItemStruct.itemStruct(from: item)
-                let newItem = InitialViewModel.shared.createNewItem(date: itemDate, itemStruct: itemStruct, save: false)
-                items.append(newItem)
-            } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= newRecurrence.endDate
-            
-            for item in items {
-                item.sisterItems = NSSet(array: items.filter({ $0 != item }))
-            }
+        }
+        guard var itemDate = item.date else { return }
+        var items = [item]
+        var dateComponent = DateComponents()
+        switch newRecurrence.unit {
+        case .day: dateComponent.day = newRecurrence.period
+        case .month: dateComponent.month = newRecurrence.period
+        case .week: dateComponent.weekOfYear = newRecurrence.period
+        }
+        
+        repeat {
+            itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
+            let itemStruct = ItemStruct.itemStruct(from: item)
+            let newItem = InitialViewModel.shared.createNewItem(date: itemDate, itemStruct: itemStruct, save: false)
+            items.append(newItem)
+        } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= newRecurrence.endDate
+        
+        for item in items {
+            item.sisterItems = NSSet(array: items.filter({ $0 != item }))
         }
     }
     
@@ -173,7 +173,6 @@ class CategoryViewModel {
         guard let categories = month.categories?.allObjects as? [Category] else { return }
         guard let newCategory = categories.filter({ $0.name == categoryName }).first else { return }
         item.category = newCategory
-        reloadData()
         if let sisterItems = sisterItems {
             sisterItems.forEach({
                 if let categoryName = newCategory.name, let itemMonthString = $0.month?.date {
@@ -181,6 +180,7 @@ class CategoryViewModel {
                 }
             })
         }
+        reloadData()
     }
     
 }

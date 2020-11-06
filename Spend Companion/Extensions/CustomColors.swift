@@ -36,11 +36,7 @@ class CustomColors {
     }
     
     static var darkGray: UIColor {
-        if #available(iOS 13, *) {
-            return .systemGray
-        } else {
-            return .darkGray
-        }
+        return .systemGray
     }
     
     static var mediumGray: UIColor {
@@ -52,19 +48,11 @@ class CustomColors {
     }
     
     static var blue: UIColor {
-        if #available(iOS 13, *) {
-            return .systemBlue
-        } else {
-            return .blue
-        }
+        return .systemBlue
     }
     
     static var green: UIColor {
-        if #available(iOS 13, *) {
-            return .systemGreen
-        } else {
-            return .green
-        }
+        return .systemGreen
     }
     
     static var indigo: UIColor {
@@ -76,51 +64,27 @@ class CustomColors {
     }
     
     static var orange: UIColor {
-        if #available(iOS 13, *) {
-            return .systemOrange
-        } else {
-            return .orange
-        }
+        return .systemOrange
     }
     
     static var pink: UIColor {
-        if #available(iOS 13, *) {
-            return .systemPink
-        } else {
-            return #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1)
-        }
+        return .systemPink
     }
     
     static var purple: UIColor {
-        if #available(iOS 13, *) {
-            return .systemPurple
-        } else {
-            return .purple
-        }
+        return .systemPurple
     }
     
     static var red: UIColor {
-        if #available(iOS 13, *) {
-            return .systemRed
-        } else {
-            return .red
-        }
+        return .systemRed
     }
     
     static var teal: UIColor {
-        if #available(iOS 13, *) {
-            return .systemTeal
-        } else {
-            return #colorLiteral(red: 0.2392156869, green: 0.6745098233, blue: 0.9686274529, alpha: 1)
-        }
+        return .systemTeal
     }
     
     static var yellow: UIColor {
-        if #available(iOS 13, *) {
-            return .systemYellow
-        } else {
-            return .yellow
-        }
+        return .systemYellow
     }
 }
 

@@ -15,7 +15,7 @@ protocol RecurringViewControllerDelegate: class {
     
     func recurringViewCancel(viewEmpty: Bool)
     
-    func recurringViewDone(with itemRecurrence: ItemRecurrence)
+    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool)
     
 }
 
@@ -36,6 +36,8 @@ class RecurringViewController: UIViewController {
     var dayPickerDate: Date?
     
     var upperStack: UIStackView!
+    
+    var newRecurrence: Bool = true
     
     var questionLabel: UILabel = {
         let lbl = UILabel()
@@ -170,6 +172,7 @@ class RecurringViewController: UIViewController {
             segmentedControl.isSelected = true
             endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: itemRecurrence.endDate))"
             endDateLabel.textColor = CustomColors.label
+            newRecurrence = false
             if let reminderTime = itemRecurrence.reminderTime {
                 reminderSwitch.isOn = true
                 reminderSegmentedControl.isSelected = true
@@ -333,7 +336,7 @@ class RecurringViewController: UIViewController {
             return
         }
         
-        delegate?.recurringViewDone(with: ItemRecurrence(period: periodNum, unit: selectedSegment, reminderTime: reminderTime, endDate: endDate))
+        delegate?.recurringViewDone(with: ItemRecurrence(period: periodNum, unit: selectedSegment, reminderTime: reminderTime, endDate: endDate), new: newRecurrence)
     }
     
 }

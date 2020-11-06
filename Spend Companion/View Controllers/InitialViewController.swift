@@ -462,7 +462,7 @@ extension InitialViewController: RecurringViewControllerDelegate {
         dimmingView.removeFromSuperview()
     }
     
-    func recurringViewDone(with itemRecurrence: ItemRecurrence) {
+    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool) {
         quickAddView.itemRecurrence = itemRecurrence
         dimmingView.removeFromSuperview()
         dismiss(animated: true, completion: nil)

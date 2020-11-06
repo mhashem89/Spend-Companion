@@ -250,3 +250,17 @@ extension UserDefaults {
     set(colorData, forKey: key)
   }
 }
+
+
+extension Item {
+    
+    func futureItems() -> [Item]? {
+        guard
+            let itemDate = self.date,
+            recurringNum != nil,
+            let sisterItems = (self.sisterItems?.allObjects as? [Item])?.filter({ $0.date != nil })
+        else { return nil }
+        let futureItems = sisterItems.filter({ $0.date! > itemDate })
+        return futureItems.count > 0 ? futureItems : nil
+    }
+}

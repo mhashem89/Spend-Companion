@@ -65,12 +65,12 @@ class MoveItemViewController: UITableViewController {
         var sisterItemsToMove: [Item]?
         guard let itemToMove = item, let newCategory = selectedCategory else { return }
         if item.recurringNum != nil, let sisterItems = item.sisterItems?.allObjects as? [Item] {
-            let alertController = UIAlertController(title: nil, message: "Move all future transactions?", preferredStyle: .alert)
+            let alertController = UIAlertController(title: nil, message: "Move similar transactions?", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: { [weak self] (_) in
-                self?.delegate?.moveItem(item: itemToMove, to: newCategory, sisterItems: sisterItemsToMove)
+                self?.delegate?.moveItem(item: itemToMove, to: newCategory, sisterItems: nil)
                 self?.dismiss(animated: true, completion: nil)
             }))
-            alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { [weak self] (action) in
+            alertController.addAction(UIAlertAction(title: "All other transactions", style: .default, handler: { [weak self] (action) in
                 sisterItemsToMove = sisterItems
                 self?.delegate?.moveItem(item: itemToMove, to: newCategory, sisterItems: sisterItemsToMove)
                 self?.dismiss(animated: true, completion: nil)

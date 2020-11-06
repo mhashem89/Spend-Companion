@@ -41,11 +41,11 @@ class CommonObjects {
         return ("$", .left)
     }
     
-    func formattedCurrency(with amount: Double) -> String? {
+    func formattedCurrency(with amount: Double) -> String {
         let amountString = String(format: "%g", amount >= 0 ? amount : -amount)
         if let storedCurrency = userCurrency {
             if storedCurrency == "Local currency" {
-                return numberFormatter.string(from: NSNumber(value: amount))
+                return numberFormatter.string(from: NSNumber(value: amount)) ?? amountString
             } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
                 return currencyPosition == .left ? "\(currencySymbol.symbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol.symbol ?? "")"
             }

@@ -73,7 +73,7 @@ class SummaryView: UIView {
                 let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
                 summaryLabel.isHidden = false
                 let averageString = CommonObjects.shared.formattedCurrency(with: average)
-                summaryLabel.text = "Average daily spending this month: \(averageString ?? "")"
+                summaryLabel.text = "Average daily spending this month: \(averageString)"
                 summaryLabel.sizeToFit()
             } else {
                 summaryLabel.isHidden = true
@@ -83,9 +83,9 @@ class SummaryView: UIView {
                 summaryLabel.isHidden = false
                 let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
                 if averageThisYear > 0 {
-                    summaryLabel.text = "On average this year, you make \(averageString ?? "") more than you spend per month"
+                    summaryLabel.text = "On average this year, you make \(averageString) more than you spend per month"
                 } else {
-                    summaryLabel.text = "On average this year, you spend \(averageString ?? "") more than you make per month"
+                    summaryLabel.text = "On average this year, you spend \(averageString) more than you make per month"
                 }
             } else {
                 summaryLabel.isHidden = true

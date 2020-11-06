@@ -93,16 +93,13 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: monthCellId, for: indexPath) as! CalendarCell
             cell.layer.borderColor = chosenColor?.cgColor
             cell.layer.cornerRadius = (view.frame.width * 0.24) / 2
-            cell.monthLabel.font = UIFont.boldSystemFont(ofSize: 22 * fontScale)
-            cell.incomeLabel.font = UIFont.systemFont(ofSize: 13 * fontScale)
-            cell.spendingLabel.font = UIFont.systemFont(ofSize: 13 * fontScale)
             cell.monthLabel.text = months[indexPath.item]
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
             let totalSpending = viewModel.calcMonthTotal(monthString)
             let totalIncome = viewModel.calcMonthTotal(monthString, for: "Income")
             if totalSpending != nil || totalIncome != nil {
-                let totalSpendingString = String(format: "%g", totalSpending ?? 0)
-                let totalIncomeString = String(format: "%g", totalIncome ?? 0)
+                let totalSpendingString = CommonObjects.shared.formattedCurrency(with: totalSpending ?? 0)
+                let totalIncomeString = CommonObjects.shared.formattedCurrency(with: totalIncome ?? 0)
                 cell.addTotalLabel(income: totalIncomeString, spending: totalSpendingString)
             } else {
                 cell.removeTotalLabel()

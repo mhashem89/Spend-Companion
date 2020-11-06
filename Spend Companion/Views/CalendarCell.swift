@@ -52,6 +52,9 @@ class CalendarCell: UICollectionViewCell {
         stack.spacing = 4
         stack.addArrangedSubview(monthLabel)
         stack.anchor(centerX: centerXAnchor, centerY: centerYAnchor, centerYConstant: 2)
+        monthLabel.font = UIFont.boldSystemFont(ofSize: 22 * fontScale)
+        incomeLabel.font = UIFont.systemFont(ofSize: 13 * fontScale)
+        spendingLabel.font = UIFont.systemFont(ofSize: 13 * fontScale)
     }
     
     func addTotalLabel(income: String, spending: String) {
