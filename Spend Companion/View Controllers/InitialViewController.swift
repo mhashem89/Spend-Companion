@@ -105,7 +105,7 @@ class InitialViewController: UIViewController {
     
     private func dimBackground() {
         navigationController?.view.addSubview(dimmingView)
-        dimmingView.anchor(top: navigationController?.view.topAnchor, leading: navigationController?.view.leadingAnchor, trailing: navigationController?.view.trailingAnchor, bottom: navigationController?.view.bottomAnchor)
+        dimmingView.fillSuperView()
     }
     
     func showSavedAlert() {
@@ -407,6 +407,15 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
                 categoryVC.tableView.scrollToRow(at: selectedIndexPath, at: .none, animated: true)
                 categoryVC.tableView.cellForRow(at: selectedIndexPath)?.isHighlighted = true
             }
+        }
+    }
+
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            tableView.performBatchUpdates({
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+                viewModel.deleteRecentItem(at: indexPath)
+            }, completion: nil)
         }
     }
     

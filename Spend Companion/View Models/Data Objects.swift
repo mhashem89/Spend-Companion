@@ -42,7 +42,7 @@ class CommonObjects {
     }
     
     func formattedCurrency(with amount: Double) -> String? {
-        let amountString = String(format: "%g", amount > 0 ? amount : -amount)
+        let amountString = String(format: "%g", amount >= 0 ? amount : -amount)
         if let storedCurrency = userCurrency {
             if storedCurrency == "Local currency" {
                 return numberFormatter.string(from: NSNumber(value: amount))
@@ -80,7 +80,7 @@ struct ItemStruct {
     
     static func itemStruct(from item: Item) -> ItemStruct {
         let date = DateFormatters.fullDateFormatter.string(from: item.date!)
-        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: date, detail: item.detail, itemRecurrence: InitialViewModel.shared.createItemRecurrence(from: item), categoryName: item.category?.name)
+        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: date, detail: item.detail, itemRecurrence: ItemRecurrence.createItemRecurrence(from: item), categoryName: item.category?.name)
     }
     
 }
@@ -130,6 +130,16 @@ struct ItemRecurrence {
     var unit: RecurringUnit
     var reminderTime: Int?
     var endDate: Date
+    
+    static func createItemRecurrence(from item: Item) -> ItemRecurrence? {
+        guard let period = item.recurringNum, let unit = item.recurringUnit, let endDate = item.recurringEndDate else { return nil }
+        var reminderTime: Int?
+        if let itemReminderTime = item.reminderTime {
+            reminderTime = Int(truncating: itemReminderTime)
+        }
+        let itemRecurrence = ItemRecurrence(period: Int(truncating: period), unit: RecurringUnit(rawValue: Int(truncating: unit))!, reminderTime: reminderTime, endDate: endDate)
+        return itemRecurrence
+    }
 }
 
 

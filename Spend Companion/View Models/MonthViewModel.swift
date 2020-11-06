@@ -49,7 +49,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
         if let fetchedMonth = try? context.fetch(fetchRequest).first {
             self.month = fetchedMonth
         } else {
-            let newMonth = NSEntityDescription.insertNewObject(forEntityName: "Month", into: self.context) as! Month
+            let newMonth = Month(context: context)
             newMonth.date = monthString
             if let year = monthString.split(separator: " ").last {
                 newMonth.year = String(year)
@@ -76,7 +76,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
     }
     
     func addCategory(name: String) {
-        let newCategory = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context) as! Category
+        let newCategory = Category(context: context)
         newCategory.name = name
         newCategory.month = month
         do {
@@ -94,7 +94,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
                 total += item.amount
             }
         }
-        total = (total * 100).rounded() / 100
+        if total > 0 { total = (total * 100).rounded() / 100 }
         return String(format: "%g", total)
     }
     

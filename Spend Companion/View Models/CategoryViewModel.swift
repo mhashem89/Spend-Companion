@@ -38,7 +38,7 @@ class CategoryViewModel {
     
     
     func createNewItem() {
-        let newItem = NSEntityDescription.insertNewObject(forEntityName: "Item", into: context) as! Item
+        let newItem = Item(context: context)
         newItem.category = category
         newItem.month = month
         if self.items == nil {
@@ -59,7 +59,7 @@ class CategoryViewModel {
                 isFavorite = false
             }
         case false:
-            let favoriteCategory = NSEntityDescription.insertNewObject(forEntityName: "Favorite", into: context) as! Favorite
+            let favoriteCategory = Favorite(context: context)
             favoriteCategory.name = category?.name
             isFavorite = true
         }
@@ -96,12 +96,23 @@ class CategoryViewModel {
         context.rollback()
     }
     
-    func deleteItem(item: Item, at indexPath: IndexPath) {
+    func deleteItem(item: Item, at index: Int) {
         if let reminderUID = item.reminderUID {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderUID])
         }
         context.delete(item)
-        items?.remove(at: indexPath.row)
+        items?.remove(at: index)
+    }
+    
+    func editFutureItems(for item: Item?, amount: Double?, detail: String?) {
+        if let sisterItems = item?.sisterItems?.allObjects as? [Item], let itemDate = item?.date {
+            let futureItems = sisterItems.filter({ $0.date! > itemDate })
+            for item in futureItems {
+                if let amount = amount { item.amount = amount }
+                if let detail = detail { item.detail = detail }
+            }
+            reloadData()
+        }
     }
     
     func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, sisterItems: [Item]? = nil) {

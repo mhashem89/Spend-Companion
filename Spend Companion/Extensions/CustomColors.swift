@@ -31,7 +31,7 @@ class CustomColors {
         if #available(iOS 13, *) {
             return .systemGray6
         } else {
-            return .lightGray
+            return #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
         }
     }
     

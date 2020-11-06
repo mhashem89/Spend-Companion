@@ -35,7 +35,7 @@ class CategoryViewController: UIViewController {
     
     var headerView = ItemTableHeader()
     
-    var recurrenceViewer: RecurringViewController!
+    var recurrenceViewer: RecurringViewController?
 
     let sortingVC = SortingViewController()
     
@@ -56,13 +56,8 @@ class CategoryViewController: UIViewController {
         if let category = category {
             self.viewModel = CategoryViewModel(month: month, category: category)
             enableHeaderButtons()
-            if category.name == "Income" {
-                headerView.favoriteButton.isHidden = true
-                headerView.titleButton.isUserInteractionEnabled = false
-            } else {
-                headerView.favoriteButton.isHidden = false
-                headerView.titleButton.isUserInteractionEnabled = true
-            }
+            headerView.favoriteButton.isHidden = category.name == "Income"
+            headerView.titleButton.isUserInteractionEnabled = category.name != "Income"
         } else {
             headerView.plusButton.isEnabled = false
             headerView.favoriteButton.isEnabled = false
@@ -149,15 +144,8 @@ class CategoryViewController: UIViewController {
         let alertController = UIAlertController(title: nil, message: "Apply the change to all future transactions?", preferredStyle: .alert)
         alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
         alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { [weak self] (action) in
-            if let sisterItems = item?.sisterItems?.allObjects as? [Item], let itemDate = item?.date {
-                let futureItems = sisterItems.filter({ $0.date! > itemDate })
-                for item in futureItems {
-                    if let amount = amount { item.amount = amount }
-                    if let detail = detail { item.detail = detail }
-                }
-                self?.viewModel?.reloadData()
-                self?.tableView.reloadData()
-            }
+            self?.viewModel?.editFutureItems(for: item, amount: amount, detail: detail)
+            self?.tableView.reloadData()
         }))
         present(alertController, animated: true, completion: nil)
     }
@@ -171,7 +159,7 @@ class CategoryViewController: UIViewController {
                     InitialViewModel.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
                     if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
                         for item in sisterItems {
-                            if let itemRecurrence = InitialViewModel.shared.createItemRecurrence(from: item) {
+                            if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
                                 InitialViewModel.shared.scheduleReminder(for: item, with: itemRecurrence)
                             }
                         }
@@ -259,7 +247,7 @@ class CategoryViewController: UIViewController {
     
     private func dimBackground() {
         navigationController?.view.addSubview(dimmingView)
-        dimmingView.anchor(top: navigationController?.view.topAnchor, leading: navigationController?.view.leadingAnchor, trailing: navigationController?.view.trailingAnchor, bottom: navigationController?.view.bottomAnchor)
+        dimmingView.fillSuperView()
     }
     
     func scrollToLastRow() {
@@ -336,15 +324,25 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
                 let alertController = UIAlertController(title: nil, message: "Delete all future transactions?", preferredStyle: .alert)
                 alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
                 alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { (_) in
-                    sisterItems.forEach({ self?.viewModel?.context.delete($0) })
+                    sisterItems.filter({ $0.date! > item.date! }).forEach({
+                        if let itemIndex = self?.viewModel?.items?.firstIndex(of: $0) {
+                            self?.viewModel?.deleteItem(item: $0, at: itemIndex)
+                            self?.tableView.reloadData()
+                        } else {
+                            self?.viewModel?.context.delete($0)
+                        }
+                    })
                 }))
                 self?.present(alertController, animated: true, completion: nil)
             }
-            self?.viewModel?.deleteItem(item: item, at: indexPath)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            self?.dataChanged()
+            tableView.performBatchUpdates({
+                tableView.deleteRows(at: [indexPath], with: .fade)
+                self?.viewModel?.deleteItem(item: item, at: indexPath.row)
+            }) { (finished) in
+                self?.dataChanged()
+                tableView.reloadData()
+            }
         }
-
         let swipe = UISwipeActionsConfiguration(actions: [delete, move])
         return swipe
     }
@@ -363,7 +361,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 50 * viewsHeightScale
+        return viewsHeightScale < 1 ? 50 : 50 * viewsHeightScale
     }
     
 }
@@ -448,20 +446,20 @@ extension CategoryViewController: ItemCellDelegate {
         activeCell = cell
         scrollToActiveRow()
         
-        self.recurrenceViewer = RecurringViewController(itemRecurrence: InitialViewModel.shared.createItemRecurrence(from: item))
-        recurrenceViewer.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
-        recurrenceViewer.popoverPresentationController?.delegate = fontScale < 1 ? nil : self
-        recurrenceViewer.popoverPresentationController?.sourceView = cell
-        recurrenceViewer.popoverPresentationController?.sourceRect = cell.recurringCircleButton.frame
-        recurrenceViewer.preferredContentSize = .init(width: 230 * fontScale, height: 330 * fontScale)
+        self.recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
+        recurrenceViewer?.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
+        recurrenceViewer?.popoverPresentationController?.delegate = fontScale < 0.9 ? nil : self
+        recurrenceViewer?.popoverPresentationController?.sourceView = cell
+        recurrenceViewer?.popoverPresentationController?.sourceRect = cell.recurringCircleButton.frame
+        recurrenceViewer?.preferredContentSize = .init(width: 230 * fontScale, height: 330 * fontScale)
         
-        recurrenceViewer.delegate = self
-        recurrenceViewer.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
+        recurrenceViewer?.delegate = self
+        recurrenceViewer?.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
 
-        if let itemDate = item.date, itemDate < Date() { recurrenceViewer.reminderSwitch.removeFromSuperview() }
+        if let itemDate = item.date, itemDate < Date() { recurrenceViewer?.reminderSwitch.removeFromSuperview() }
        
         dimBackground()
-        present(recurrenceViewer, animated: true, completion: nil)
+        present(recurrenceViewer!, animated: true, completion: nil)
     }
 
 }
@@ -536,7 +534,7 @@ extension CategoryViewController: SortingViewControllerDelegate {
 extension CategoryViewController: RecurringViewControllerDelegate {
     
     func recurringViewCancel(viewEmpty: Bool) {
-        recurrenceViewer.dismiss(animated: true, completion: nil)
+        recurrenceViewer?.dismiss(animated: true, completion: nil)
         dimmingView.removeFromSuperview()
         if viewEmpty {
             activeCell?.recurringCircleButton.isHidden = true
@@ -545,7 +543,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
     
     func recurringViewDone(with itemRecurrence: ItemRecurrence) {
         dimmingView.removeFromSuperview()
-        recurrenceViewer.dismiss(animated: true) { [unowned self] in
+        recurrenceViewer?.dismiss(animated: true) { [unowned self] in
             guard let activeCell = self.activeCell,
                   let indexPath = tableView.indexPath(for: activeCell),
                   let item = viewModel?.items?[indexPath.row]

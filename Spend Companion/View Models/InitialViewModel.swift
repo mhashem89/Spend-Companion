@@ -67,17 +67,6 @@ class InitialViewModel: NSObject {
         syncReminders()
     }
 
-    
-    func createItemRecurrence(from item: Item) -> ItemRecurrence? {
-        guard let period = item.recurringNum, let unit = item.recurringUnit, let endDate = item.recurringEndDate else { return nil }
-        var reminderTime: Int?
-        if let itemReminderTime = item.reminderTime {
-            reminderTime = Int(truncating: itemReminderTime)
-        }
-        let itemRecurrence = ItemRecurrence(period: Int(truncating: period), unit: RecurringUnit(rawValue: Int(truncating: unit))!, reminderTime: reminderTime, endDate: endDate)
-        return itemRecurrence
-    }
-    
     func saveItem(itemStruct: ItemStruct) {
         guard var itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
         let createdItem = createNewItem(date: itemDate, itemStruct: itemStruct)
@@ -114,7 +103,7 @@ class InitialViewModel: NSObject {
     func createNewItem(date: Date, itemStruct: ItemStruct, save: Bool = true) -> Item {
         let dayString = DateFormatters.fullDateFormatter.string(from: date)
         let monthString = extractMonthString(from: dayString)
-        let item = NSEntityDescription.insertNewObject(forEntityName: "Item", into: context) as! Item
+        let item = Item(context: context)
         item.date = date
         item.detail = itemStruct.detail == "Description" ? nil : itemStruct.detail
         item.type = itemStruct.type.rawValue
@@ -205,7 +194,7 @@ class InitialViewModel: NSObject {
         if let fetchedCategory = try? context.fetch(fetchRequest).first {
             return fetchedCategory
         } else {
-            let newCategory = NSEntityDescription.insertNewObject(forEntityName: "Category", into: context) as! Category
+            let newCategory = Category(context: context)
             newCategory.month = month
             newCategory.name = categoryName
             return newCategory
@@ -225,7 +214,7 @@ class InitialViewModel: NSObject {
         if let fetchedMonth = fetchedMonth {
             return fetchedMonth
         } else if createNew {
-            let newMonth = NSEntityDescription.insertNewObject(forEntityName: "Month", into: context) as! Month
+            let newMonth = Month(context: context)
             newMonth.date = monthString
             newMonth.year = String(monthString.split(separator: " ").last!)
             return newMonth
@@ -328,6 +317,15 @@ class InitialViewModel: NSObject {
         }
     }
     
+    func deleteRecentItem(at indexPath: IndexPath) {
+        let item = recentItems.remove(at: indexPath.row)
+        if let reminderUID = item.reminderUID {
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderUID])
+        }
+        context.delete(item)
+        saveContext()
+    }
+    
     
     func getCommonItemNames() -> [String] {
         var commonItemNames = [String]()
@@ -340,7 +338,9 @@ class InitialViewModel: NSObject {
             let itemNames = items.compactMap({ $0.detail })
             var itemCounts = [String: Int]()
             itemNames.forEach({ itemCounts[$0] = itemNames.countOf(element: $0) })
-            commonItemNames = Array(itemCounts.keys).sorted(by: { itemCounts[$0]! > itemCounts[$1]! })
+            commonItemNames = Array(itemCounts.keys).sorted(by: {
+                (itemCounts[$0]!, $1) > (itemCounts[$1]!, $0)
+            })
         }
         return commonItemNames.count > 14 ? Array(commonItemNames[0...14]) : commonItemNames
     }
@@ -369,7 +369,7 @@ class InitialViewModel: NSObject {
             UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
             if let fetchedItems = remindersFetchedResultsController.fetchedObjects {
                 for item in fetchedItems {
-                    if let itemRecurrence = createItemRecurrence(from: item) {
+                    if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
                         scheduleReminder(for: item, with: itemRecurrence, createNew: false)
                     }
                 }
@@ -378,6 +378,10 @@ class InitialViewModel: NSObject {
             print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
+    }
+    
+    func saveContext() {
+        (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
     }
 }
 
@@ -397,7 +401,7 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
         } else if controller == remindersFetchedResultsController, let item = anObject as? Item {
             switch type {
             case .update, .insert:
-                if let itemRecurrence = createItemRecurrence(from: item) {
+                if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
                     scheduleReminder(for: item, with: itemRecurrence, createNew: false)
                 }
             case .delete:
