@@ -95,8 +95,8 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
             cell.layer.cornerRadius = (view.frame.width * 0.24) / 2
             cell.monthLabel.text = months[indexPath.item]
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
-            let totalSpending = viewModel.calcMonthTotal(monthString)
-            let totalIncome = viewModel.calcMonthTotal(monthString, for: "Income")
+            let totalSpending = viewModel.calcCategoryTotalForMonth(monthString)
+            let totalIncome = viewModel.calcCategoryTotalForMonth(monthString, for: "Income")
             if totalSpending != nil || totalIncome != nil {
                 let totalSpendingString = CommonObjects.shared.formattedCurrency(with: totalSpending ?? 0)
                 let totalIncomeString = CommonObjects.shared.formattedCurrency(with: totalIncome ?? 0)

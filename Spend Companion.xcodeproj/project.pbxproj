@@ -54,6 +54,7 @@
 		D97A6B3A25453963003380A7 /* BarColorChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97A6B3925453963003380A7 /* BarColorChooser.swift */; };
 		D99FAE74254689510048B38D /* CustomizeAppearanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */; };
 		D99FAE7C254799560048B38D /* CurrencyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FAE7B254799560048B38D /* CurrencyViewController.swift */; };
+		D9CA554A255711EA001C8561 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA5549255711EA001C8561 /* CoreDataManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +129,7 @@
 		D97A6B3925453963003380A7 /* BarColorChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarColorChooser.swift; sourceTree = "<group>"; };
 		D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeAppearanceController.swift; sourceTree = "<group>"; };
 		D99FAE7B254799560048B38D /* CurrencyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyViewController.swift; sourceTree = "<group>"; };
+		D9CA5549255711EA001C8561 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -234,6 +236,7 @@
 				D905F582253D579E00FE4B59 /* MonthViewModel.swift */,
 				D905F57F253D579E00FE4B59 /* SearchViewModel.swift */,
 				D96FBD16254090EF0025F5CF /* Data Objects.swift */,
+				D9CA5549255711EA001C8561 /* CoreDataManager.swift */,
 			);
 			path = "View Models";
 			sourceTree = "<group>";
@@ -430,6 +433,7 @@
 				D905F5B0253D584100FE4B59 /* FilterViewController.swift in Sources */,
 				D905F588253D579E00FE4B59 /* MonthViewModel.swift in Sources */,
 				D96FBD302543B38C0025F5CF /* Authenticator.swift in Sources */,
+				D9CA554A255711EA001C8561 /* CoreDataManager.swift in Sources */,
 				D905F5B7253D584100FE4B59 /* ItemNameViewController.swift in Sources */,
 				D905F5B6253D584100FE4B59 /* CategoryTitleViewController.swift in Sources */,
 				D905F53A253D543F00FE4B59 /* AppDelegate.swift in Sources */,

@@ -242,6 +242,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         let categoryVC = CategoryViewController(month: viewModel.month)
         categoryVC.delegate = self
         let navVC = UINavigationController(rootViewController: categoryVC)
+        navVC.modalPresentationStyle = .fullScreen
         present(navVC, animated: true)
     }
        

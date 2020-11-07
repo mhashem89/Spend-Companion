@@ -24,25 +24,25 @@ class InitialViewModel: NSObject {
     
     static let shared = InitialViewModel()
     
-    var context: NSManagedObjectContext {
+    private var context: NSManagedObjectContext {
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }
     
     weak var delegate: InitialViewModelDelegate?
     
-    var recentItems = [Item]()
+    private(set) var recentItems = [Item]()
     
-    var currentMonthTotalIncome: Double = 0
-    var currentMonthTotalSpending: Double = 0
-    var currentYearTotalSpending: Double = 0
-    var currentYearTotalIncome: Double = 0
-    var maxMonthSpendingInYear: Double = 0
+    private(set) var currentMonthTotalIncome: Double = 0
+    private(set) var currentMonthTotalSpending: Double = 0
+    private(set) var currentYearTotalSpending: Double = 0
+    private(set) var currentYearTotalIncome: Double = 0
+    private(set) var maxMonthSpendingInYear: Double = 0
     
 // MARK:- Fetched Result Controllers
     
-    var recentItemsFetchedResultControl: NSFetchedResultsController<Item>!
+    private var recentItemsFetchedResultControl: NSFetchedResultsController<Item>!
     
-    lazy var remindersFetchedResultsController: NSFetchedResultsController<Item> = {
+    private lazy var remindersFetchedResultsController: NSFetchedResultsController<Item> = {
         let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
         fetchRequest.predicate = NSPredicate(format: "(reminderUID != nil) AND (date > %@)", Date() as CVarArg)
@@ -50,9 +50,9 @@ class InitialViewModel: NSObject {
         return frc
     }()
     
-    var monthTotalFetchedResultController: NSFetchedResultsController<Item>!
+    private var monthTotalFetchedResultController: NSFetchedResultsController<Item>!
     
-    var yearTotalFetchedResultController: NSFetchedResultsController<Month>!
+    private var yearTotalFetchedResultController: NSFetchedResultsController<Month>!
     
     
     
@@ -68,246 +68,59 @@ class InitialViewModel: NSObject {
     }
 
     func saveItem(itemStruct: ItemStruct) {
-        guard var itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
-        let createdItem = createNewItem(date: itemDate, itemStruct: itemStruct)
-        
-        if let itemRecurrence = itemStruct.itemRecurrence, itemRecurrence.endDate > itemDate {
-            var items = [createdItem]
-            let additionalHours = Calendar.current.dateComponents([.hour, .minute, .second, .nanosecond], from: Date())
-            let adjustedEndDate = Calendar.current.date(byAdding: additionalHours, to: itemRecurrence.endDate)!
-            var dateComponent = DateComponents()
-            switch itemRecurrence.unit {
-            case .day: dateComponent.day = itemRecurrence.period
-            case .month: dateComponent.month = itemRecurrence.period
-            case .week: dateComponent.weekOfYear = itemRecurrence.period
-            }
-            
-            repeat {
-                itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-                let newItem = createNewItem(date: itemDate, itemStruct: itemStruct)
-                items.append(newItem)
-            } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate
-            
-            for item in items {
-                item.sisterItems = NSSet(array: items.filter({ $0 != item }))
-            }
-            do {
-                try context.save()
-            } catch let err {
-                print(err.localizedDescription)
-                delegate?.presentError(error: err)
-            }
-        }
-    }
-    
-    func createNewItem(date: Date, itemStruct: ItemStruct, save: Bool = true) -> Item {
-        let dayString = DateFormatters.fullDateFormatter.string(from: date)
-        let monthString = extractMonthString(from: dayString)
-        let item = Item(context: context)
-        item.date = date
-        item.detail = itemStruct.detail == "Description" ? nil : itemStruct.detail
-        item.type = itemStruct.type.rawValue
-        item.amount = itemStruct.amount
-        item.category = checkCategory(categoryName: itemStruct.categoryName ?? "Other", monthString: monthString)
-        item.month = item.category?.month
-        if let itemRecurrence = itemStruct.itemRecurrence {
-            item.recurringNum = NSNumber(value: itemRecurrence.period)
-            item.recurringUnit = NSNumber(value: itemRecurrence.unit.rawValue)
-            if let reminderTime = itemRecurrence.reminderTime {
-                item.reminderTime = NSNumber(value: reminderTime)
-                if save { scheduleReminder(for: item, with: itemRecurrence) }
-            }
-            item.recurringEndDate = itemRecurrence.endDate
-        }
-        if save {
-            do {
-                try context.save()
-            } catch let err {
-                print(err.localizedDescription)
-                delegate?.presentError(error: err)
-            }
-        }
-        return item
-    }
-    
-    func scheduleReminder(for item: Item, with itemRecurrence: ItemRecurrence, createNew new: Bool = true) {
-        guard item.date != nil, item.date! > Date()  else { return }
-        
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (success, error) in
-            if let err = error {
-                print(err.localizedDescription)
-                return
-            }
-        }
-        if let oldReminderUID = item.reminderUID, new {
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [oldReminderUID])
-        }
-        if let reminderTime = itemRecurrence.reminderTime {
-            var reminderUID: String!
-            
-            if new {
-                let newReminderUID = UUID().uuidString
-                item.reminderUID = newReminderUID
-                reminderUID = newReminderUID
-            } else if item.reminderUID != nil {
-                reminderUID = item.reminderUID!
-            }
-            let content = UNMutableNotificationContent()
-            content.title = item.detail ?? "Reminder"
-            let period = itemRecurrence.period > 1 ? " \(itemRecurrence.period)" : ""
-            content.body = "Every\(period) \(itemRecurrence.unit.description)"
-            content.sound = .default
-            if itemRecurrence.period > 1 { content.body.append("s") }
-            
-            let reminderDate = Calendar.current.date(byAdding: .day, value: -reminderTime, to: item.date!)
-            
-            let dateComponent = Calendar.current.dateComponents([.hour, .minute, .day, .month, .year], from: reminderDate!)
-            
-            let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponent, repeats: false)
-            
-            let request = UNNotificationRequest(identifier: reminderUID, content: content, trigger: trigger)
-            
-            UNUserNotificationCenter.current().add(request) { (error) in
-                if let err = error {
-                    print(err.localizedDescription)
-                }
-            }
-            if new {
-                do {
-                    try context.save()
-                } catch let err {
-                    print(err.localizedDescription)
-                    delegate?.presentError(error: err)
-                }
-            }
-        } else {
-            item.reminderUID = nil
-            return
-        }
-    }
-    
-    
-    func checkCategory(categoryName: String, monthString: String) -> Category {
-        let month = checkMonth(monthString: monthString, createNew: true)
-        let fetchRequest = NSFetchRequest<Category>(entityName: "Category")
-        fetchRequest.predicate = NSPredicate(format: "name = %@ AND month = %@", categoryName, month!)
-        if let fetchedCategory = try? context.fetch(fetchRequest).first {
-            return fetchedCategory
-        } else {
-            let newCategory = Category(context: context)
-            newCategory.month = month
-            newCategory.name = categoryName
-            return newCategory
-        }
-    }
-    
-    func checkMonth(monthString: String, createNew: Bool = false) -> Month? {
-        let fetchRequest = NSFetchRequest<Month>(entityName: "Month")
-        fetchRequest.predicate = NSPredicate(format: "date = %@", monthString)
-        var fetchedMonth: Month?
         do {
-            try fetchedMonth = context.fetch(fetchRequest).first
+            try CoreDataManager.shared.saveItem(itemStruct: itemStruct)
         } catch let err {
             print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
-        if let fetchedMonth = fetchedMonth {
-            return fetchedMonth
-        } else if createNew {
-            let newMonth = Month(context: context)
-            newMonth.date = monthString
-            newMonth.year = String(monthString.split(separator: " ").last!)
-            return newMonth
-        } else {
-            return nil
+    }
+    
+    
+    func scheduleReminder(for item: Item, with itemRecurrence: ItemRecurrence, createNew new: Bool = true) {
+        do {
+            try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence, createNew: new)
+        } catch let err {
+            delegate?.presentError(error: err)
+            print(err.localizedDescription)
         }
     }
-
     
-    func extractMonthString(from dayString: String) -> String {
-        let segments = dayString.split(separator: " ")
-        let month = String(segments[0])
-        let year = String(segments[2])
-        return "\(month) \(year)"
+    
+    func checkCategory(categoryName: String, monthString: String, createNew: Bool = true) -> Category? {
+        return CoreDataManager.shared.checkCategory(categoryName: categoryName, monthString: monthString, createNew: createNew)
     }
     
+    private func checkMonth(monthString: String, createNew: Bool = false) -> Month? {
+        return CoreDataManager.shared.checkMonth(monthString: monthString, createNew: createNew)
+    }
+
     func calcYearTotals(year: String) {
         currentYearTotalIncome = 0
         currentYearTotalSpending = 0
-        var maxAmountPerMonth = [Month: Double]()
-        
-        let fetchRequest  = NSFetchRequest<Month>(entityName: "Month")
-        fetchRequest.predicate = NSPredicate(format: "year = %@", year)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        yearTotalFetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-        yearTotalFetchedResultController.delegate = self
-        
         do {
-            try yearTotalFetchedResultController.performFetch()
-            if let fetchedMonths = yearTotalFetchedResultController.fetchedObjects {
-                for month in fetchedMonths {
-                    let totals = calcTotalsForMonth(month: month)
-                    currentYearTotalIncome += totals[.income] ?? 0
-                    currentYearTotalSpending += totals[.spending] ?? 0
-                    maxAmountPerMonth[month] = max(totals[.income] ?? 0, totals[.spending] ?? 0)
-                }
-            }
-            maxMonthSpendingInYear = maxAmountPerMonth.values.max() ?? 0
+            let yearTotals = try CoreDataManager.shared.calcYearTotals(year: year)
+            currentYearTotalIncome = yearTotals.totalIncome
+            currentYearTotalSpending = yearTotals.totalSpending
+            maxMonthSpendingInYear = yearTotals.maxAmountPerMonth
         } catch let err {
+            delegate?.presentError(error: err)
             print(err.localizedDescription)
         }
-        
     }
     
     func fetchMonthTotals(forDate date: Date = Date()) {
-        let dayString = DateFormatters.fullDateFormatter.string(from: date)
-        let monthString = extractMonthString(from: dayString)
-        currentMonthTotalSpending = 0
-        currentMonthTotalIncome = 0
-        
-        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-        fetchRequest.predicate = NSPredicate(format: "month.date = %@", monthString)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "amount", ascending: true)]
-        monthTotalFetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        let monthTotals = CoreDataManager.shared.fetchMonthTotals(forDate: date, with: &monthTotalFetchedResultController)
         monthTotalFetchedResultController.delegate = self
-        try? monthTotalFetchedResultController.performFetch()
-        
-        if let currentMonth = checkMonth(monthString: monthString, createNew: false) {
-            let totals = calcTotalsForMonth(month: currentMonth)
-            self.currentMonthTotalIncome = totals[.income] ?? 0
-            self.currentMonthTotalSpending = totals[.spending] ?? 0
-        }
+        currentMonthTotalIncome = monthTotals[.income] ?? 0
+        currentMonthTotalSpending = monthTotals[.spending] ?? 0
     }
-    
-    func calcTotalsForMonth(month: Month) -> [ItemType: Double] {
-        var result = [ItemType: Double]()
-        guard let categories = month.categories?.allObjects as? [Category] else { return result }
-        if let income = categories.filter({ $0.name == "Income" }).first {
-            result[.income] = CalendarViewModel.shared.calcCategoryTotal(category: income)
-        }
-        let expenses = categories.filter({ $0.name != "Income" })
-        var totalExpenses: Double = 0
-        for category in expenses {
-            totalExpenses += CalendarViewModel.shared.calcCategoryTotal(category: category)
-        }
-        result[.spending] = totalExpenses
-        return result
-    }
-    
+
     
     func fetchRecentItems() {
         do {
-            let weekAgo: Date = Date() - TimeInterval(60 * 60 * 24 * 7)
-            let dayAfter: Date = Date() + TimeInterval(60 * 60 * 24)
-            let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-            fetchRequest.predicate = NSPredicate(format: "date > %@ AND date < %@", weekAgo as CVarArg, dayAfter as CVarArg)
-            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-            fetchRequest.fetchLimit = 15
-            recentItemsFetchedResultControl = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+            recentItems = try CoreDataManager.shared.fetchRecentItems(with: &recentItemsFetchedResultControl)
             recentItemsFetchedResultControl.delegate = self
-            try recentItemsFetchedResultControl.performFetch()
-            let fetchedResults = recentItemsFetchedResultControl.fetchedObjects ?? [Item]()
-            recentItems = fetchedResults
         } catch let err {
             print(err.localizedDescription)
             delegate?.presentError(error: err)
@@ -315,51 +128,25 @@ class InitialViewModel: NSObject {
     }
     
     func deleteRecentItem(at indexPath: IndexPath) {
-        let item = recentItems.remove(at: indexPath.row)
-        if let reminderUID = item.reminderUID {
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderUID])
+        let item = recentItems[indexPath.row]
+        do {
+            try CoreDataManager.shared.deleteItem(item: item, saveContext: true)
+        } catch let err {
+            delegate?.presentError(error: err)
         }
-        context.delete(item)
-        saveContext()
     }
     
     
     func getCommonItemNames() -> [String] {
-        var commonItemNames = [String]()
-        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-        let currentMonthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: Date())
-        let lastMonth = Calendar.current.date(byAdding: .month, value: -1, to: Date())
-        let lastMonthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: lastMonth!)
-        fetchRequest.predicate = NSPredicate(format: "month.date = %@ OR month.date = %@", currentMonthString, lastMonthString)
-        if let items = try? context.fetch(fetchRequest) {
-            let itemNames = items.compactMap({ $0.detail })
-            var itemCounts = [String: Int]()
-            itemNames.forEach({ itemCounts[$0] = itemNames.countOf(element: $0) })
-            commonItemNames = Array(itemCounts.keys).sorted(by: {
-                (itemCounts[$0]!, $1) > (itemCounts[$1]!, $0)
-            })
-        }
-        return commonItemNames.count > 14 ? Array(commonItemNames[0...14]) : commonItemNames
+        return CoreDataManager.shared.getCommonItemNames()
     }
     
     
-    func calcAverage(for year: String) -> Int? {
-        let startDate = DateFormatters.yearFormatter.date(from: year)
-        let endDate = DateFormatters.yearFormatter.string(from: Date()) == year ? Date() : Calendar.current.date(byAdding: .year, value: 1, to: startDate!)
-        let dateComponent = Set(arrayLiteral: Calendar.Component.month)
-        let number = Calendar.current.dateComponents(dateComponent, from: startDate!, to: endDate!).month
-        guard let numberOfMonths = number, numberOfMonths > 1 else { return nil }
-        calcYearTotals(year: year)
-        let averageSpending = currentYearTotalSpending / Double(numberOfMonths)
-        let averageIncome = currentYearTotalIncome / Double(numberOfMonths)
-        if averageIncome > 0 && averageSpending > 0 {
-            return Int(averageIncome - averageSpending)
-        } else {
-            return nil
-        }
+    func calcYearAverage(for year: String) -> Int? {
+        return try? CoreDataManager.shared.calcYearAverage(for: year)
     }
     
-    func syncReminders() {
+    private func syncReminders() {
         guard NSUbiquitousKeyValueStore.default.bool(forKey: SettingNames.iCloudSync) else { return }
         do {
             try remindersFetchedResultsController.performFetch()
@@ -377,9 +164,6 @@ class InitialViewModel: NSObject {
         }
     }
     
-    func saveContext() {
-        (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
-    }
 }
 
 
@@ -416,11 +200,5 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
 }
 
 
-extension Array where Element: Equatable {
-    
-    func countOf(element: Element) -> Int {
-        return filter({ $0 == element }).count
-    }
-    
-}
+
 

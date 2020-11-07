@@ -70,6 +70,13 @@ enum ItemType: Int16 {
     case income = 1
 }
 
+struct YearTotals {
+    var totalSpending: Double
+    var totalIncome: Double
+    var maxAmountPerMonth: Double
+}
+
+
 struct ItemStruct {
     var amount: Double
     var type: ItemType

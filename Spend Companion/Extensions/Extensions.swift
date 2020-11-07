@@ -233,6 +233,14 @@ extension Array where Element == Double {
     }
 }
 
+extension Array where Element: Equatable {
+    
+    func countOf(element: Element) -> Int {
+        return filter({ $0 == element }).count
+    }
+    
+}
+
 extension UITableView {
     
     func lastIndexPath(inSection section: Int) -> IndexPath {

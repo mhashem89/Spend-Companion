@@ -25,7 +25,7 @@ class ChartViewModel {
         var totals = [Double]()
         for month in months {
             let monthString = "\(month) \(year)"
-            if let totalValue = CalendarViewModel.shared.calcMonthTotal(monthString, for: income ? "Income" : nil) {
+            if let totalValue = CalendarViewModel.shared.calcCategoryTotalForMonth(monthString, for: income ? "Income" : nil) {
                 totals.append(totalValue)
             }
         }

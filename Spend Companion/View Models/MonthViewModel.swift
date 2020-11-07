@@ -55,6 +55,12 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
                 newMonth.year = String(year)
             }
             self.month = newMonth
+            do {
+                try context.save()
+            } catch let err {
+                print(err.localizedDescription)
+                delegate?.presentError(error: err)
+            }
         }
     }
     
@@ -116,6 +122,8 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             delegate?.presentError(error: err)
         }
     }
+    
+    
     
     
 }

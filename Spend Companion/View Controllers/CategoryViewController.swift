@@ -49,10 +49,6 @@ class CategoryViewController: UIViewController {
             enableHeaderButtons()
             headerView.favoriteButton.isHidden = category.name == "Income"
             headerView.titleButton.isUserInteractionEnabled = category.name != "Income"
-        } else {
-            headerView.plusButton.isEnabled = false
-            headerView.favoriteButton.isEnabled = false
-            headerView.titleButton.setTitle("Choose name", for: .normal)
         }
     }
     
@@ -362,8 +358,8 @@ extension CategoryViewController: ItemTableHeaderDelegate {
 extension CategoryViewController: CategoryTitleViewControllerDelegate {
     
     func saveCategoryTitle(title: String) {
-        if self.viewModel == nil {
-            let category = InitialViewModel.shared.checkCategory(categoryName: title, monthString: month.date!)
+        guard let monthString = month.date else { return }
+        if let category = InitialViewModel.shared.checkCategory(categoryName: title, monthString: monthString, createNew: viewModel == nil) {
             self.viewModel = CategoryViewModel(month: month, category: category)
             tableView.reloadData()
             enableHeaderButtons()
@@ -513,11 +509,15 @@ extension CategoryViewController: RecurringViewControllerDelegate {
     }
     
     func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence) {
-        viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, sisterItems: item.futureItems())
-        itemsToBeScheduled[item] = itemRecurrence
-        viewModel?.reloadData()
-        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-        dataChanged()
+        do {
+            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, sisterItems: item.futureItems())
+            itemsToBeScheduled[item] = itemRecurrence
+            viewModel?.reloadData()
+            tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+            dataChanged()
+        } catch let err {
+            presentError(error: err)
+        }
     }
    
 }

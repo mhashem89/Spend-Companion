@@ -94,11 +94,10 @@ class CategoryViewModel {
     }
     
     func save() throws {
-        guard context.hasChanges else { print("WTF"); return }
         if reminderUIDsForDeletion.count > 0 {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: reminderUIDsForDeletion)
         }
-        try context.save()
+        try CoreDataManager.shared.saveContext()
     }
     
     func cancel() {
@@ -106,10 +105,7 @@ class CategoryViewModel {
     }
     
     func deleteItem(item: Item, at index: Int) {
-        if let reminderUID = item.reminderUID {
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderUID])
-        }
-        context.delete(item)
+        try? CoreDataManager.shared.deleteItem(item: item, saveContext: false)
         items?.remove(at: index)
     }
     
@@ -123,7 +119,7 @@ class CategoryViewModel {
         }
     }
     
-    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, sisterItems: [Item]? = nil) {
+    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, sisterItems: [Item]? = nil) throws {
         item.recurringNum = NSNumber(value: newRecurrence.period)
         item.recurringUnit = NSNumber(value: newRecurrence.unit.rawValue)
         item.recurringEndDate = newRecurrence.endDate
@@ -162,7 +158,7 @@ class CategoryViewModel {
         repeat {
             itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
             let itemStruct = ItemStruct.itemStruct(from: item)
-            let newItem = InitialViewModel.shared.createNewItem(date: itemDate, itemStruct: itemStruct, save: false)
+            let newItem = try CoreDataManager.shared.createNewItem(date: itemDate, itemStruct: itemStruct, save: false)
             items.append(newItem)
         } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= newRecurrence.endDate
         

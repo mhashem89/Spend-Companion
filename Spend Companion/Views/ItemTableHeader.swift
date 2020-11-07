@@ -39,6 +39,7 @@ class ItemTableHeader: UIView {
         button.clipsToBounds = true
         button.backgroundColor = #colorLiteral(red: 0.4549019608, green: 0.4549019608, blue: 0.5019607843, alpha: 0.08)
         button.anchor(widthConstant: fontScale < 1 ? 32 : 32 * fontScale, heightConstant: fontScale < 1 ? 32 : 32 * fontScale)
+        button.isEnabled = false
         return button
     }()
     
@@ -53,6 +54,7 @@ class ItemTableHeader: UIView {
         button.clipsToBounds = true
         button.backgroundColor = #colorLiteral(red: 0.4549019608, green: 0.4549019608, blue: 0.5019607843, alpha: 0.08)
         button.anchor(widthConstant: fontScale < 1 ? 32 : 32 * fontScale, heightConstant: fontScale < 1 ? 32 : 32 * fontScale)
+        button.isEnabled = false
         return button
     }()
     
