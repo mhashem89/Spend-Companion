@@ -46,15 +46,16 @@ class ChartViewModel {
         return names.unique()
     }
     
-    func fetchCategoryTotals(for year: String, for month: String? = nil) -> [String: Double] {
+    func fetchCategoryTotals(for year: String, forMonth month: String? = nil) -> [String: Double] {
         var dict = [String: Double]()
         
         let categoryNames = fetchUniqueCategoryNames(for: year)
         for name in categoryNames {
             var total: Double = 0
             let fetchRequest = NSFetchRequest<Category>(entityName: "Category")
-            if month != nil {
-                fetchRequest.predicate = NSPredicate(format: "name = %@ AND month.date = %@", name, month!)
+            if let month = month {
+                let monthYear = "\(month) \(year)"
+                fetchRequest.predicate = NSPredicate(format: "name = %@ AND month.date = %@", name, monthYear)
             } else {
                 fetchRequest.predicate = NSPredicate(format: "name = %@ AND month.year = %@", name, year)
             }

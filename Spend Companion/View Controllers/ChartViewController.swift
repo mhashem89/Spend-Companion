@@ -35,7 +35,8 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
     var categoryNames = [String]()
     var categoryTotals = [String: Double]()
-    var filteredRowName: String?
+    var filteredMonthName: String?
+    var filteredCategoryName: String?
     
     var header: CalendarHeader!
     
@@ -115,15 +116,14 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         setupFilterButton()
         
         let currentMonthString = DateFormatters.monthFormatter.string(from: Date())
-        self.filteredRowName = "\(currentMonthString)"
+        self.filteredMonthName = "\(currentMonthString)"
         self.filteredRowLabel.text = currentMonthString
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         categoryNames = viewModel.fetchUniqueCategoryNames(for: selectedYear)
-        let filteredMonth = filteredRowName != nil ? "\(filteredRowName!) \(selectedYear)" : nil
-        categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, for: filteredMonth)
+        categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
@@ -144,7 +144,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         let picker = FilterViewController()
         picker.delegate = self
         picker.rowNames = selectedSegment == 0 ? months : categoryNames
-        picker.filterActive = filteredRowName != nil
+        picker.filterActive = selectedSegment == 0 ? filteredMonthName != nil : filteredCategoryName != nil
         picker.modalPresentationStyle = .popover
         picker.preferredContentSize = .init(width: fontScale < 1 ? 200 : 200 * fontScale, height: fontScale < 1 ? 200 : 200 * fontScale)
         picker.popoverPresentationController?.delegate = self
@@ -161,18 +161,17 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         if header.segmentedControl.selectedSegmentIndex == 0 {
             selectedSegment = 0
             filterButton.isHidden = false
-            filteredRowLabel.text = "Total spending by category"
+            filteredRowLabel.text = filteredMonthName ?? "Total spending by category"
+            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
         } else if header.segmentedControl.selectedSegmentIndex == 1 {
             selectedSegment = 1
             filterButton.isHidden = false
-            filteredRowLabel.text = "Total spending by month"
+            filteredRowLabel.text = filteredCategoryName ?? "Total spending by month"
         } else {
             selectedSegment = 2
             filterButton.isHidden = true
             filteredRowLabel.text = "Total income by month"
         }
-        filteredRowName = nil
-        categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
     }
@@ -293,7 +292,7 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
-            if let total = CalendarViewModel.shared.calcMonthTotal(monthString, for: selectedSegment == 1 ? filteredRowName : "Income") {
+            if let total = CalendarViewModel.shared.calcMonthTotal(monthString, for: selectedSegment == 1 ? filteredCategoryName : "Income") {
                 cell.valueLabel.text = String(format: "%g", total)
                 cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * viewsWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
                 let distanceToMove = self.scaleFactor < 1 ? CGFloat(total * self.scaleFactor) : CGFloat(total)
@@ -351,14 +350,15 @@ extension ChartViewController: UIPopoverPresentationControllerDelegate {
 extension ChartViewController: FilterViewControllerDelegate {
     
     func removeFilter() {
-        self.filteredRowName = nil
         switch selectedSegment {
-        case 0: filteredRowLabel.text = "Total spending by category"
-        case 1: filteredRowLabel.text = "Total spending by month"
+        case 0:
+            filteredRowLabel.text = "Total spending by category"
+            filteredMonthName = nil
+            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear)
+        case 1: filteredRowLabel.text = "Total spending by month"; filteredCategoryName = nil
         case 2: filteredRowLabel.text = "Total income by month"
         default: break
         }
-        categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         dimmingView.removeFromSuperview()
@@ -366,12 +366,13 @@ extension ChartViewController: FilterViewControllerDelegate {
     }
     
     func rowPicked(rowName: String) {
-        self.filteredRowName = rowName
         self.filteredRowLabel.text = rowName
         if selectedSegment == 0 {
-            let monthString = "\(rowName) \(selectedYear)"
-            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, for: monthString)
+            filteredMonthName = rowName
+            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, forMonth: rowName)
             scaleFactor = calcScaleFactor()
+        } else {
+            filteredCategoryName = rowName
         }
         barChart.reloadData()
         dimmingView.removeFromSuperview()
