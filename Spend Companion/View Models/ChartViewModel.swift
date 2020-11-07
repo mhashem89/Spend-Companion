@@ -25,7 +25,7 @@ class ChartViewModel {
         var totals = [Double]()
         for month in months {
             let monthString = "\(month) \(year)"
-            if let totalValue = CalendarViewModel.shared.calcCategoryTotalForMonth(monthString, for: income ? "Income" : nil) {
+            if let totalValue = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: income ? "Income" : nil) {
                 totals.append(totalValue)
             }
         }
@@ -75,17 +75,3 @@ class ChartViewModel {
 
 
 
-extension Array where Element: Hashable {
-    
-    func unique() -> Array {
-        var set = Set<Element>()
-        var newArray = [Element]()
-        for item in self {
-            if !set.contains(item) {
-                newArray.append(item)
-                set.insert(item)
-            }
-        }
-        return newArray
-    }
-}

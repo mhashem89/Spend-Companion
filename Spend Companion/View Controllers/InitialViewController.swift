@@ -34,7 +34,7 @@ class InitialViewController: UIViewController {
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
     var quickAddView = QuickAddView()
-    let viewModel = InitialViewModel.shared
+    let viewModel = InitialViewModel()
     let summaryLabels = ["Total Income", "Total Spending"]
     
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
@@ -330,7 +330,7 @@ extension InitialViewController: QuickAddViewDelegate {
     func showItemNameVC() {
         let itemNameVC = ItemNameViewController(itemName: quickAddView.detailLabel.text)
         itemNameVC.delegate = self
-        itemNameVC.itemNames = viewModel.getCommonItemNames()
+        itemNameVC.itemNames = CoreDataManager.shared.getCommonItemNames()
         let navVC = UINavigationController(rootViewController: itemNameVC)
         present(navVC, animated: true)
     }

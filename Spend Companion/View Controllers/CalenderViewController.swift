@@ -25,9 +25,6 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
     var chosenColor: UIColor? = #colorLiteral(red: 0.8501421211, green: 0.8527938297, blue: 1, alpha: 1)
     
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date())
-    
-    var viewModel = CalendarViewModel()
-
 
     override init(collectionViewLayout layout: UICollectionViewLayout) {
         super.init(collectionViewLayout: layout)
@@ -95,8 +92,8 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
             cell.layer.cornerRadius = (view.frame.width * 0.24) / 2
             cell.monthLabel.text = months[indexPath.item]
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
-            let totalSpending = viewModel.calcCategoryTotalForMonth(monthString)
-            let totalIncome = viewModel.calcCategoryTotalForMonth(monthString, for: "Income")
+            let totalSpending = CoreDataManager.shared.calcCategoryTotalForMonth(monthString)
+            let totalIncome = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: "Income")
             if totalSpending != nil || totalIncome != nil {
                 let totalSpendingString = CommonObjects.shared.formattedCurrency(with: totalSpending ?? 0)
                 let totalIncomeString = CommonObjects.shared.formattedCurrency(with: totalIncome ?? 0)

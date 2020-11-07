@@ -79,7 +79,7 @@ class SummaryView: UIView {
                 summaryLabel.isHidden = true
             }
         } else if component == .year {
-            if let averageThisYear = viewModel.calcYearAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
+            if let averageThisYear = try? CoreDataManager.shared.calcYearAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
                 summaryLabel.isHidden = false
                 let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
                 if averageThisYear > 0 {

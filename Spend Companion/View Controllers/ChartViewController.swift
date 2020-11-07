@@ -292,7 +292,7 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
-            if let total = CalendarViewModel.shared.calcCategoryTotalForMonth(monthString, for: selectedSegment == 1 ? filteredCategoryName : "Income") {
+            if let total = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: selectedSegment == 1 ? filteredCategoryName : "Income") {
                 cell.valueLabel.text = String(format: "%g", total)
                 cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * viewsWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
                 let distanceToMove = self.scaleFactor < 1 ? CGFloat(total * self.scaleFactor) : CGFloat(total)

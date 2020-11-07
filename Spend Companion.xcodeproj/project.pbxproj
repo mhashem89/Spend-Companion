@@ -17,7 +17,6 @@
 		D905F55F253D544300FE4B59 /* Spend_CompanionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F55E253D544300FE4B59 /* Spend_CompanionUITests.swift */; };
 		D905F572253D54A300FE4B59 /* CloudKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D905F571253D54A300FE4B59 /* CloudKit.framework */; };
 		D905F574253D54E000FE4B59 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D905F573253D54E000FE4B59 /* StoreKit.framework */; };
-		D905F584253D579E00FE4B59 /* CalendarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F57E253D579E00FE4B59 /* CalendarViewModel.swift */; };
 		D905F585253D579E00FE4B59 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F57F253D579E00FE4B59 /* SearchViewModel.swift */; };
 		D905F586253D579E00FE4B59 /* CategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F580253D579E00FE4B59 /* CategoryViewModel.swift */; };
 		D905F587253D579E00FE4B59 /* ChartViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F581253D579E00FE4B59 /* ChartViewModel.swift */; };
@@ -47,7 +46,7 @@
 		D905F5E3253E4A7A00FE4B59 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */; };
 		D9255A5D254FD5C70071B89D /* MoveItemViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */; };
 		D96FBD0A253F96330025F5CF /* ArchivedCode.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD09253F96330025F5CF /* ArchivedCode.swift */; };
-		D96FBD17254090EF0025F5CF /* Data Objects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD16254090EF0025F5CF /* Data Objects.swift */; };
+		D96FBD17254090EF0025F5CF /* DataObjects.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD16254090EF0025F5CF /* DataObjects.swift */; };
 		D96FBD28254125960025F5CF /* CustomColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD27254125940025F5CF /* CustomColors.swift */; };
 		D96FBD302543B38C0025F5CF /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD2F2543B38A0025F5CF /* Authenticator.swift */; };
 		D96FBD562544F86C0025F5CF /* LockingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD552544F86B0025F5CF /* LockingView.swift */; };
@@ -92,7 +91,6 @@
 		D905F56F253D549C00FE4B59 /* Spend Companion.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Spend Companion.entitlements"; sourceTree = "<group>"; };
 		D905F571253D54A300FE4B59 /* CloudKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CloudKit.framework; path = System/Library/Frameworks/CloudKit.framework; sourceTree = SDKROOT; };
 		D905F573253D54E000FE4B59 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
-		D905F57E253D579E00FE4B59 /* CalendarViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarViewModel.swift; sourceTree = "<group>"; };
 		D905F57F253D579E00FE4B59 /* SearchViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		D905F580253D579E00FE4B59 /* CategoryViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoryViewModel.swift; sourceTree = "<group>"; };
 		D905F581253D579E00FE4B59 /* ChartViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChartViewModel.swift; sourceTree = "<group>"; };
@@ -122,7 +120,7 @@
 		D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoveItemViewController.swift; sourceTree = "<group>"; };
 		D96FBD09253F96330025F5CF /* ArchivedCode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ArchivedCode.swift; path = "Spend Companion/Extensions/ArchivedCode.swift"; sourceTree = SOURCE_ROOT; };
-		D96FBD16254090EF0025F5CF /* Data Objects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Data Objects.swift"; sourceTree = "<group>"; };
+		D96FBD16254090EF0025F5CF /* DataObjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataObjects.swift; sourceTree = "<group>"; };
 		D96FBD27254125940025F5CF /* CustomColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomColors.swift; sourceTree = "<group>"; };
 		D96FBD2F2543B38A0025F5CF /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		D96FBD552544F86B0025F5CF /* LockingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockingView.swift; sourceTree = "<group>"; };
@@ -230,12 +228,11 @@
 			isa = PBXGroup;
 			children = (
 				D905F583253D579E00FE4B59 /* InitialViewModel.swift */,
-				D905F57E253D579E00FE4B59 /* CalendarViewModel.swift */,
 				D905F580253D579E00FE4B59 /* CategoryViewModel.swift */,
 				D905F581253D579E00FE4B59 /* ChartViewModel.swift */,
 				D905F582253D579E00FE4B59 /* MonthViewModel.swift */,
 				D905F57F253D579E00FE4B59 /* SearchViewModel.swift */,
-				D96FBD16254090EF0025F5CF /* Data Objects.swift */,
+				D96FBD16254090EF0025F5CF /* DataObjects.swift */,
 				D9CA5549255711EA001C8561 /* CoreDataManager.swift */,
 			);
 			path = "View Models";
@@ -456,11 +453,10 @@
 				D905F5B3253D584100FE4B59 /* SortingViewController.swift in Sources */,
 				D905F597253D582000FE4B59 /* ItemCell.swift in Sources */,
 				D905F53C253D543F00FE4B59 /* SceneDelegate.swift in Sources */,
-				D96FBD17254090EF0025F5CF /* Data Objects.swift in Sources */,
+				D96FBD17254090EF0025F5CF /* DataObjects.swift in Sources */,
 				D905F59C253D582000FE4B59 /* ItemTableHeader.swift in Sources */,
 				D905F5AF253D584100FE4B59 /* MonthViewController.swift in Sources */,
 				D9255A5D254FD5C70071B89D /* MoveItemViewController.swift in Sources */,
-				D905F584253D579E00FE4B59 /* CalendarViewModel.swift in Sources */,
 				D96FBD28254125960025F5CF /* CustomColors.swift in Sources */,
 				D905F596253D582000FE4B59 /* RecentItemCell.swift in Sources */,
 			);

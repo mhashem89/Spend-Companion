@@ -45,7 +45,7 @@ class CategoryViewModel {
     }
     
     
-    func createNewItem() {
+    func createEmptyItem() {
         let newItem = Item(context: context)
         newItem.category = category
         newItem.month = month
@@ -180,7 +180,7 @@ class CategoryViewModel {
         if let sisterItems = sisterItems {
             sisterItems.forEach({
                 if let categoryName = newCategory.name, let itemMonthString = $0.month?.date {
-                    $0.category = InitialViewModel.shared.checkCategory(categoryName: categoryName, monthString: itemMonthString)
+                    $0.category = CoreDataManager.shared.checkCategory(categoryName: categoryName, monthString: itemMonthString)
                 }
             })
         }

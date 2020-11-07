@@ -22,8 +22,6 @@ class InitialViewModel: NSObject {
     
 // MARK:- Properties
     
-    static let shared = InitialViewModel()
-    
     private var context: NSManagedObjectContext {
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }
@@ -58,7 +56,7 @@ class InitialViewModel: NSObject {
     
 // MARK:- Methods
     
-    private override init() {
+    override init() {
         super.init()
         fetchMonthTotals()
         calcYearTotals(year: DateFormatters.yearFormatter.string(from: Date()))
@@ -71,7 +69,6 @@ class InitialViewModel: NSObject {
         do {
             try CoreDataManager.shared.saveItem(itemStruct: itemStruct)
         } catch let err {
-            print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
     }
@@ -82,17 +79,7 @@ class InitialViewModel: NSObject {
             try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence, createNew: new)
         } catch let err {
             delegate?.presentError(error: err)
-            print(err.localizedDescription)
         }
-    }
-    
-    
-    func checkCategory(categoryName: String, monthString: String, createNew: Bool = true) -> Category? {
-        return CoreDataManager.shared.checkCategory(categoryName: categoryName, monthString: monthString, createNew: createNew)
-    }
-    
-    private func checkMonth(monthString: String, createNew: Bool = false) -> Month? {
-        return CoreDataManager.shared.checkMonth(monthString: monthString, createNew: createNew)
     }
 
     func calcYearTotals(year: String) {
@@ -105,7 +92,6 @@ class InitialViewModel: NSObject {
             maxMonthSpendingInYear = yearTotals.maxAmountPerMonth
         } catch let err {
             delegate?.presentError(error: err)
-            print(err.localizedDescription)
         }
     }
     
@@ -122,7 +108,6 @@ class InitialViewModel: NSObject {
             recentItems = try CoreDataManager.shared.fetchRecentItems(with: &recentItemsFetchedResultControl)
             recentItemsFetchedResultControl.delegate = self
         } catch let err {
-            print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
     }
@@ -136,16 +121,7 @@ class InitialViewModel: NSObject {
         }
     }
     
-    
-    func getCommonItemNames() -> [String] {
-        return CoreDataManager.shared.getCommonItemNames()
-    }
-    
-    
-    func calcYearAverage(for year: String) -> Int? {
-        return try? CoreDataManager.shared.calcYearAverage(for: year)
-    }
-    
+  
     private func syncReminders() {
         guard NSUbiquitousKeyValueStore.default.bool(forKey: SettingNames.iCloudSync) else { return }
         do {
@@ -159,7 +135,6 @@ class InitialViewModel: NSObject {
                 }
             }
         } catch let err {
-            print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
     }
@@ -178,7 +153,7 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
         } else if controller == monthTotalFetchedResultController {
             guard changedItem.date != nil else { return }
             let monthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: changedItem.date!)
-            let changedMonth = changedItem.month ?? checkMonth(monthString: monthString, createNew: false)
+            let changedMonth = changedItem.month ?? CoreDataManager.shared.checkMonth(monthString: monthString, createNew: false)
             if let changedMonth = changedMonth {
                 delegate?.monthTotalChanged(forMonth: changedMonth)
             }

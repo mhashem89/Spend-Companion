@@ -140,18 +140,18 @@ class CategoryViewController: UIViewController {
     @objc private func save() {
         do {
             try viewModel?.save()
-            itemsToBeScheduled.keys.forEach { (item) in
-                InitialViewModel.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
+            try itemsToBeScheduled.keys.forEach { (item) in
+                try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
                 if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
                     for item in sisterItems {
                         if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
-                            InitialViewModel.shared.scheduleReminder(for: item, with: itemRecurrence)
+                            try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence)
                         }
                     }
                 }
             }
         } catch let err {
-            print(err.localizedDescription)
+            presentError(error: err)
         }
         delegate?.categoryChanged()
         dismiss(animated: true, completion: nil)
@@ -166,7 +166,7 @@ class CategoryViewController: UIViewController {
     
     @objc private func addItem() {
         tableView.performBatchUpdates({
-            viewModel?.createNewItem()
+            viewModel?.createEmptyItem()
             let itemCount = viewModel?.items?.count ?? 1
             let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
             tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
@@ -359,7 +359,7 @@ extension CategoryViewController: CategoryTitleViewControllerDelegate {
     
     func saveCategoryTitle(title: String) {
         guard let monthString = month.date else { return }
-        if let category = InitialViewModel.shared.checkCategory(categoryName: title, monthString: monthString, createNew: viewModel == nil) {
+        if let category = CoreDataManager.shared.checkCategory(categoryName: title, monthString: monthString, createNew: viewModel == nil) {
             self.viewModel = CategoryViewModel(month: month, category: category)
             tableView.reloadData()
             enableHeaderButtons()

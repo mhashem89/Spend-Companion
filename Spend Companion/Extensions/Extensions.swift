@@ -103,6 +103,7 @@ extension UIViewController {
             let alertController = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
             self?.present(alertController, animated: true)
+            print("WTF", error.localizedDescription)
         }
     }
     
@@ -219,6 +220,22 @@ extension Array where Element == String {
     func longestString() -> String? {
         let sortedList = sorted(by: { $0.count > $1.count })
         return sortedList.first
+    }
+}
+
+
+extension Array where Element: Hashable {
+    
+    func unique() -> Array {
+        var set = Set<Element>()
+        var newArray = [Element]()
+        for item in self {
+            if !set.contains(item) {
+                newArray.append(item)
+                set.insert(item)
+            }
+        }
+        return newArray
     }
 }
 

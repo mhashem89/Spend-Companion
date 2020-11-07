@@ -27,12 +27,8 @@ class SearchViewModel {
     
     
     func deleteItem(item: Item, at indexPath: IndexPath) throws {
-        if let reminuderUID = item.reminderUID {
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminuderUID])
-        }
-        context.delete(item)
         searchResults.remove(at: indexPath.row)
-        try context.save()
+        try CoreDataManager.shared.deleteItem(item: item, saveContext: true)
     }
     
     

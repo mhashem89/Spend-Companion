@@ -14,7 +14,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     func categoryChanged() {
         viewModel.fetchData()
         collectionView.reloadData()
-        if viewModel.dataFetcher.fetchedObjects != nil, viewModel.dataFetcher.fetchedObjects!.count > 0 {
+        if viewModel.fixedCategories.isEmpty && viewModel.otherExpenses.isEmpty {
             centerTextView.removeFromSuperview()
             navigationItem.rightBarButtonItem?.isEnabled = true
         }
@@ -80,7 +80,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         navigationController?.navigationBar.isHidden = false
         tabBarController?.tabBar.isHidden = true
         
-        if viewModel.dataFetcher.fetchedObjects == nil || viewModel.dataFetcher.fetchedObjects?.count == 0 {
+        if viewModel.fixedCategories.isEmpty && viewModel.otherExpenses.isEmpty {
             centerTextView.font = UIFont.boldSystemFont(ofSize: 20)
             centerTextView.textColor = CustomColors.darkGray
             centerTextView.text = "Press the plus button to start adding categories"

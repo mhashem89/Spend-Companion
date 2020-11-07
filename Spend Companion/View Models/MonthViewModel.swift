@@ -29,19 +29,6 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
     var fixedCategories = [String: Category]()
     var otherExpenses = [Category]()
     
-
-    lazy var dataFetcher: NSFetchedResultsController<Category> = {
-        let fetchRequest = NSFetchRequest<Category>(entityName: "Category")
-        fetchRequest.predicate = NSPredicate(format: "month = %@", month)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
-        let frc = NSFetchedResultsController(fetchRequest: fetchRequest,
-                                             managedObjectContext: context,
-                                             sectionNameKeyPath: nil,
-                                             cacheName: nil)
-        frc.delegate = self
-        return frc
-    }()
-    
     init(monthString: String) {
         super.init()
         let fetchRequest = NSFetchRequest<Month>(entityName: "Month")
@@ -56,29 +43,29 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             }
             self.month = newMonth
             do {
-                try context.save()
+                try CoreDataManager.shared.saveContext()
             } catch let err {
-                print(err.localizedDescription)
                 delegate?.presentError(error: err)
             }
         }
     }
     
     func fetchData() {
+        guard let categories = month.categories?.allObjects as? [Category] else { return }
         fixedCategories = [String: Category]()
-        do {
-            try dataFetcher.performFetch()
-            if let fetchedObjects = dataFetcher.fetchedObjects {
-                if let incomeCategory = fetchedObjects.filter({ $0.name == "Income" }).first {
-                    self.fixedCategories["Income"] = incomeCategory
-                }
-                let otherExpenseCategories = fetchedObjects.filter({ $0.name != "Income" })
-                self.otherExpenses = otherExpenseCategories
-            }
-        } catch let err {
-            print("WTF", err.localizedDescription)
-            delegate?.presentError(error: err)
-        }
+        fixedCategories["Income"] = categories.filter({
+            guard let name = $0.name else { return false }
+            return name == "Income"
+        }).first
+        otherExpenses = categories
+            .filter({
+                guard let name = $0.name else { return false }
+                return name != "Income"
+            })
+            .sorted(by: {
+                guard let name0 = $0.name, let name1 = $1.name else { return false }
+                return name0 < name1
+            })
     }
     
     func addCategory(name: String) {
@@ -86,39 +73,30 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
         newCategory.name = name
         newCategory.month = month
         do {
-            try context.save()
+            try CoreDataManager.shared.saveContext()
         } catch let err {
-            print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
     }
     
     func calcCategoryTotal(category: Category?) -> String {
-        var total: Double = 0
-        if let items = category?.items?.allObjects as? [Item] {
-            for item in items {
-                total += item.amount
-            }
+        if let category = category {
+            return String(format: "%g", CoreDataManager.shared.calcCategoryTotal(category: category))
         }
-        if total > 0 { total = (total * 100).rounded() / 100 }
-        return String(format: "%g", total)
+        return String(format: "%g", 0)
     }
     
     
     func deleteCategory(category: Category) {
-        if let items = category.items?.allObjects as? [Item] {
-            for item in items {
-                if let reminderUID = item.reminderUID {
-                    UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminderUID])
-                }
-                context.delete(item)
-            }
-        }
-        context.delete(category)
         do {
-            try context.save()
+            if let items = category.items?.allObjects as? [Item] {
+                for item in items {
+                    try CoreDataManager.shared.deleteItem(item: item, saveContext: true)
+                }
+            }
+            context.delete(category)
+            try CoreDataManager.shared.saveContext()
         } catch let err {
-            print(err.localizedDescription)
             delegate?.presentError(error: err)
         }
     }

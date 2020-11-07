@@ -48,7 +48,7 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         recentNames = ChartViewModel.shared.fetchUniqueCategoryNames(for: nil).sorted(by: { $0 < $1 })
         recentNames = recentNames.filter( { !favorites.contains($0) && !["Recurring Expenses", "Income"].contains($0) } )
         
-        favorites = CalendarViewModel.shared.fetchFavorites()
+        favorites = CoreDataManager.shared.fetchFavorites()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
