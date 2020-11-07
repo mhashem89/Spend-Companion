@@ -89,6 +89,11 @@ extension UIView {
         }
     }
     
+    func withBackgroundColor(color: UIColor) -> UIView {
+        backgroundColor = color
+        return self
+    }
+    
 }
 
 extension UIViewController {
@@ -178,8 +183,19 @@ extension String {
         return replacingOccurrences(of: ".", with: "-")
     }
     
+    func extractDate() -> String {
+        let subStrings = self.split(separator: ",")
+        let date = String(subStrings[0] + "," + subStrings[1])
+        return date
+    }
 }
 
+
+extension Date {
+    func dayMatches(_ date: Date) -> Bool {
+        return DateFormatters.fullDateFormatter.string(from: date) == DateFormatters.fullDateFormatter.string(from: self)
+    }
+}
 
 extension UIColor {
     
@@ -217,6 +233,13 @@ extension Array where Element == Double {
     }
 }
 
+extension UITableView {
+    
+    func lastIndexPath(inSection section: Int) -> IndexPath {
+        let numberOfRowsInSection = self.numberOfRows(inSection: section)
+        return IndexPath(row: numberOfRowsInSection > 0 ? numberOfRowsInSection - 1 : 0 , section: section)
+    }
+}
 
 
 extension UserDefaults {

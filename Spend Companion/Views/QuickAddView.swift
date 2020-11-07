@@ -207,7 +207,11 @@ class QuickAddView: UIView {
     }
     
     @objc func datePicked() {
-        dayLabel.text = DateFormatters.fullDateFormatter.string(from: dayPicker.date)
+        if dayPicker.date.dayMatches(Date()) {
+            dayLabel.text = "Today"
+        } else {
+            dayLabel.text = DateFormatters.fullDateFormatter.string(from: dayPicker.date)
+        }
         dayLabel.textColor = CustomColors.label
         dayLabel.layer.borderColor = CustomColors.label.cgColor
     }

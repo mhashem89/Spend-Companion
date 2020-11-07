@@ -25,14 +25,22 @@ class CategoryViewModel {
     var items: [Item]?
     var isFavorite: Bool = false
     var reminderUIDsForDeletion = [String]()
-
+    var currentSortingSelection: (option: SortingOption, direction: SortingDirection) = (.date, .ascending) {
+        didSet {
+            sortItems(option: currentSortingSelection.option, direction: currentSortingSelection.direction)
+        }
+    }
+    
     
     init(month: Month, category: Category? = nil) {
         self.month = month
         if let category = category {
             self.category = category
             checkIfFavorite()
-            self.items = category.items?.allObjects as? [Item]
+            if let categoryItems = category.items?.allObjects as? [Item] {
+                self.items = categoryItems
+                sortItems(option: .date, direction: .ascending)
+            }
         }
     }
     
@@ -106,8 +114,7 @@ class CategoryViewModel {
     }
     
     func editFutureItems(for item: Item?, amount: Double?, detail: String?) {
-        if let sisterItems = item?.sisterItems?.allObjects as? [Item], let itemDate = item?.date {
-            let futureItems = sisterItems.filter({ $0.date! > itemDate })
+        if let futureItems = item?.futureItems() {
             for item in futureItems {
                 if let amount = amount { item.amount = amount }
                 if let detail = detail { item.detail = detail }
@@ -167,6 +174,7 @@ class CategoryViewModel {
     
     func reloadData() {
         self.items = category?.items?.allObjects as? [Item]
+        sortItems(option: currentSortingSelection.option, direction: currentSortingSelection.direction)
     }
     
     func moveItem(item: Item, to categoryName: String, sisterItems: [Item]?) {
@@ -181,6 +189,26 @@ class CategoryViewModel {
             })
         }
         reloadData()
+    }
+    
+    func sortItems(option: SortingOption, direction: SortingDirection) {
+        guard let viewModelItems = items else { return }
+        switch option {
+        case .date:
+            items = viewModelItems.sorted(by: {
+                guard let date0 = $0.date, let date1 = $1.date else { return false }
+                return direction == .ascending ? date0 < date1 : date0 > date1
+            })
+        case .name:
+            items = viewModelItems.sorted(by: {
+                guard let name0 = $0.detail, let name1 = $1.detail else { return false }
+                return direction == .ascending ? name0 < name1 : name0 > name1
+            })
+        case .amount:
+            items = viewModelItems.sorted(by: {
+                direction == .ascending ? $0.amount < $1.amount : $0.amount > $1.amount
+            })
+        }
     }
     
 }

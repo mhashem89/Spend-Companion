@@ -26,15 +26,15 @@ class CategoryViewController: UIViewController {
     var tableView = UITableView(frame: .zero, style: .plain)
     var viewFrameHeight: CGFloat = 0
     var tableViewFrameHeight: CGFloat = 0
-    var activeCell: ItemCell?
+    var activeCell: ItemCell? {
+        didSet {
+            scrollToActiveRow()
+        }
+    }
     var headerView = ItemTableHeader()
     var recurrenceViewer: RecurringViewController?
     let sortingVC = SortingViewController()
-    var dimmingView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        return view
-    }()
+    var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
     
     var itemsToBeScheduled = [Item: ItemRecurrence]()
     
@@ -61,7 +61,6 @@ class CategoryViewController: UIViewController {
     }
    
     override func viewDidLoad() {
-        
         super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground
         title = month.date
@@ -176,7 +175,7 @@ class CategoryViewController: UIViewController {
             let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
             tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
         }, completion: { [self]_ in
-            scrollToLastRow()
+            activeCell = tableView.cellForRow(at: tableView.lastIndexPath(inSection: 0)) as? ItemCell
             dataChanged()
         })
         if viewModel!.items!.count > 1 {
@@ -223,7 +222,6 @@ class CategoryViewController: UIViewController {
         guard let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect else { return }
         view.frame.size.height = viewFrameHeight - keyboardFrame.height
         tableView.frame.size.height = tableViewFrameHeight - keyboardFrame.height
-        scrollToActiveRow()
     }
     
     @objc func handleKeyboardWillHide(notification: NSNotification) {
@@ -238,12 +236,6 @@ class CategoryViewController: UIViewController {
     private func dimBackground() {
         navigationController?.view.addSubview(dimmingView)
         dimmingView.fillSuperView()
-    }
-    
-    func scrollToLastRow() {
-        guard let itemCount = viewModel?.items?.count else { return }
-        let lastIndexPath = IndexPath(item: itemCount - 1, section: 0)
-        tableView.scrollToRow(at: lastIndexPath, at: .bottom, animated: true)
     }
    
     func scrollToActiveRow() {
@@ -298,12 +290,11 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let item = viewModel?.items?[indexPath.row], let categoryName = item.category?.name else { return nil }
+        activeCell = tableView.cellForRow(at: indexPath) as? ItemCell
         let move = UIContextualAction(style: .normal, title: "Move") { [weak self] (_, _, _) in
             guard let categories = item.month?.categories?.allObjects as? [Category] else { return }
-            let moveItemVC = MoveItemViewController()
+            let moveItemVC = MoveItemViewController(item: item, selectedCategory: categoryName)
             moveItemVC.delegate = self
-            moveItemVC.item = item
-            moveItemVC.selectedCategory = categoryName
             moveItemVC.categoryNames = categories.compactMap({ $0.name })
             self?.present(UINavigationController(rootViewController: moveItemVC), animated: true, completion: nil)
         }
@@ -330,7 +321,6 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
                 self?.viewModel?.deleteItem(item: item, at: indexPath.row)
             }) { (finished) in
                 self?.dataChanged()
-                tableView.reloadData()
             }
         }
         let swipe = UISwipeActionsConfiguration(actions: [delete, move])
@@ -339,6 +329,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let item = viewModel?.items?[indexPath.row], item.recurringNum == nil else { return nil }
+        activeCell = tableView.cellForRow(at: indexPath) as? ItemCell
         let setRecurring = UIContextualAction(style: .normal, title: "Recurring") { [weak self] (_, _, _) in
             if let cell = tableView.cellForRow(at: indexPath) as? ItemCell {
                 cell.recurringCircleButton.isHidden = false
@@ -391,19 +382,17 @@ extension CategoryViewController: ItemCellDelegate {
     
     func donePressedInDayPicker(selected day: Int, for cell: ItemCell) {
         DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            guard let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
+            guard let self = self,
+                  let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
             let selectedDay = self.calcDaysRange(month: self.month)[day]
             let selectedDate = DateFormatters.fullDateWithLetters.date(from: selectedDay)!
             self.viewModel?.items?[selectedIndexPath.row].date = selectedDate
-            (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.text = selectedDate.dayMatches(Date()) ? "Today" : self.calcDaysRange(month: self.month)[day].extractDate()
-            (self.tableView.cellForRow(at: selectedIndexPath) as! ItemCell).dayLabel.textColor = CustomColors.label
-            self.scrollToActiveRow()
+            cell.dayLabel.text = selectedDate.dayMatches(Date()) ? "Today" : selectedDay.extractDate()
+            cell.dayLabel.textColor = CustomColors.label
         }
     }
     
     func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool) {
-        scrollToActiveRow()
         guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
         let item = viewModel?.items?[selectedIndexPath.row]
         item?.detail = text
@@ -414,7 +403,6 @@ extension CategoryViewController: ItemCellDelegate {
     }
     
     func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool) {
-        scrollToActiveRow()
         guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
         let item = viewModel?.items?[selectedIndexPath.row]
         item?.amount = amount
@@ -435,7 +423,6 @@ extension CategoryViewController: ItemCellDelegate {
     func recurrenceButtonPressed(in cell: ItemCell) {
         guard let indexPath = tableView.indexPath(for: cell), let item = viewModel?.items?[indexPath.row] else { return }
         activeCell = cell
-        scrollToActiveRow()
         
         self.recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
         recurrenceViewer?.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
@@ -489,33 +476,10 @@ extension CategoryViewController: UIPickerViewDelegate, UIPickerViewDataSource, 
 extension CategoryViewController: SortingViewControllerDelegate {
     
     func sortingChosen(option: SortingOption, direction: SortingDirection) {
-        var nilItems = [Item]()
-        var nonNilItems = [Item]()
-        guard let viewModelItems = viewModel?.items else { return }
-        switch option {
-        case .date:
-            nonNilItems = viewModelItems.filter({ $0.date != nil })
-            nilItems  = viewModelItems.filter({ !nonNilItems.contains($0) })
-            nonNilItems = nonNilItems.sorted(by: {
-                direction == .ascending ? $0.date! < $1.date! : $0.date! > $1.date!
-            })
-            viewModel?.items = nonNilItems + nilItems
-        case .name:
-            nonNilItems = viewModelItems.filter({ $0.detail != nil })
-            nilItems  = viewModelItems.filter({ !nonNilItems.contains($0) })
-            nonNilItems = nonNilItems.sorted(by: {
-                direction == .ascending ? $0.detail! < $1.detail! : $0.detail! > $1.detail!
-            })
-            viewModel?.items = nonNilItems + nilItems
-        case .amount:
-            viewModel?.items = viewModel?.items?.sorted(by: {
-                direction == .ascending ? $0.amount < $1.amount : $0.amount > $1.amount
-            })
-        }
+        viewModel?.currentSortingSelection = (option, direction)
         tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
         sortingVC.dismiss(animated: true) {
             self.dimmingView.removeFromSuperview()
-            nilItems.removeAll(); nonNilItems.removeAll()
         }
     }
 }
@@ -535,7 +499,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
     func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool) {
         dimmingView.removeFromSuperview()
         recurrenceViewer?.dismiss(animated: true) { [unowned self] in
-            guard let activeCell = self.activeCell,
+            guard let activeCell = activeCell,
                   let indexPath = tableView.indexPath(for: activeCell),
                   let item = viewModel?.items?[indexPath.row]
                   else { return }
@@ -544,7 +508,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
             alertController.addAction(UIAlertAction(title: "Apply", style: .default, handler: { (action) in
                 updateItemRecurrence(for: item, with: itemRecurrence)
             }))
-            new ? updateItemRecurrence(for: item, with: itemRecurrence) : self.present(alertController, animated: true, completion: nil)
+            new ? updateItemRecurrence(for: item, with: itemRecurrence) : present(alertController, animated: true, completion: nil)
         }
     }
     
@@ -552,7 +516,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
         viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, sisterItems: item.futureItems())
         itemsToBeScheduled[item] = itemRecurrence
         viewModel?.reloadData()
-        tableView.reloadData()
+        tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
         dataChanged()
     }
    
@@ -569,13 +533,5 @@ extension CategoryViewController: MoveItemVCDelegate {
     }
 }
 
-
-extension String {
-    func extractDate() -> String {
-        let subStrings = self.split(separator: ",")
-        let date = String(subStrings[0] + "," + subStrings[1])
-        return date
-    }
-}
 
 

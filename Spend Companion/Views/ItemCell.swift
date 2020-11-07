@@ -274,10 +274,3 @@ extension ItemCell: UITextFieldDelegate {
     }
 }
 
-
-
-extension Date {
-    func dayMatches(_ date: Date) -> Bool {
-        return DateFormatters.fullDateFormatter.string(from: date) == DateFormatters.fullDateFormatter.string(from: self)
-    }
-}

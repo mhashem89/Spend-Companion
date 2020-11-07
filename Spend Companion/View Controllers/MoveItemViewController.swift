@@ -26,6 +26,16 @@ class MoveItemViewController: UITableViewController {
     
     weak var delegate: MoveItemVCDelegate?
     
+    init(item: Item, selectedCategory: String) {
+        super.init(nibName: nil, bundle: nil)
+        self.item = item
+        self.selectedCategory = selectedCategory
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Move Item"

@@ -302,15 +302,12 @@ class InitialViewModel: NSObject {
             let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
             fetchRequest.predicate = NSPredicate(format: "date > %@ AND date < %@", weekAgo as CVarArg, dayAfter as CVarArg)
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            fetchRequest.fetchLimit = 15
             recentItemsFetchedResultControl = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
             recentItemsFetchedResultControl.delegate = self
             try recentItemsFetchedResultControl.performFetch()
             let fetchedResults = recentItemsFetchedResultControl.fetchedObjects ?? [Item]()
-            if fetchedResults.count > 14 {
-                recentItems = Array(fetchedResults[0...14])
-            } else {
-                recentItems = fetchedResults
-            }
+            recentItems = fetchedResults
         } catch let err {
             print(err.localizedDescription)
             delegate?.presentError(error: err)
@@ -389,23 +386,26 @@ class InitialViewModel: NSObject {
 extension InitialViewModel: NSFetchedResultsControllerDelegate {
     
     func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        guard let changedItem = anObject as? Item else { return }
+        
         if controller == recentItemsFetchedResultControl {
+            if type == .delete, !recentItems.contains(changedItem) { return }
             delegate?.recentItemsChanged()
         } else if controller == monthTotalFetchedResultController {
-            guard let changedItem = anObject as? Item, changedItem.date != nil else { return }
+            guard changedItem.date != nil else { return }
             let monthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: changedItem.date!)
             let changedMonth = changedItem.month ?? checkMonth(monthString: monthString, createNew: false)
             if let changedMonth = changedMonth {
                 delegate?.monthTotalChanged(forMonth: changedMonth)
             }
-        } else if controller == remindersFetchedResultsController, let item = anObject as? Item {
+        } else if controller == remindersFetchedResultsController {
             switch type {
             case .update, .insert:
-                if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
-                    scheduleReminder(for: item, with: itemRecurrence, createNew: false)
+                if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: changedItem) {
+                    scheduleReminder(for: changedItem, with: itemRecurrence, createNew: false)
                 }
             case .delete:
-                if let itemReminderUID = item.reminderUID {
+                if let itemReminderUID = changedItem.reminderUID {
                     UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [itemReminderUID])
                 }
             default:

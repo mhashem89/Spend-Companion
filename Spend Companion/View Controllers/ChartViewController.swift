@@ -77,7 +77,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     var selectedSegment = 0
     
-    var dimmingView = UIView()
+    var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
     
     var safeAreaTop: CGFloat {
         let top = UIApplication.shared.windows.first!.safeAreaInsets.top
@@ -234,7 +234,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     
     func dimBackground() {
-        dimmingView.backgroundColor = UIColor.black.withAlphaComponent(0.5)
         tabBarController?.view.addSubview(dimmingView)
         dimmingView.frame = view.bounds
     }

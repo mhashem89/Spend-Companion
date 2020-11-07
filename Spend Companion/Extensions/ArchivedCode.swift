@@ -329,3 +329,13 @@ import Foundation
 //    })
 //    return
 //}
+
+
+
+
+
+//func scrollToLastRow() {
+//    guard let itemCount = viewModel?.items?.count else { return }
+//    let lastIndexPath = IndexPath(item: itemCount - 1, section: 0)
+//    tableView.scrollToRow(at: lastIndexPath, at: .bottom, animated: true)
+//}

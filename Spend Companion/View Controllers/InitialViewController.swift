@@ -37,11 +37,7 @@ class InitialViewController: UIViewController {
     let viewModel = InitialViewModel.shared
     let summaryLabels = ["Total Income", "Total Spending"]
     
-    var dimmingView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.5)
-        return view
-    }()
+    var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
    
     var recentItemsRefreshControl = UIRefreshControl()
     
@@ -404,8 +400,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
         if let itemIndex = categoryVC.viewModel?.items?.firstIndex(of: item) {
             present(navVC, animated: true) {
                 let selectedIndexPath = IndexPath(item: itemIndex, section: 0)
-                categoryVC.tableView.scrollToRow(at: selectedIndexPath, at: .none, animated: true)
-                categoryVC.tableView.cellForRow(at: selectedIndexPath)?.isHighlighted = true
+                categoryVC.activeCell = categoryVC.tableView.cellForRow(at: selectedIndexPath) as? ItemCell
             }
         }
     }
