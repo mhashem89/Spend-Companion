@@ -125,15 +125,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
-        
-        UNUserNotificationCenter.current().getPendingNotificationRequests { (requests) in
-            DispatchQueue.main.async {
-                requests.forEach({
-                    print("WTF", $0.trigger)
-                    print("WTF", $0.content.title)
-                })
-            }
-        }
     }
     
     // MARK:- Selectors
