@@ -311,4 +311,8 @@ extension Item {
         let futureItems = sisterItems.filter({ $0.date! > itemDate })
         return futureItems.count > 0 ? futureItems : nil
     }
+    
+    func sisterItemsArray() -> [Item]? {
+        return sisterItems?.allObjects as? [Item]
+    }
 }

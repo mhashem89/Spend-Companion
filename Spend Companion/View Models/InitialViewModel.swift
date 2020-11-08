@@ -38,7 +38,7 @@ class InitialViewModel: NSObject {
     
 // MARK:- Fetched Result Controllers
     
-    private var recentItemsFetchedResultControl: NSFetchedResultsController<Item>!
+    var recentItemsFetchedResultControl: NSFetchedResultsController<Item>!
     
     private lazy var remindersFetchedResultsController: NSFetchedResultsController<Item> = {
         let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
@@ -96,17 +96,38 @@ class InitialViewModel: NSObject {
     }
     
     func fetchMonthTotals(forDate date: Date = Date()) {
-        let monthTotals = CoreDataManager.shared.fetchMonthTotals(forDate: date, with: &monthTotalFetchedResultController)
+        currentMonthTotalIncome =  0
+        currentMonthTotalSpending = 0
+        let dayString = DateFormatters.fullDateFormatter.string(from: date)
+        let monthString = CoreDataManager.shared.extractMonthString(from: dayString)
+        
+        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
+        fetchRequest.predicate = NSPredicate(format: "month.date = %@", monthString)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "amount", ascending: true)]
+        monthTotalFetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         monthTotalFetchedResultController.delegate = self
-        currentMonthTotalIncome = monthTotals[.income] ?? 0
-        currentMonthTotalSpending = monthTotals[.spending] ?? 0
+        try? monthTotalFetchedResultController.performFetch()
+        
+        if let currentMonth = CoreDataManager.shared.checkMonth(monthString: monthString, createNew: false) {
+            let monthTotals = CoreDataManager.shared.calcTotalsForMonth(month: currentMonth)
+            currentMonthTotalIncome = monthTotals[.income] ?? 0
+            currentMonthTotalSpending = monthTotals[.spending] ?? 0
+        }
     }
 
     
     func fetchRecentItems() {
         do {
-            recentItems = try CoreDataManager.shared.fetchRecentItems(with: &recentItemsFetchedResultControl)
+            let weekAgo: Date = Date() - TimeInterval(60 * 60 * 24 * 7)
+            let dayAfter: Date = Date() + TimeInterval(60 * 60 * 24)
+            let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
+            fetchRequest.predicate = NSPredicate(format: "date > %@ AND date < %@", weekAgo as CVarArg, dayAfter as CVarArg)
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+            fetchRequest.fetchLimit = 15
+            recentItemsFetchedResultControl = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
             recentItemsFetchedResultControl.delegate = self
+            try recentItemsFetchedResultControl.performFetch()
+            recentItems = recentItemsFetchedResultControl.fetchedObjects ?? [Item]()
         } catch let err {
             delegate?.presentError(error: err)
         }

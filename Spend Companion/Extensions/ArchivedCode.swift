@@ -339,3 +339,12 @@ import Foundation
 //    let lastIndexPath = IndexPath(item: itemCount - 1, section: 0)
 //    tableView.scrollToRow(at: lastIndexPath, at: .bottom, animated: true)
 //}
+
+
+//    override func viewWillDisappear(_ animated: Bool) {
+//        super.viewWillDisappear(animated)
+//        if let navVC = presentingViewController as? UINavigationController, navVC.viewControllers.contains(InitialViewController.shared) {
+//            InitialViewController.shared.reloadMonthDataAfterChange()
+//        }
+//    }
+//

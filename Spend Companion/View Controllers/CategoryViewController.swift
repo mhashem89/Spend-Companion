@@ -38,6 +38,8 @@ class CategoryViewController: UIViewController {
     
     var itemsToBeScheduled = [Item: ItemRecurrence]()
     
+    var cancelChanges: Bool = false
+    
     
 // MARK:- Lifecycle Methods
     
@@ -54,6 +56,12 @@ class CategoryViewController: UIViewController {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    deinit {
+        if cancelChanges, navigationItem.rightBarButtonItem!.isEnabled {
+            viewModel?.cancel()
+        }
     }
    
     override func viewDidLoad() {
@@ -78,14 +86,6 @@ class CategoryViewController: UIViewController {
         viewFrameHeight = view.frame.height
         tableViewFrameHeight = tableView.frame.height
     }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        if let navVC = presentingViewController as? UINavigationController, navVC.viewControllers.contains(InitialViewController.shared) {
-            InitialViewController.shared.reloadMonthDataAfterChange()
-        }
-    }
-    
     
 // MARK:- Methods
     
@@ -158,9 +158,7 @@ class CategoryViewController: UIViewController {
     }
     
     @objc private func cancel() {
-        if navigationItem.rightBarButtonItem!.isEnabled {
-            viewModel?.cancel()
-        }
+        cancelChanges = true
         dismiss(animated: true, completion: nil)
     }
     
@@ -377,6 +375,7 @@ extension CategoryViewController: CategoryTitleViewControllerDelegate {
 extension CategoryViewController: ItemCellDelegate {
     
     func donePressedInDayPicker(selected day: Int, for cell: ItemCell) {
+        guard !cancelChanges else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self = self,
                   let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
@@ -384,22 +383,20 @@ extension CategoryViewController: ItemCellDelegate {
             let selectedDate = DateFormatters.fullDateWithLetters.date(from: selectedDay)!
             self.viewModel?.items?[selectedIndexPath.row].date = selectedDate
             cell.dayLabel.text = selectedDate.dayMatches(Date()) ? "Today" : selectedDay.extractDate()
-            cell.dayLabel.textColor = CustomColors.label
         }
     }
     
     func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool) {
-        guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
+        guard !cancelChanges, let selectedIndexPath = tableView.indexPath(for: cell) else { return }
         let item = viewModel?.items?[selectedIndexPath.row]
         item?.detail = text
-     
         if withMessage == true {
             handleFutureItems(for: item, amount: nil, detail: text)
         }
     }
     
     func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool) {
-        guard let selectedIndexPath = tableView.indexPath(for: cell) else { return }
+        guard !cancelChanges, let selectedIndexPath = tableView.indexPath(for: cell) else { return }
         let item = viewModel?.items?[selectedIndexPath.row]
         item?.amount = amount
         
@@ -502,15 +499,15 @@ extension CategoryViewController: RecurringViewControllerDelegate {
             let alertController = UIAlertController(title: nil, message: "This change will be applied to all future transactions", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: nil))
             alertController.addAction(UIAlertAction(title: "Apply", style: .default, handler: { (action) in
-                updateItemRecurrence(for: item, with: itemRecurrence)
+                updateItemRecurrence(for: item, with: itemRecurrence, isNew: new)
             }))
-            new ? updateItemRecurrence(for: item, with: itemRecurrence) : present(alertController, animated: true, completion: nil)
+            new || item.futureItems() == nil ? updateItemRecurrence(for: item, with: itemRecurrence, isNew: new) : present(alertController, animated: true, completion: nil)
         }
     }
     
-    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence) {
+    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence, isNew: Bool) {
         do {
-            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence)
+            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, isNew: isNew)
             itemsToBeScheduled[item] = itemRecurrence
             viewModel?.reloadData()
             tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)

@@ -45,8 +45,10 @@ class CoreDataManager {
                 items.append(newItem)
             } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate
             
-            for item in items {
-                item.sisterItems = NSSet(array: items.filter({ $0 != item }))
+            if items.count > 1 {
+                for item in items {
+                    item.sisterItems = NSSet(array: items.filter({ $0 != item }))
+                }
             }
             if save { try saveContext() }
         }
@@ -142,7 +144,7 @@ class CoreDataManager {
     }
     
     
-    private func calcTotalsForMonth(month: Month) -> [ItemType: Double] {
+    func calcTotalsForMonth(month: Month) -> [ItemType: Double] {
         var result = [ItemType: Double]()
         guard let categories = month.categories?.allObjects as? [Category] else { return result }
         if let income = categories.filter({ $0.name == "Income" }).first {

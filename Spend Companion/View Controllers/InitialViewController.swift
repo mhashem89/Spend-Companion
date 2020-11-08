@@ -30,6 +30,7 @@ class InitialViewController: UIViewController {
     var selectedMonthScaledData: (CGFloat, CGFloat) = (0,0)
     var selectedYearScaledData: (CGFloat, CGFloat) = (0,0)
     var monthChanged: Bool = false
+    var recentItemsDidChange: Bool = false
     
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
@@ -83,15 +84,16 @@ class InitialViewController: UIViewController {
         recentItemsRefreshControl.addTarget(self, action: #selector(refreshRecentItems), for: .valueChanged)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         if viewModel.recentItems.count == 0 {
             scrollView.addSubview(emptyItemsLabel)
             emptyItemsLabel.anchor(top: quickAddView.bottomAnchor, topConstant: view.frame.height * 0.1, centerX: view.centerXAnchor)
-        } else {
+        } else if recentItemsTable == nil {
             setupRecentItemTable()
         }
-        reloadMonthDataAfterChange()
+        reloadDataAfterChange()
         quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
         quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
     }
@@ -114,13 +116,25 @@ class InitialViewController: UIViewController {
         }
     }
     
-    func reloadMonthDataAfterChange() {
+    func reloadDataAfterChange() {
         if monthChanged && summaryView.segmentedControl.selectedSegmentIndex == 0 {
             viewModel.fetchMonthTotals(forDate: selectedMonth)
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
             scaleFactor = calcScaleFactor()
             summaryView.barChart.reloadData()
             monthChanged = false
+        }
+        if recentItemsDidChange {
+            reloadRecentItems()
+        }
+    }
+    
+    private func reloadRecentItems() {
+        viewModel.fetchRecentItems()
+        if recentItemsTable == nil { setupRecentItemTable() }
+        recentItemsTable?.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+        if viewModel.recentItems.count > 0 {
+            if emptyItemsLabel.superview != nil { emptyItemsLabel.removeFromSuperview() }
         }
     }
     
@@ -437,13 +451,14 @@ extension InitialViewController: InitialViewModelDelegate {
         }
     }
     
+    
     func recentItemsChanged() {
-        viewModel.fetchRecentItems()
-        if recentItemsTable == nil { setupRecentItemTable() }
-        recentItemsTable?.reloadData()
-        if viewModel.recentItems.count > 0 {
-            if emptyItemsLabel.superview != nil { emptyItemsLabel.removeFromSuperview() }
+        if view.window != nil && presentedViewController == nil {
+            reloadRecentItems()
+        } else {
+            recentItemsDidChange = true
         }
+        
     }
     
 }

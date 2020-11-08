@@ -222,7 +222,7 @@ extension ItemCell: UITextFieldDelegate {
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        guard let text = textField.text else { return false }
+        guard let text = textField.text else { return true }
         if textField == detailTextField {
             detailTextField.resignFirstResponder()
             delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged)
@@ -233,39 +233,31 @@ extension ItemCell: UITextFieldDelegate {
     
     
     func textFieldDidEndEditing(_ textField: UITextField) {
-        guard let text = textField.text else { return }
+        guard let text = textField.text, !text.isEmpty else { return }
         switch textField {
         case detailTextField:
-            delegate?.detailTextFieldReturn(text: text, for: self, withMessage: false)
-            delegate?.dataChanged()
+            if detailTextChanged { delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged) }
         case amountTextField:
             guard let amount = Double(text) else { return }
-            delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: false)
-            delegate?.dataChanged()
+            if amountTextChanged { delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: !recurringCircleButton.isHidden && amountTextChanged) }
         case dayTextField:
             dayTextField.backgroundColor = .clear
             dayLabel.textColor = .systemBlue
         default:
             return
         }
-        return
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         let currentString: NSString = textField.text! as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
+        delegate?.dataChanged()
         switch textField {
         case detailTextField:
-            delegate?.detailTextFieldReturn(text: newString as String, for: self, withMessage: false)
-            delegate?.dataChanged()
             detailTextChanged = true
             return newString.length < 18
         case amountTextField:
-            if let amount = Double(newString as String) {
-                delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: false)
-            }
             amountTextChanged = true
-            delegate?.dataChanged()
             return newString.length < 8
         default:
             return true
