@@ -119,7 +119,7 @@ class CategoryViewModel {
         }
     }
     
-    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, sisterItems: [Item]? = nil) throws {
+    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence) throws {
         item.recurringNum = NSNumber(value: newRecurrence.period)
         item.recurringUnit = NSNumber(value: newRecurrence.unit.rawValue)
         item.recurringEndDate = newRecurrence.endDate

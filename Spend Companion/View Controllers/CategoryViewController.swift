@@ -510,7 +510,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
     
     func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence) {
         do {
-            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, sisterItems: item.futureItems())
+            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence)
             itemsToBeScheduled[item] = itemRecurrence
             viewModel?.reloadData()
             tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)

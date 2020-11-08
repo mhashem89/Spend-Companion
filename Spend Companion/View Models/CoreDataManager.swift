@@ -233,11 +233,8 @@ class CoreDataManager {
             if itemRecurrence.period > 1 { content.body.append("s") }
             
             let reminderDate = Calendar.current.date(byAdding: .day, value: -reminderTime, to: itemDate)
-            
             let dateComponent = Calendar.current.dateComponents([.hour, .minute, .day, .month, .year], from: reminderDate!)
-            
             let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponent, repeats: false)
-            
             let request = UNNotificationRequest(identifier: reminderUID, content: content, trigger: trigger)
             
             UNUserNotificationCenter.current().add(request) { (error) in
