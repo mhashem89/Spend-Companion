@@ -69,13 +69,11 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date()) {
         didSet {
-            categoryNames = viewModel.fetchUniqueCategoryNames(for: selectedYear)
-            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear)
+            categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
+            categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear)
         }
     }
-    
-    var viewModel = ChartViewModel()
-    
+        
     var selectedSegment = 0
     
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
@@ -122,11 +120,20 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        categoryNames = viewModel.fetchUniqueCategoryNames(for: selectedYear)
-        categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
+        categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
+        categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
+        
+        UNUserNotificationCenter.current().getPendingNotificationRequests { (requests) in
+            DispatchQueue.main.async {
+                requests.forEach({
+                    print("WTF", $0.trigger)
+                    print("WTF", $0.content.title)
+                })
+            }
+        }
     }
     
     // MARK:- Selectors
@@ -162,7 +169,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
             selectedSegment = 0
             filterButton.isHidden = false
             filteredRowLabel.text = filteredMonthName ?? "Total spending by category"
-            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
+            categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
         } else if header.segmentedControl.selectedSegmentIndex == 1 {
             selectedSegment = 1
             filterButton.isHidden = false
@@ -179,30 +186,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
 
     // MARK:- Methods
     
-    func calcScaleFactor() -> Double {
-        switch selectedSegment {
-        case 1:
-            if let maxInYear = viewModel.calcMaxInYear(year: selectedYear) {
-                let valueLabelSize = UILabel.calcSize(for: String(format: "%g", maxInYear), withFont: 13 * fontScale)
-                return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / maxInYear
-            }
-        case 0:
-            if  let maxCategory = categoryTotals.values.max() {
-                let sum = Array(categoryTotals.values).sum() ?? 1
-                let maxPercentage = Int(maxCategory / sum) * 100
-                let valueLabelSize = UILabel.calcSize(for: "\(String(format: "%g", maxCategory)) (\(maxPercentage)%", withFont: 13 * fontScale)
-                return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / maxCategory
-            }
-        case 2:
-            if let maxInYear = viewModel.calcMaxInYear(year: selectedYear, forIncome: true) {
-                let valueLabelSize = UILabel.calcSize(for: String(format: "%g", maxInYear), withFont: 13 * fontScale)
-                return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / maxInYear
-            }
-        default:
-            break
-        }
-        return 1
-    }
     
     func setupHeader() {
         header = CalendarHeader(frame: .init(x: 0, y: safeAreaTop, width: view.frame.width, height: viewsHeightScale < 1 ? 100 : 100 * viewsHeightScale))
@@ -226,9 +209,35 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         barChart.dataSource = self
         view.addSubview(barChart)
         (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
-        barChart.frame = .init(x: 10 * viewsWidthScale, y: viewsHeightScale < 1 ? 200 : 200 * viewsHeightScale, width: view.frame.width, height: view.frame.height - 200)
+        barChart.frame = .init(x: 10 * viewsWidthScale, y: 200, width: view.frame.width, height: view.frame.height - 200)
         barChart.showsHorizontalScrollIndicator = false
         barChart.showsVerticalScrollIndicator = false
+    }
+    
+    
+    func calcScaleFactor() -> Double {
+        switch selectedSegment {
+        case 1:
+            if let maxInYear = CoreDataManager.shared.calcMaxInYear(year: selectedYear) {
+                let valueLabelSize = UILabel.calcSize(for: String(format: "%g", maxInYear), withFont: 13 * fontScale)
+                return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / maxInYear
+            }
+        case 0:
+            if  let maxCategory = categoryTotals.values.max() {
+                let sum = Array(categoryTotals.values).sum() ?? 1
+                let maxPercentage = Int(maxCategory / sum) * 100
+                let valueLabelSize = UILabel.calcSize(for: "\(String(format: "%g", maxCategory)) (\(maxPercentage)%", withFont: 13 * fontScale)
+                return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / maxCategory
+            }
+        case 2:
+            if let maxInYear = CoreDataManager.shared.calcMaxInYear(year: selectedYear, forIncome: true) {
+                let valueLabelSize = UILabel.calcSize(for: String(format: "%g", maxInYear), withFont: 13 * fontScale)
+                return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - 70) / maxInYear
+            }
+        default:
+            break
+        }
+        return 1
     }
     
     
@@ -237,7 +246,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         dimmingView.frame = view.bounds
     }
   
-    
     func yearSelected(year: String) {
         self.selectedYear = year
         self.scaleFactor = calcScaleFactor()
@@ -285,7 +293,7 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: yearBarChartCell, for: indexPath) as! ChartCell
-        cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : viewModel.fetchUniqueCategoryNames(for: selectedYear)[indexPath.row]
+        cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : categoryNames[indexPath.row]
         cell.cellLabel.frame = .init(x: 0, y: 0, width: chartLabelMaxWidth, height: cell.frame.height)
         cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * viewsWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
@@ -354,7 +362,7 @@ extension ChartViewController: FilterViewControllerDelegate {
         case 0:
             filteredRowLabel.text = "Total spending by category"
             filteredMonthName = nil
-            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear)
+            categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear)
         case 1: filteredRowLabel.text = "Total spending by month"; filteredCategoryName = nil
         case 2: filteredRowLabel.text = "Total income by month"
         default: break
@@ -369,7 +377,7 @@ extension ChartViewController: FilterViewControllerDelegate {
         self.filteredRowLabel.text = rowName
         if selectedSegment == 0 {
             filteredMonthName = rowName
-            categoryTotals = viewModel.fetchCategoryTotals(for: selectedYear, forMonth: rowName)
+            categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: rowName)
             scaleFactor = calcScaleFactor()
         } else {
             filteredCategoryName = rowName

@@ -246,6 +246,7 @@ class RecurringViewController: UIViewController {
     @objc func handleReminderSegmentedControl() {
         reminderSegmentedControl.isSelected = true
         reminderSegmentedControl.layer.borderWidth = 0
+        dataChanged = true
     }
     
     @objc func datePicked() {

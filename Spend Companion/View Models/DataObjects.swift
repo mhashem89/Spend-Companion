@@ -84,10 +84,12 @@ struct ItemStruct {
     var detail: String?
     var itemRecurrence: ItemRecurrence?
     var categoryName: String?
+    var sisterItems: [Item]?
     
-    static func itemStruct(from item: Item) -> ItemStruct {
-        let date = DateFormatters.fullDateFormatter.string(from: item.date!)
-        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: date, detail: item.detail, itemRecurrence: ItemRecurrence.createItemRecurrence(from: item), categoryName: item.category?.name)
+    static func itemStruct(from item: Item) -> ItemStruct? {
+        guard let itemDate = item.date else { return nil }
+        let date = DateFormatters.fullDateFormatter.string(from: itemDate)
+        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: date, detail: item.detail, itemRecurrence: ItemRecurrence.createItemRecurrence(from: item), categoryName: item.category?.name, sisterItems: item.sisterItems?.allObjects as? [Item])
     }
     
 }

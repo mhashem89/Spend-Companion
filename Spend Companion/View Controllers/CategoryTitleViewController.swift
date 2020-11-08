@@ -45,7 +45,7 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         titleTextField.anchor(top: view.safeAreaLayoutGuide.topAnchor, topConstant: 15, leading: view.leadingAnchor, leadingConstant: 15, trailing: view.trailingAnchor, trailingConstant: 15, heightConstant: 40)
         categoriesTable.anchor(top: titleTextField.bottomAnchor, topConstant: 10, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
         
-        recentNames = ChartViewModel.shared.fetchUniqueCategoryNames(for: nil).sorted(by: { $0 < $1 })
+        recentNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: nil).sorted(by: { $0 < $1 })
         recentNames = recentNames.filter( { !favorites.contains($0) && !["Recurring Expenses", "Income"].contains($0) } )
         
         favorites = CoreDataManager.shared.fetchFavorites()

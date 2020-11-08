@@ -142,7 +142,7 @@ class CategoryViewController: UIViewController {
             try viewModel?.save()
             try itemsToBeScheduled.keys.forEach { (item) in
                 try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
-                if let sisterItems = item.sisterItems?.allObjects as? [Item], sisterItems.count > 0 {
+                if let sisterItems = item.futureItems(), sisterItems.count > 0 {
                     for item in sisterItems {
                         if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
                             try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence)

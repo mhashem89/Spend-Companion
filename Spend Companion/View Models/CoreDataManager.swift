@@ -18,11 +18,18 @@ class CoreDataManager {
     }
     
     func saveItem(itemStruct: ItemStruct) throws {
-        guard var itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
+        guard let itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
         let createdItem = try createNewItem(date: itemDate, itemStruct: itemStruct)
         
+        if itemStruct.itemRecurrence != nil {
+            try createFutureItems(for: createdItem, shouldSave: true)
+        }
+    }
+    
+    func createFutureItems(for item: Item, shouldSave save: Bool) throws {
+        guard var itemDate = item.date, let itemStruct = ItemStruct.itemStruct(from: item) else { return }
         if let itemRecurrence = itemStruct.itemRecurrence, itemRecurrence.endDate > itemDate {
-            var items = [createdItem]
+            var items = [item]
             let additionalHours = Calendar.current.dateComponents([.hour, .minute, .second, .nanosecond], from: Date())
             let adjustedEndDate = Calendar.current.date(byAdding: additionalHours, to: itemRecurrence.endDate)!
             var dateComponent = DateComponents()
@@ -34,14 +41,14 @@ class CoreDataManager {
             
             repeat {
                 itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-                let newItem = try createNewItem(date: itemDate, itemStruct: itemStruct)
+                let newItem = try createNewItem(date: itemDate, itemStruct: itemStruct, save: save)
                 items.append(newItem)
             } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate
             
             for item in items {
                 item.sisterItems = NSSet(array: items.filter({ $0 != item }))
             }
-            try saveContext()
+            if save { try saveContext() }
         }
     }
     
@@ -197,7 +204,7 @@ class CoreDataManager {
     
     
     func scheduleReminder(for item: Item, with itemRecurrence: ItemRecurrence, createNew new: Bool = true) throws {
-        guard item.date != nil, item.date! > Date()  else { return }
+        guard let itemDate = item.date, itemDate > Date()  else { return }
         
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (success, error) in
             if let err = error {
@@ -225,7 +232,7 @@ class CoreDataManager {
             content.sound = .default
             if itemRecurrence.period > 1 { content.body.append("s") }
             
-            let reminderDate = Calendar.current.date(byAdding: .day, value: -reminderTime, to: item.date!)
+            let reminderDate = Calendar.current.date(byAdding: .day, value: -reminderTime, to: itemDate)
             
             let dateComponent = Calendar.current.dateComponents([.hour, .minute, .day, .month, .year], from: reminderDate!)
             
@@ -329,6 +336,60 @@ class CoreDataManager {
         if context.hasChanges {
             try context.save()
         }
+    }
+    
+    
+    func fetchUniqueCategoryNames(for year: String?) -> [String] {
+        var names = [String]()
+        let fetchRequest = NSFetchRequest<Category>(entityName: "Category")
+        if year != nil { fetchRequest.predicate = NSPredicate(format: "month.year = %@", year!) }
+        if let categories = try? context.fetch(fetchRequest) {
+            for category in categories.filter({ $0.name != "Income" }) {
+                if let name = category.name {
+                    names.append(name)
+                }
+            }
+        }
+        return names.unique()
+    }
+    
+    
+    func calcMaxInYear(year: String, forIncome income: Bool = false) -> Double? {
+        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+        var totals = [Double]()
+        for month in months {
+            let monthString = "\(month) \(year)"
+            if let totalValue = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: income ? "Income" : nil) {
+                totals.append(totalValue)
+            }
+        }
+        return totals.max()
+    }
+    
+    
+    func fetchCategoryTotals(for year: String, forMonth month: String? = nil) -> [String: Double] {
+        var dict = [String: Double]()
+        
+        let categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: year)
+        for name in categoryNames {
+            var total: Double = 0
+            let fetchRequest = NSFetchRequest<Category>(entityName: "Category")
+            if let month = month {
+                let monthYear = "\(month) \(year)"
+                fetchRequest.predicate = NSPredicate(format: "name = %@ AND month.date = %@", name, monthYear)
+            } else {
+                fetchRequest.predicate = NSPredicate(format: "name = %@ AND month.year = %@", name, year)
+            }
+            if let fetchedCategories = try? context.fetch(fetchRequest) {
+                for category in fetchedCategories.filter({ $0.name != "Income" }) {
+                    for item in category.items?.allObjects as! [Item] {
+                        total += item.amount
+                    }
+                }
+            }
+            dict[name] = (total * 100).rounded() / 100
+        }
+        return dict
     }
     
     

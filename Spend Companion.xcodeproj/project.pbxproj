@@ -19,7 +19,6 @@
 		D905F574253D54E000FE4B59 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D905F573253D54E000FE4B59 /* StoreKit.framework */; };
 		D905F585253D579E00FE4B59 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F57F253D579E00FE4B59 /* SearchViewModel.swift */; };
 		D905F586253D579E00FE4B59 /* CategoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F580253D579E00FE4B59 /* CategoryViewModel.swift */; };
-		D905F587253D579E00FE4B59 /* ChartViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F581253D579E00FE4B59 /* ChartViewModel.swift */; };
 		D905F588253D579E00FE4B59 /* MonthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F582253D579E00FE4B59 /* MonthViewModel.swift */; };
 		D905F589253D579E00FE4B59 /* InitialViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F583253D579E00FE4B59 /* InitialViewModel.swift */; };
 		D905F596253D582000FE4B59 /* RecentItemCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F58D253D581F00FE4B59 /* RecentItemCell.swift */; };
@@ -93,7 +92,6 @@
 		D905F573253D54E000FE4B59 /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 		D905F57F253D579E00FE4B59 /* SearchViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
 		D905F580253D579E00FE4B59 /* CategoryViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CategoryViewModel.swift; sourceTree = "<group>"; };
-		D905F581253D579E00FE4B59 /* ChartViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ChartViewModel.swift; sourceTree = "<group>"; };
 		D905F582253D579E00FE4B59 /* MonthViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MonthViewModel.swift; sourceTree = "<group>"; };
 		D905F583253D579E00FE4B59 /* InitialViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InitialViewModel.swift; sourceTree = "<group>"; };
 		D905F58D253D581F00FE4B59 /* RecentItemCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecentItemCell.swift; sourceTree = "<group>"; };
@@ -229,7 +227,6 @@
 			children = (
 				D905F583253D579E00FE4B59 /* InitialViewModel.swift */,
 				D905F580253D579E00FE4B59 /* CategoryViewModel.swift */,
-				D905F581253D579E00FE4B59 /* ChartViewModel.swift */,
 				D905F582253D579E00FE4B59 /* MonthViewModel.swift */,
 				D905F57F253D579E00FE4B59 /* SearchViewModel.swift */,
 				D96FBD16254090EF0025F5CF /* DataObjects.swift */,
@@ -437,7 +434,6 @@
 				D96FBD0A253F96330025F5CF /* ArchivedCode.swift in Sources */,
 				D905F599253D582000FE4B59 /* CalendarHeader.swift in Sources */,
 				D97A6B3A25453963003380A7 /* BarColorChooser.swift in Sources */,
-				D905F587253D579E00FE4B59 /* ChartViewModel.swift in Sources */,
 				D905F59E253D582000FE4B59 /* CalendarCell.swift in Sources */,
 				D905F59A253D582000FE4B59 /* QuickAddView.swift in Sources */,
 				D99FAE74254689510048B38D /* CustomizeAppearanceController.swift in Sources */,

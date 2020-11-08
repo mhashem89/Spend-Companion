@@ -137,34 +137,10 @@ class CategoryViewModel {
                 item.reminderTime = NSNumber(value: itemRecurrenceTime)
             }
         }
-      
-        if let futureSisterItems = sisterItems?.filter({ $0.date! > item.date! }) {
-            futureSisterItems.forEach({
-                if let reminderUID = $0.reminderUID {
-                    reminderUIDsForDeletion.append(reminderUID)
-                }
-                context.delete($0)
-            })
-        }
-        guard var itemDate = item.date else { return }
-        var items = [item]
-        var dateComponent = DateComponents()
-        switch newRecurrence.unit {
-        case .day: dateComponent.day = newRecurrence.period
-        case .month: dateComponent.month = newRecurrence.period
-        case .week: dateComponent.weekOfYear = newRecurrence.period
-        }
-        
-        repeat {
-            itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
-            let itemStruct = ItemStruct.itemStruct(from: item)
-            let newItem = try CoreDataManager.shared.createNewItem(date: itemDate, itemStruct: itemStruct, save: false)
-            items.append(newItem)
-        } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= newRecurrence.endDate
-        
-        for item in items {
-            item.sisterItems = NSSet(array: items.filter({ $0 != item }))
-        }
+        try item.futureItems()?.forEach({ (item) in
+            try CoreDataManager.shared.deleteItem(item: item, saveContext: false)
+        })
+        try CoreDataManager.shared.createFutureItems(for: item, shouldSave: false)
     }
     
     
