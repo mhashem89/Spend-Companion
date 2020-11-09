@@ -79,8 +79,8 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
     
     var safeAreaTop: CGFloat {
-        let top = UIApplication.shared.windows.first!.safeAreaInsets.top
-        return top
+        let top = UIApplication.shared.windows.first?.safeAreaInsets.top
+        return top ?? 0
     }
     
     var scaleFactor: Double = 1

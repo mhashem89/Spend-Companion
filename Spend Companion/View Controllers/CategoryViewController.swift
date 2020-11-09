@@ -20,7 +20,7 @@ class CategoryViewController: UIViewController {
     
     let itemId = "itemId"
     var viewModel: CategoryViewModel?
-    var month: Month!
+    var month: Month
     var delegate: CategoryViewControllerDelegate?
     var tableView = UITableView(frame: .zero, style: .plain)
     var viewFrameHeight: CGFloat = 0
@@ -43,11 +43,11 @@ class CategoryViewController: UIViewController {
 // MARK:- Lifecycle Methods
     
     init(month: Month, category: Category? = nil) {
-        super.init(nibName: nil, bundle: nil)
         self.month = month
         if let category = category {
             self.viewModel = CategoryViewModel(month: month, category: category)
         }
+        super.init(nibName: nil, bundle: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -55,7 +55,7 @@ class CategoryViewController: UIViewController {
     }
     
     deinit {
-        if cancelChanges, navigationItem.rightBarButtonItem!.isEnabled {
+        if cancelChanges, let rightBarButton = navigationItem.rightBarButtonItem, rightBarButton.isEnabled {
             viewModel?.cancel()
         }
     }
@@ -128,7 +128,7 @@ class CategoryViewController: UIViewController {
         do {
             try viewModel?.save()
             try itemsToBeScheduled.keys.forEach { (item) in
-                try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item]!)
+                try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item])
                 if let sisterItems = item.futureItems(), sisterItems.count > 0 {
                     for item in sisterItems {
                         if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
@@ -160,7 +160,7 @@ class CategoryViewController: UIViewController {
             self.activeCell = self.tableView.cellForRow(at: self.tableView.lastIndexPath(inSection: 0)) as? ItemCell
             self.dataChanged()
         })
-        if viewModel!.items!.count > 1 {
+        if let items = viewModel?.items, items.count > 1 {
             headerView.sortButton.isEnabled = true
         }
     }

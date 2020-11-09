@@ -316,7 +316,10 @@ extension Item {
             recurringNum != nil,
             let sisterItems = (self.sisterItems?.allObjects as? [Item])?.filter({ $0.date != nil })
         else { return nil }
-        let futureItems = sisterItems.filter({ $0.date! > itemDate })
+        let futureItems = sisterItems.filter({
+            guard let sisterItemDate = $0.date else { return false }
+            return sisterItemDate > itemDate
+        })
         return futureItems.count > 0 ? futureItems : nil
     }
     

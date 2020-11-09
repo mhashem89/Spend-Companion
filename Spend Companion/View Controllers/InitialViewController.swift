@@ -245,7 +245,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: barChartCellId, for: indexPath) as! ChartCell
         cell.cellLabel.text = summaryLabels[indexPath.item]
-        let maxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: fontScale < 1 ? 14 : 16 * fontScale).width
+        let maxWidth = UILabel.calcSize(for: summaryLabels.longestString() ?? "", withFont: fontScale < 1 ? 14 : 16 * fontScale).width
         cell.cellLabel.frame = .init(x: 0, y: 0, width: maxWidth + 8, height: cell.frame.height)
         cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         var value: Double = 0
@@ -320,8 +320,8 @@ extension InitialViewController: QuickAddViewDelegate {
         
         showSavedAlert()
        
-        if self.summaryView.segmentedControl.selectedSegmentIndex == 1 {
-            let itemDate = quickAddView.dayLabel.text == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: quickAddView.dayLabel.text!)
+        if self.summaryView.segmentedControl.selectedSegmentIndex == 1, let dayLabelText = quickAddView.dayLabel.text {
+            let itemDate = dayLabelText == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: dayLabelText)
             let itemYear = DateFormatters.yearFormatter.string(from: itemDate!)
             if itemYear == DateFormatters.yearFormatter.string(from: selectedYear) {
                 self.viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
@@ -406,7 +406,8 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         let item = self.viewModel.recentItems[indexPath.row]
-        let categoryVC = CategoryViewController(month: item.month!, category: item.category)
+        guard let itemMonth = item.month else { return }
+        let categoryVC = CategoryViewController(month: itemMonth, category: item.category)
         let navVC = UINavigationController(rootViewController: categoryVC)
         navVC.modalPresentationStyle = .fullScreen
         if let itemIndex = categoryVC.viewModel?.items?.firstIndex(of: item) {

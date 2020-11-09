@@ -110,7 +110,8 @@ class ItemNameViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        let currentString: NSString = textField.text! as NSString
+        guard let text = textField.text else { return false }
+        let currentString: NSString = text as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
         return newString.length < 19
     }

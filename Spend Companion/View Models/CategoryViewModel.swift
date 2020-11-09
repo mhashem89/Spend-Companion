@@ -21,7 +21,7 @@ class CategoryViewModel {
             checkIfFavorite()
         }
     }
-    var month: Month!
+    var month: Month
     var items: [Item]?
     var isFavorite: Bool = false
     var reminderUIDsForDeletion = [String]()
@@ -45,7 +45,9 @@ class CategoryViewModel {
     }
     
     func calcDaysRange(month: Month) -> [String] {
-        let firstDay = DateFormatters.monthYearFormatter.date(from: month.date!)!
+        guard let monthDate = month.date,
+              let firstDay = DateFormatters.monthYearFormatter.date(from: monthDate)
+        else { return [] }
         let calendar = Calendar.current
         let dayOfMonth = calendar.component(.day, from: firstDay)
         let monthDays = calendar.range(of: .day, in: .month, for: firstDay)!
@@ -141,11 +143,11 @@ class CategoryViewModel {
         case (.some(_), nil):
             item.reminderTime = nil
             item.reminderUID = nil
-        case (nil, .some(_)):
-            item.reminderTime = NSNumber(value: newRecurrence.reminderTime!)
-        case (.some(_), .some(_)):
-            if let itemReminderTime = item.reminderTime, let itemRecurrenceTime = newRecurrence.reminderTime, Int(truncating: itemReminderTime) != itemRecurrenceTime {
-                item.reminderTime = NSNumber(value: itemRecurrenceTime)
+        case (nil, .some(let newReminderTime)):
+            item.reminderTime = NSNumber(value: newReminderTime)
+        case (.some(let oldReminderTime), .some(let newReminderTime)):
+            if Int(truncating: oldReminderTime) != newReminderTime {
+                item.reminderTime = NSNumber(value: newReminderTime)
             }
         }
         try item.futureItems()?.forEach({ (item) in

@@ -198,15 +198,17 @@ class CoreDataManager {
     func fetchFavorites() -> [String] {
         let fetchRequest = NSFetchRequest<Favorite>(entityName: "Favorite")
         if let favorites = try? context.fetch(fetchRequest) {
-            return favorites.map({ $0.name! })
+            return favorites.compactMap({ $0.name })
         } else {
             return [String]()
         }
     }
     
     
-    func scheduleReminder(for item: Item, with itemRecurrence: ItemRecurrence, createNew new: Bool = true) throws {
-        guard let itemDate = item.date, itemDate > Date()  else { return }
+    func scheduleReminder(for item: Item, with itemRecurrence: ItemRecurrence?, createNew new: Bool = true) throws {
+        guard let itemDate = item.date, itemDate > Date(),
+              let itemRecurrence = itemRecurrence
+        else { return }
         
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { (success, error) in
             if let err = error {
@@ -224,8 +226,8 @@ class CoreDataManager {
                 let newReminderUID = UUID().uuidString
                 item.reminderUID = newReminderUID
                 reminderUID = newReminderUID
-            } else if item.reminderUID != nil {
-                reminderUID = item.reminderUID!
+            } else if let itemReminderUID = item.reminderUID {
+                reminderUID = itemReminderUID
             }
             let content = UNMutableNotificationContent()
             content.title = item.detail ?? "Reminder"
@@ -267,7 +269,10 @@ class CoreDataManager {
             var itemCounts = [String: Int]()
             itemNames.forEach({ itemCounts[$0] = itemNames.countOf(element: $0) })
             commonItemNames = Array(itemCounts.keys).sorted(by: {
-                (itemCounts[$0]!, $1) > (itemCounts[$1]!, $0)
+                guard let firstItemCount = itemCounts[$0],
+                      let secondItemCount = itemCounts[$1]
+                else { return false }
+                return (firstItemCount, $1) > (secondItemCount, $0)
             })
         }
         return commonItemNames

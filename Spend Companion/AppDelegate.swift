@@ -44,20 +44,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return true
     }
     
-    public func clearDatabase() {
-        guard let url = persistentContainer.persistentStoreDescriptions.first?.url else { return }
-        
-        let persistentStoreCoordinator = persistentContainer.persistentStoreCoordinator
-        
-        do {
-            try persistentStoreCoordinator.destroyPersistentStore(at:url, ofType: NSSQLiteStoreType, options: nil)
-            try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
-        } catch let error {
-            print("Attempted to clear persistent store: " + error.localizedDescription)
-        }
-    }
-    
-    
     @objc func ubiquitousStoreDidChangeExternally() {
         persistentContainer = setupPersistentContainer()
         InitialViewController.shared.updateData()
@@ -158,4 +144,23 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         return completionHandler([.alert, .sound])
     }
 
+}
+
+
+extension AppDelegate {
+    
+    
+    public func clearDatabase() {
+        guard let url = persistentContainer.persistentStoreDescriptions.first?.url else { return }
+        
+        let persistentStoreCoordinator = persistentContainer.persistentStoreCoordinator
+        
+        do {
+            try persistentStoreCoordinator.destroyPersistentStore(at:url, ofType: NSSQLiteStoreType, options: nil)
+            try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
+        } catch let error {
+            print("Attempted to clear persistent store: " + error.localizedDescription)
+        }
+    }
+    
 }

@@ -35,9 +35,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! RecentItemCell
         let item = viewModel.searchResults[indexPath.row]
+        guard let itemDate = item.date else { return cell }
         let titleString = NSMutableAttributedString(string: item.detail ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
         let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
-        let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
+        let dayString = DateFormatters.fullDateFormatter.string(from: itemDate) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: itemDate)
         let formattedDayString = NSAttributedString(string: "   \(dayString)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.darkGray])
         titleString.append(formattedDayString)
         cell.textLabel?.attributedText = titleString
@@ -55,7 +56,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
         let item = self.viewModel.searchResults[indexPath.row]
-        let categoryVC = CategoryViewController(month: item.month!, category: item.category)
+        guard let itemMonth = item.month else { return }
+        let categoryVC = CategoryViewController(month: itemMonth, category: item.category)
         if let itemIndex = categoryVC.viewModel?.items?.firstIndex(of: item) {
             present(UINavigationController(rootViewController: categoryVC), animated: true) {
                 let selectedIndexPath = IndexPath(item: itemIndex, section: 0)

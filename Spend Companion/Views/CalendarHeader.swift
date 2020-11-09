@@ -77,13 +77,13 @@ class CalendarHeader: UICollectionViewCell {
     @objc func nextYear() {
         guard let year = headerLabel.text, let yearNumber = Int(year) else { return }
         headerLabel.text = String(yearNumber + 1)
-        delegate?.yearSelected(year: headerLabel.text!)
+        delegate?.yearSelected(year: year)
     }
     
     @objc func previousYear() {
         guard let year = headerLabel.text, let yearNumber = Int(year) else { return }
         headerLabel.text = String(yearNumber - 1)
-        delegate?.yearSelected(year: headerLabel.text!)
+        delegate?.yearSelected(year: year)
     }
 
 }

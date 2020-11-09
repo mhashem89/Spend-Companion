@@ -42,8 +42,9 @@ class RecentItemCell: UITableViewCell {
     }
     
     func configureCell(for item: Item) {
+        guard let itemDate = item.date else { return }
         let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
-        let dayString = DateFormatters.fullDateFormatter.string(from: item.date!) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: item.date!)
+        let dayString = DateFormatters.fullDateFormatter.string(from: itemDate) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: itemDate)
         formatTitleLabel(itemName: item.detail, on: dayString)
         detailTextLabel?.text = item.category?.name
         let roundedAmount = (item.amount * 100).rounded() / 100

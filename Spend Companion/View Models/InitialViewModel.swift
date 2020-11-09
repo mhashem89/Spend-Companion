@@ -38,7 +38,7 @@ class InitialViewModel: NSObject {
     
 // MARK:- Fetched Result Controllers
     
-    var recentItemsFetchedResultControl: NSFetchedResultsController<Item>!
+    var recentItemsFetchedResultControl: NSFetchedResultsController<Item>?
     
     private lazy var remindersFetchedResultsController: NSFetchedResultsController<Item> = {
         let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
@@ -48,10 +48,7 @@ class InitialViewModel: NSObject {
         return frc
     }()
     
-    private var monthTotalFetchedResultController: NSFetchedResultsController<Item>!
-    
-    private var yearTotalFetchedResultController: NSFetchedResultsController<Month>!
-    
+    private var monthTotalFetchedResultController: NSFetchedResultsController<Item>?
     
     
 // MARK:- Methods
@@ -105,8 +102,8 @@ class InitialViewModel: NSObject {
         fetchRequest.predicate = NSPredicate(format: "month.date = %@", monthString)
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "amount", ascending: true)]
         monthTotalFetchedResultController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-        monthTotalFetchedResultController.delegate = self
-        try? monthTotalFetchedResultController.performFetch()
+        monthTotalFetchedResultController?.delegate = self
+        try? monthTotalFetchedResultController?.performFetch()
         
         if let currentMonth = CoreDataManager.shared.checkMonth(monthString: monthString, createNew: false) {
             let monthTotals = CoreDataManager.shared.calcTotalsForMonth(month: currentMonth)
@@ -125,9 +122,9 @@ class InitialViewModel: NSObject {
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
             fetchRequest.fetchLimit = 15
             recentItemsFetchedResultControl = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-            recentItemsFetchedResultControl.delegate = self
-            try recentItemsFetchedResultControl.performFetch()
-            recentItems = recentItemsFetchedResultControl.fetchedObjects ?? [Item]()
+            recentItemsFetchedResultControl?.delegate = self
+            try recentItemsFetchedResultControl?.performFetch()
+            recentItems = recentItemsFetchedResultControl?.fetchedObjects ?? [Item]()
         } catch let err {
             delegate?.presentError(error: err)
         }
@@ -172,8 +169,8 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
             if type == .delete, !recentItems.contains(changedItem) { return }
             delegate?.recentItemsChanged()
         } else if controller == monthTotalFetchedResultController {
-            guard changedItem.date != nil else { return }
-            let monthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: changedItem.date!)
+            guard let itemDate = changedItem.date else { return }
+            let monthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: itemDate)
             let changedMonth = changedItem.month ?? CoreDataManager.shared.checkMonth(monthString: monthString, createNew: false)
             if let changedMonth = changedMonth {
                 delegate?.monthTotalChanged(forMonth: changedMonth)

@@ -10,13 +10,6 @@ import UIKit
 
 
 protocol SortingViewControllerDelegate: class {
-    
-//    func dateAscending()
-//    func dateDescending()
-//    func amountAscending()
-//    func amountDescending()
-//    func nameAscending()
-//    func nameDescending()
     func sortingChosen(option: SortingOption, direction: SortingDirection)
 }
 

@@ -25,13 +25,13 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     var cellId = "cellId"
     var headerId = "HeaderId"
-    var viewModel: MonthViewModel!
+    var viewModel: MonthViewModel
     var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
     var labels = ["Income", "Recurring Expenses"]
     
     var selectedCategories = [Category]()
     
-    var monthString: String!
+    var monthString: String
     
     var plusButton: UIButton = {
         let button = UIButton(type: .system)
@@ -51,8 +51,9 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     // MARK:- Lifecycle Methods
     
     init(monthString: String) {
-        super.init(collectionViewLayout: UICollectionViewFlowLayout())
         self.monthString = monthString
+        self.viewModel = MonthViewModel(monthString: monthString)
+        super.init(collectionViewLayout: UICollectionViewFlowLayout())
     }
     
     required init?(coder: NSCoder) {
@@ -61,7 +62,6 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.viewModel = MonthViewModel(monthString: monthString)
         self.viewModel.delegate = self
         self.viewModel.fetchData()
         view.addSubview(plusButton)
