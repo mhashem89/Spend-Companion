@@ -58,7 +58,9 @@ class InitialViewModel: NSObject {
         fetchMonthTotals()
         calcYearTotals(year: DateFormatters.yearFormatter.string(from: Date()))
         remindersFetchedResultsController.delegate = self
-        syncReminders()
+        DispatchQueue.global(qos: .background).async { [weak self] in
+            self?.syncReminders()
+        }
     }
 
     func saveItem(itemStruct: ItemStruct) {

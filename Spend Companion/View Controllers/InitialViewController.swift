@@ -291,7 +291,6 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
 extension InitialViewController: QuickAddViewDelegate {
     
     func openRecurringWindow() {
-        
         let recurringVC = RecurringViewController(itemRecurrence: quickAddView.itemRecurrence)
         recurringVC.delegate = self
         recurringVC.setupController(popoverDelegate: self, sourceView: quickAddView.recurringButton, sourceRect: quickAddView.recurringButton.bounds, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale)

@@ -308,7 +308,7 @@ class CoreDataManager {
     
     func saveContext() throws {
         if context.hasChanges {
-            try context.save()
+            try (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
         }
     }
     

@@ -171,6 +171,11 @@ class ItemCell: UITableViewCell {
         separator.anchor(centerX: centerXAnchor, centerXConstant: view == dayLabel ? -frame.width * 0.25 : frame.width * 0.26, centerY: centerYAnchor, widthConstant: 0.5, heightConstant: frame.height * 0.8)
     }
     
+    func resignFirstResponders() {
+        [dayTextField, amountTextField, detailTextField].forEach { (textField) in
+            if textField.isFirstResponder { textField.resignFirstResponder() }
+        }
+    }
     
     @objc func recurrenceButtonPressed() {
         delegate?.recurrenceButtonPressed(in: self)

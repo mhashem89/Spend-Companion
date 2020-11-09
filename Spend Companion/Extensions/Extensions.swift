@@ -99,11 +99,17 @@ extension UIView {
 extension UIViewController {
     
     func presentError(error: Error) {
+        let isSaveError: Bool = error is SaveError
+        let message = "\(error.localizedDescription)\(isSaveError ? "\n Please restart the application" : "")"
         DispatchQueue.main.async { [weak self] in
-            let alertController = UIAlertController(title: "Error", message: error.localizedDescription, preferredStyle: .alert)
-            alertController.addAction(UIAlertAction(title: "Ok", style: .default, handler: nil))
+            let alertController = UIAlertController(title: "\(isSaveError ? "Save " : "")Error", message: message, preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Ok", style: .default, handler: { (_) in
+                if isSaveError {
+                    let nserror = error as NSError
+                    fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                }
+            }))
             self?.present(alertController, animated: true)
-            print("WTF", error.localizedDescription)
         }
     }
     

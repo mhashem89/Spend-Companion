@@ -252,6 +252,7 @@ extension SettingsViewController: SKPaymentTransactionObserver {
                 if transaction.original?.payment.productIdentifier == iCloudPurchaseProductID, iCloudKeyStore.bool(forKey: iCloudPurchased) == false {
                     iCloudKeyStore.set(true, forKey: iCloudPurchased)
                     toggleiCloudSync(sync: true)
+                    (tableView.cellForRow(at: IndexPath(item: 0, section: 0)) as? SettingsCell)?.settingsToggle.setOn(true, animated: true)
                 } else if transaction.original?.payment.productIdentifier == reminderPurchaseProductId, iCloudKeyStore.bool(forKey: remindersPurchased) == false {
                     iCloudKeyStore.set(true, forKey: remindersPurchased)
                 }

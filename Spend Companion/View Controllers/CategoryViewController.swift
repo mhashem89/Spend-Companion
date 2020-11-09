@@ -123,6 +123,7 @@ class CategoryViewController: UIViewController {
     
     
     @objc private func save() {
+        activeCell?.resignFirstResponders()
         do {
             try viewModel?.save()
             try itemsToBeScheduled.keys.forEach { (item) in
@@ -369,7 +370,7 @@ extension CategoryViewController: ItemCellDelegate {
         activeCell = cell
         
         recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
-        recurrenceViewer?.setupController(popoverDelegate: fontScale < 0.9 ? nil : self, sourceView: cell, sourceRect: cell.recurringCircleButton.frame, preferredWidth: 230 * fontScale, preferredHeight: 330 * fontScale)
+        recurrenceViewer?.setupController(popoverDelegate: fontScale < 0.9 ? nil : self, sourceView: cell, sourceRect: cell.recurringCircleButton.frame, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale)
         recurrenceViewer?.delegate = self
         recurrenceViewer?.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
 
