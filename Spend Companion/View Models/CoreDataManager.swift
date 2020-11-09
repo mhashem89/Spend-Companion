@@ -252,20 +252,7 @@ class CoreDataManager {
             return
         }
     }
-    
-    func fetchRecentItems(with controller: inout NSFetchedResultsController<Item>?) throws -> [Item] {
-        let weekAgo: Date = Date() - TimeInterval(60 * 60 * 24 * 7)
-        let dayAfter: Date = Date() + TimeInterval(60 * 60 * 24)
-        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-        fetchRequest.predicate = NSPredicate(format: "date > %@ AND date < %@", weekAgo as CVarArg, dayAfter as CVarArg)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
-        fetchRequest.fetchLimit = 15
-        controller = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-        try controller?.performFetch()
-        let fetchedResults = controller?.fetchedObjects ?? [Item]()
-        return fetchedResults
-    }
-    
+
     
     func getCommonItemNames() -> [String] {
         var commonItemNames = [String]()
@@ -303,24 +290,7 @@ class CoreDataManager {
         }
     }
     
-    
-    func fetchMonthTotals(forDate date: Date = Date(), with controller: inout NSFetchedResultsController<Item>?) -> [ItemType: Double] {
-        let dayString = DateFormatters.fullDateFormatter.string(from: date)
-        let monthString = extractMonthString(from: dayString)
-        
-        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-        fetchRequest.predicate = NSPredicate(format: "month.date = %@", monthString)
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "amount", ascending: true)]
-        controller = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-        try? controller?.performFetch()
-        
-        if let currentMonth = checkMonth(monthString: monthString, createNew: false) {
-            return calcTotalsForMonth(month: currentMonth)
-        } else {
-            return [.income: 0, .spending: 0]
-        }
-    }
-    
+
     func deleteItem(item: Item, saveContext save: Bool) throws {
         if let reminuderUID = item.reminderUID {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminuderUID])

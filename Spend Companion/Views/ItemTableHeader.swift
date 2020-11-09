@@ -8,13 +8,7 @@
 
 import UIKit
 
-protocol ItemTableHeaderDelegate: class {
-    func titleLabelTapped()
-}
-
 class ItemTableHeader: UIView {
-    
-    weak var delegate: ItemTableHeaderDelegate?
     
     let titleButton: UIButton = {
         let button = UIButton(type: .system)
@@ -74,11 +68,33 @@ class ItemTableHeader: UIView {
     
     let separatorView = UIView()
     
-    @objc func titleLabelTapped() {
-        delegate?.titleLabelTapped()
+    
+    func enableButtons(with viewModel: CategoryViewModel?) {
+        guard let viewModel = viewModel else { return }
+        plusButton.isEnabled = true
+        favoriteButton.isEnabled = true
+        if let items = viewModel.items, items.count > 1 {
+            sortButton.isEnabled = true
+        }
     }
     
-    func setupUI() {
+    func toggleFavoriteButton(with viewModel: CategoryViewModel?) {
+        guard let viewModel = viewModel else { return }
+        switch viewModel.isFavorite {
+        case true:
+            if #available(iOS 13, *) {
+                favoriteButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
+            }
+            favoriteButton.tintColor = .red
+        case false:
+            if #available(iOS 13, *) {
+                favoriteButton.setImage(UIImage(systemName: "heart"), for: .normal)
+            }
+            favoriteButton.tintColor = .systemBlue
+        }
+    }
+    
+    func setupUI(with viewModel: CategoryViewModel?) {
         backgroundColor = CustomColors.systemBackground
         let buttonStack = UIStackView(arrangedSubviews: [favoriteButton, sortButton, plusButton])
         separatorView.backgroundColor = CustomColors.darkGray
@@ -88,8 +104,10 @@ class ItemTableHeader: UIView {
         titleButton.anchor(leading: leadingAnchor, leadingConstant: 20 * viewsWidthScale, centerY: centerYAnchor)
         buttonStack.anchor(trailing: trailingAnchor, trailingConstant: 20 * viewsWidthScale, centerY: centerYAnchor)
         separatorView.anchor(leading: leadingAnchor, trailing: trailingAnchor, bottom: bottomAnchor, heightConstant: 1)
-        
-        titleButton.addTarget(self, action: #selector(titleLabelTapped), for: .touchUpInside)
+        if let category = viewModel?.category {
+            favoriteButton.isHidden = category.name == "Income"
+            titleButton.isUserInteractionEnabled = category.name != "Income"
+        }
     }
    
 }

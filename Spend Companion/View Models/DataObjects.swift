@@ -64,6 +64,10 @@ enum SortingDirection {
     case ascending, descending
 }
 
+enum ItemChangeType {
+    case edit, delete
+}
+
 
 enum ItemType: Int16 {
     case spending = 0

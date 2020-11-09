@@ -227,6 +227,14 @@ class RecurringViewController: UIViewController {
     
 // MARK:- UI Methods
     
+    func setupController(popoverDelegate: UIPopoverPresentationControllerDelegate?, sourceView: UIView, sourceRect: CGRect, preferredWidth: CGFloat, preferredHeight: CGFloat) {
+        modalPresentationStyle = fontScale < 0.9 ? .overCurrentContext : .popover
+        popoverPresentationController?.delegate = popoverDelegate
+        popoverPresentationController?.sourceView = sourceView
+        popoverPresentationController?.sourceRect = sourceRect
+        preferredContentSize = .init(width: preferredWidth, height: preferredHeight)
+    }
+    
     private func setupAmountToolbar() {
         let toolBar = UIToolbar()
         toolBar.sizeToFit()

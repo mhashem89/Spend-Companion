@@ -44,6 +44,17 @@ class CategoryViewModel {
         }
     }
     
+    func calcDaysRange(month: Month) -> [String] {
+        let firstDay = DateFormatters.monthYearFormatter.date(from: month.date!)!
+        let calendar = Calendar.current
+        let dayOfMonth = calendar.component(.day, from: firstDay)
+        let monthDays = calendar.range(of: .day, in: .month, for: firstDay)!
+        let days = (monthDays.lowerBound..<monthDays.upperBound)
+            .compactMap( { calendar.date(byAdding: .day, value: $0 - dayOfMonth, to: firstDay) } )
+        let dayStrings = days.compactMap({ DateFormatters.fullDateWithLetters.string(from: $0) })
+        return dayStrings
+    }
+    
     
     func createEmptyItem() {
         let newItem = Item(context: context)
@@ -87,7 +98,7 @@ class CategoryViewModel {
         }
     }
     
-
+    
     func editCategoryName(name: String) {
         category?.name = name
         checkIfFavorite()

@@ -107,6 +107,14 @@ extension UIViewController {
         }
     }
     
+    func presentFutureTransactionAlert(withChangeType type: ItemChangeType, handler: @escaping (UIAlertAction) -> Void) {
+        let alertController = UIAlertController(title: nil, message: "\(type == .edit ? "Apply the change to all" : "Delete") future transactions?", preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
+        alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: handler))
+        present(alertController, animated: true, completion: nil)
+    }
+    
+    
 }
 
 extension UIImageView {

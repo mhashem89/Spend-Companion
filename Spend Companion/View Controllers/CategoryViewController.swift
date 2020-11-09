@@ -18,7 +18,6 @@ class CategoryViewController: UIViewController {
     
     // MARK:- Properties
     
-    let titleId = "cellId"
     let itemId = "itemId"
     var viewModel: CategoryViewModel?
     var month: Month!
@@ -48,9 +47,6 @@ class CategoryViewController: UIViewController {
         self.month = month
         if let category = category {
             self.viewModel = CategoryViewModel(month: month, category: category)
-            enableHeaderButtons()
-            headerView.favoriteButton.isHidden = category.name == "Income"
-            headerView.titleButton.isUserInteractionEnabled = category.name != "Income"
         }
     }
     
@@ -91,13 +87,14 @@ class CategoryViewController: UIViewController {
     
     func setupHeaderView() {
         headerView.plusButton.addTarget(self, action: #selector(self.addItem), for: .touchUpInside)
-        headerView.sortButton.addTarget(self, action: #selector(self.sort), for: .touchUpInside)
+        headerView.sortButton.addTarget(self, action: #selector(self.presentSortingVC), for: .touchUpInside)
         headerView.favoriteButton.addTarget(self, action: #selector(favoriteCategory), for: .touchUpInside)
-        toggleFavoriteButton()
+        headerView.titleButton.addTarget(self, action: #selector(selectTitle), for: .touchUpInside)
+        headerView.toggleFavoriteButton(with: viewModel)
         headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * viewsHeightScale)
-        headerView.setupUI()
+        headerView.setupUI(with: viewModel)
         headerView.titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
-        headerView.delegate = self
+        headerView.enableButtons(with: viewModel)
     }
     
     func setupTableView() {
@@ -118,22 +115,12 @@ class CategoryViewController: UIViewController {
         present(navVC, animated: true)
     }
     
-    func enableHeaderButtons() {
-        headerView.plusButton.isEnabled = true
-        headerView.favoriteButton.isEnabled = true
-        if viewModel?.items != nil, viewModel!.items!.count > 1 {
-            headerView.sortButton.isEnabled = true
-        }
-    }
-    
+   
     func handleFutureItems(for item: Item?, amount: Double? = nil, detail: String? = nil) {
-        let alertController = UIAlertController(title: nil, message: "Apply the change to all future transactions?", preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
-        alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { [weak self] (action) in
+        presentFutureTransactionAlert(withChangeType: .edit) { [weak self] (_) in
             self?.viewModel?.editFutureItems(for: item, amount: amount, detail: detail)
-            self?.tableView.reloadData()
-        }))
-        present(alertController, animated: true, completion: nil)
+            self?.tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+        }
     }
     
     
@@ -163,14 +150,15 @@ class CategoryViewController: UIViewController {
     }
     
     @objc private func addItem() {
-        tableView.performBatchUpdates({
-            viewModel?.createEmptyItem()
-            let itemCount = viewModel?.items?.count ?? 1
+        tableView.performBatchUpdates({ [weak self] in
+            guard let self = self else { return }
+            self.viewModel?.createEmptyItem()
+            let itemCount = self.viewModel?.items?.count ?? 1
             let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
-            tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
-        }, completion: { [self]_ in
-            activeCell = tableView.cellForRow(at: tableView.lastIndexPath(inSection: 0)) as? ItemCell
-            dataChanged()
+            self.tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
+        }, completion: { _ in
+            self.activeCell = self.tableView.cellForRow(at: self.tableView.lastIndexPath(inSection: 0)) as? ItemCell
+            self.dataChanged()
         })
         if viewModel!.items!.count > 1 {
             headerView.sortButton.isEnabled = true
@@ -180,27 +168,11 @@ class CategoryViewController: UIViewController {
     @objc private func favoriteCategory() {
         guard viewModel != nil else { return }
         viewModel?.favoriteCategory()
-        toggleFavoriteButton()
+        headerView.toggleFavoriteButton(with: viewModel)
         dataChanged()
     }
     
-    func toggleFavoriteButton() {
-        guard viewModel != nil else { return }
-        switch viewModel!.isFavorite {
-        case true:
-            if #available(iOS 13, *) {
-                headerView.favoriteButton.setImage(UIImage(systemName: "heart.fill"), for: .normal)
-            }
-            headerView.favoriteButton.tintColor = .red
-        case false:
-            if #available(iOS 13, *) {
-                headerView.favoriteButton.setImage(UIImage(systemName: "heart"), for: .normal)
-            }
-            headerView.favoriteButton.tintColor = .systemBlue
-        }
-    }
-    
-    @objc private func sort() {
+    @objc private func presentSortingVC() {
         dimBackground()
         sortingVC.modalPresentationStyle = .popover
         sortingVC.delegate = self
@@ -212,8 +184,9 @@ class CategoryViewController: UIViewController {
     }
     
     @objc func handleKeyboardWillShow(notification: NSNotification) {
-        guard UIDevice.current.userInterfaceIdiom != .pad else { return }
-        guard let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect else { return }
+        guard UIDevice.current.userInterfaceIdiom != .pad,
+              let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect
+        else { return }
         view.frame.size.height = viewFrameHeight - keyboardFrame.height
         tableView.frame.size.height = tableViewFrameHeight - keyboardFrame.height
     }
@@ -242,19 +215,6 @@ class CategoryViewController: UIViewController {
         }
         activeCell.isHighlighted = true
     }
-    
-    private func calcDaysRange(month: Month) -> [String] {
-        
-        let firstDay = DateFormatters.monthYearFormatter.date(from: month.date!)!
-        let calendar = Calendar.current
-        let dayOfMonth = calendar.component(.day, from: firstDay)
-        let monthDays = calendar.range(of: .day, in: .month, for: firstDay)!
-        let days = (monthDays.lowerBound..<monthDays.upperBound)
-            .compactMap( { calendar.date(byAdding: .day, value: $0 - dayOfMonth, to: firstDay) } )
-        let dayStrings = days.compactMap({ DateFormatters.fullDateWithLetters.string(from: $0) })
-        return dayStrings
-    }
-
 }
 
 // MARK:- Table View Methods
@@ -296,9 +256,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         
         let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, _) in
             if let futureItems = item.futureItems() {
-                let alertController = UIAlertController(title: nil, message: "Delete all future transactions?", preferredStyle: .alert)
-                alertController.addAction(UIAlertAction(title: "Only this transaction", style: .default, handler: nil))
-                alertController.addAction(UIAlertAction(title: "All future transactions", style: .default, handler: { (_) in
+                self?.presentFutureTransactionAlert(withChangeType: .delete) { (_) in
                     futureItems.forEach({
                         if let itemIndex = self?.viewModel?.items?.firstIndex(of: $0) {
                             self?.viewModel?.deleteItem(item: $0, at: itemIndex)
@@ -307,8 +265,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
                             self?.viewModel?.context.delete($0)
                         }
                     })
-                }))
-                self?.present(alertController, animated: true, completion: nil)
+                }
             }
             tableView.performBatchUpdates({
                 tableView.deleteRows(at: [indexPath], with: .fade)
@@ -342,15 +299,6 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
 }
 
 
-// MARK:- Item Table Header Delegate
-
-extension CategoryViewController: ItemTableHeaderDelegate {
-    
-    func titleLabelTapped() {
-        selectTitle()
-    }
-}
-
 // MARK:- Category Title View Controller Delegate
 
 extension CategoryViewController: CategoryTitleViewControllerDelegate {
@@ -360,11 +308,11 @@ extension CategoryViewController: CategoryTitleViewControllerDelegate {
         if let category = CoreDataManager.shared.checkCategory(categoryName: title, monthString: monthString, createNew: viewModel == nil) {
             self.viewModel = CategoryViewModel(month: month, category: category)
             tableView.reloadData()
-            enableHeaderButtons()
+            headerView.enableButtons(with: viewModel)
         } else {
             viewModel?.editCategoryName(name: title)
         }
-        headerView.favoriteButton.isHidden = title == "Income" || title == "Recurring Expenses"
+        headerView.favoriteButton.isHidden = title == "Income"
         headerView.titleButton.setTitle(title, for: .normal)
         navigationItem.rightBarButtonItem?.isEnabled = true
     }
@@ -375,11 +323,11 @@ extension CategoryViewController: CategoryTitleViewControllerDelegate {
 extension CategoryViewController: ItemCellDelegate {
     
     func donePressedInDayPicker(selected day: Int, for cell: ItemCell) {
-        guard !cancelChanges else { return }
+        guard let viewModel = viewModel, !cancelChanges else { return }
         DispatchQueue.main.async { [weak self] in
             guard let self = self,
                   let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
-            let selectedDay = self.calcDaysRange(month: self.month)[day]
+            let selectedDay = viewModel.calcDaysRange(month: self.month)[day]
             let selectedDate = DateFormatters.fullDateWithLetters.date(from: selectedDay)!
             self.viewModel?.items?[selectedIndexPath.row].date = selectedDate
             cell.dayLabel.text = selectedDate.dayMatches(Date()) ? "Today" : selectedDay.extractDate()
@@ -387,20 +335,23 @@ extension CategoryViewController: ItemCellDelegate {
     }
     
     func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool) {
-        guard !cancelChanges, let selectedIndexPath = tableView.indexPath(for: cell) else { return }
-        let item = viewModel?.items?[selectedIndexPath.row]
-        item?.detail = text
-        if withMessage == true {
+        guard !cancelChanges,
+              let selectedIndexPath = tableView.indexPath(for: cell),
+              let item = viewModel?.items?[selectedIndexPath.row]
+              else { return }
+        item.detail = text
+        if withMessage == true && item.futureItems() != nil {
             handleFutureItems(for: item, amount: nil, detail: text)
         }
     }
     
     func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool) {
-        guard !cancelChanges, let selectedIndexPath = tableView.indexPath(for: cell) else { return }
-        let item = viewModel?.items?[selectedIndexPath.row]
-        item?.amount = amount
-        
-        if withMessage == true {
+        guard !cancelChanges,
+              let selectedIndexPath = tableView.indexPath(for: cell),
+              let item = viewModel?.items?[selectedIndexPath.row]
+        else { return }
+        item.amount = amount
+        if withMessage == true && item.futureItems() != nil {
            handleFutureItems(for: item, amount: amount, detail: nil)
         }
     }
@@ -414,16 +365,13 @@ extension CategoryViewController: ItemCellDelegate {
     }
     
     func recurrenceButtonPressed(in cell: ItemCell) {
-        guard let indexPath = tableView.indexPath(for: cell), let item = viewModel?.items?[indexPath.row] else { return }
+        guard let indexPath = tableView.indexPath(for: cell),
+              let item = viewModel?.items?[indexPath.row]
+        else { return }
         activeCell = cell
         
-        self.recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
-        recurrenceViewer?.modalPresentationStyle = fontScale < 1 ? .overCurrentContext : .popover
-        recurrenceViewer?.popoverPresentationController?.delegate = fontScale < 0.9 ? nil : self
-        recurrenceViewer?.popoverPresentationController?.sourceView = cell
-        recurrenceViewer?.popoverPresentationController?.sourceRect = cell.recurringCircleButton.frame
-        recurrenceViewer?.preferredContentSize = .init(width: 230 * fontScale, height: 330 * fontScale)
-        
+        recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
+        recurrenceViewer?.setupController(popoverDelegate: fontScale < 0.9 ? nil : self, sourceView: cell, sourceRect: cell.recurringCircleButton.frame, preferredWidth: 230 * fontScale, preferredHeight: 330 * fontScale)
         recurrenceViewer?.delegate = self
         recurrenceViewer?.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
 
@@ -435,7 +383,6 @@ extension CategoryViewController: ItemCellDelegate {
 
 }
 
-
 // MARK:- PickerView Delegate
 
 
@@ -446,11 +393,11 @@ extension CategoryViewController: UIPickerViewDelegate, UIPickerViewDataSource, 
     }
     
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return calcDaysRange(month: month).count
+        return viewModel?.calcDaysRange(month: month).count ?? 0
     }
     
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return calcDaysRange(month: month)[row].extractDate()
+        return viewModel?.calcDaysRange(month: month)[row].extractDate()
     }
     
     func adaptivePresentationStyle(for controller: UIPresentationController) -> UIModalPresentationStyle {

@@ -132,10 +132,11 @@ class InitialViewController: UIViewController {
     private func reloadRecentItems() {
         viewModel.fetchRecentItems()
         if recentItemsTable == nil { setupRecentItemTable() }
-        recentItemsTable?.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
+        recentItemsTable?.reloadData()
         if viewModel.recentItems.count > 0 {
             if emptyItemsLabel.superview != nil { emptyItemsLabel.removeFromSuperview() }
         }
+        recentItemsDidChange = false
     }
     
     func updateData() {
@@ -306,12 +307,9 @@ extension InitialViewController: QuickAddViewDelegate {
         
         let recurringVC = RecurringViewController(itemRecurrence: quickAddView.itemRecurrence)
         recurringVC.delegate = self
-        recurringVC.modalPresentationStyle = fontScale < 0.9 ? .overCurrentContext : .popover
-        recurringVC.popoverPresentationController?.delegate = self
-        recurringVC.popoverPresentationController?.sourceView = quickAddView.recurringButton
-        recurringVC.popoverPresentationController?.sourceRect = quickAddView.recurringButton.bounds
+        recurringVC.setupController(popoverDelegate: self, sourceView: quickAddView.recurringButton, sourceRect: quickAddView.recurringButton.bounds, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale)
         recurringVC.popoverPresentationController?.permittedArrowDirections = [.down, .right]
-        recurringVC.preferredContentSize = .init(width: fontScale < 1 ? 220 : 220 * fontScale, height: fontScale < 1 ? 330 : 330 * fontScale)
+       
         recurringVC.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: quickAddView.dayPickerDate ?? Date())
         present(recurringVC, animated: true)
         dimBackground()
