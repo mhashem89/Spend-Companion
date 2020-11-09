@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 
 enum CurrencyPosition: String {
     case right, left
@@ -23,7 +24,6 @@ class CurrencyViewController: UITableViewController {
             UserDefaults.standard.setValue(newValue, forKey: SettingNames.currency)
         }
     }
-        
     
     static let currenciesDict : [String: CurrencyPosition] = ["USD ($)": .left, "EUR (€)": .left, "JPY (¥)": .left, "GBP (£)": .left, "AUD ($)": .left, "CAD ($)": .left, "CHF (fr.)": .left, "CNY (¥)": .left, "HKD ($)": .left, "NZD ($)": .left, "SEK (kr)": .left, "KRW (₩)": .left, "SGD ($)": .left, "NOK (kr)": .left, "MXN ($)": .left, "INR (₹)": .left, "RUB (₽)": .right, "ZAR (R)": .left, "TRY (₺)": .right, "BRL (R$)": .left, "TWD ($)": .left, "DKK (kr)": .left, "PLN (zł)": .right, "THB (฿)": .right, "IDR (Rp)": .left, "HUF (Ft)": .right, "CZK (Kč)": .right, "ILS (₪)": .left, "CLP ($)": .left, "PHP (₱)": .left, "AED (د.إ)": .right, "COP ($)": .left, "SAR (﷼)": .right, "MYR (RM)": .left, "RON (L)": .left]
     
@@ -36,6 +36,7 @@ class CurrencyViewController: UITableViewController {
         super.viewDidLoad()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
         title = "Currency"
+       
     }
     
     
@@ -85,7 +86,7 @@ class CurrencyViewController: UITableViewController {
         let selectedCell = tableView.cellForRow(at: indexPath)
         selectedCell?.accessoryType = .checkmark
         userCurrency = indexPath.section == 0 ? fixed[indexPath.row] : currencies[indexPath.row]
-        InitialViewController.shared.quickAddView.updateCurrencySymbol()
+        InitialViewController.shared.currencyChanged()
     }
     
 }

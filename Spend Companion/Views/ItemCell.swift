@@ -23,6 +23,22 @@ class ItemCell: UITableViewCell {
         
 // MARK:- Properties
     
+    
+    let dayPicker = UIPickerView()
+    
+    weak var delegate: ItemCellDelegate?
+    
+    var setupUIDone: Bool = false
+    
+    var detailTextChanged: Bool = false
+    
+    var amountTextChanged: Bool = false
+    
+    var amountString: String?
+    
+    
+    // MARK:- Subviews
+    
     var dayLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
@@ -36,10 +52,10 @@ class ItemCell: UITableViewCell {
         tf.tag = 1
         tf.inputView = dayPicker
         tf.tintColor = .clear
-        let toolBar = UIToolbar()
+        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
         toolBar.backgroundColor = CustomColors.mediumGray
-        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneDayPicker))
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         
@@ -66,8 +82,6 @@ class ItemCell: UITableViewCell {
         return button
     }()
     
-    
-    
     lazy var amountTextField: UITextField = {
         let tf = UITextField()
         tf.tag = 3
@@ -88,16 +102,6 @@ class ItemCell: UITableViewCell {
         view.backgroundColor = CustomColors.darkGray
         return view
     }()
-    
-    let dayPicker = UIPickerView()
-    
-    weak var delegate: ItemCellDelegate?
-    
-    var setupUIDone: Bool = false
-    
-    var detailTextChanged: Bool = false
-    
-    var amountTextChanged: Bool = false
     
     
 // MARK:- Life Cycle Methods
@@ -123,10 +127,8 @@ class ItemCell: UITableViewCell {
             recurringCircleButton.addTarget(self, action: #selector(recurrenceButtonPressed), for: .touchUpInside)
             addVerticalSeparator(for: dayLabel)
             addVerticalSeparator(for: detailTextField)
-                    
-            detailTextField.delegate = self
-            amountTextField.delegate = self
-            dayTextField.delegate = self
+               
+            [detailTextField, amountTextField, dayTextField].forEach({ $0.delegate = self })
             
             setupAmountToolbar()
             setupUIDone = true
@@ -144,6 +146,7 @@ class ItemCell: UITableViewCell {
         detailTextField.text = item?.detail
         if let amount = item?.amount, amount > 0.0 {
             amountTextField.text = String(format: "%g", (amount * 100).rounded() / 100)
+            amountString = amountTextField.text
         } else {
             amountTextField.text = nil
         }
@@ -151,7 +154,7 @@ class ItemCell: UITableViewCell {
     }
     
     private func setupAmountToolbar() {
-        let toolBar = UIToolbar()
+        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
         toolBar.backgroundColor = CustomColors.mediumGray
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
@@ -173,7 +176,7 @@ class ItemCell: UITableViewCell {
         delegate?.recurrenceButtonPressed(in: self)
     }
 
-    @objc private func doneButtonPressed() {
+    @objc private func doneDayPicker() {
         delegate?.donePressedInDayPicker(selected: dayPicker.selectedRow(inComponent: 0), for: self)
         dayTextField.resignFirstResponder()
         delegate?.dataChanged()
@@ -181,6 +184,8 @@ class ItemCell: UITableViewCell {
     
     @objc private func cancelButtonPressed() {
         if amountTextField.isFirstResponder {
+            amountTextField.text = amountString
+            amountTextChanged = false
             amountTextField.resignFirstResponder()
         } else if dayTextField.isFirstResponder {
             dayTextField.resignFirstResponder()
@@ -189,15 +194,11 @@ class ItemCell: UITableViewCell {
     
     @objc private func doneEnteringAmount() {
         amountTextField.resignFirstResponder()
-        guard let text = amountTextField.text, let amount = Double(text) else { return }
-        delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: !recurringCircleButton.isHidden && amountTextChanged)
-        amountTextChanged = false
-        delegate?.dataChanged()
     }
     
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         if highlighted {
-            backgroundColor = #colorLiteral(red: 0.7977350321, green: 0.7977350321, blue: 0.7977350321, alpha: 0.3016909247)
+            backgroundColor = CustomColors.lightGray
             dayLabel.textColor = .systemBlue
             detailTextField.textColor = .systemBlue
             amountTextField.textColor = .systemBlue
@@ -222,12 +223,7 @@ extension ItemCell: UITextFieldDelegate {
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        guard let text = textField.text else { return true }
-        if textField == detailTextField {
-            detailTextField.resignFirstResponder()
-            delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged)
-            detailTextChanged = false
-        }
+        textField.resignFirstResponder()
         return true
     }
     
@@ -236,10 +232,17 @@ extension ItemCell: UITextFieldDelegate {
         guard let text = textField.text, !text.isEmpty else { return }
         switch textField {
         case detailTextField:
-            if detailTextChanged { delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged) }
+            if detailTextChanged {
+                delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged)
+                detailTextChanged = false
+            }
         case amountTextField:
             guard let amount = Double(text) else { return }
-            if amountTextChanged { delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: !recurringCircleButton.isHidden && amountTextChanged) }
+            if amountTextChanged {
+                delegate?.amountTextFieldReturn(amount: amount, for: self, withMessage: !recurringCircleButton.isHidden && amountTextChanged)
+                amountTextChanged = false
+                amountString = text
+            }
         case dayTextField:
             dayTextField.backgroundColor = .clear
             dayLabel.textColor = .systemBlue
@@ -249,7 +252,7 @@ extension ItemCell: UITextFieldDelegate {
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        guard let text = textField.text else { return false}
+        guard let text = textField.text else { return false }
         let currentString: NSString = text as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
         delegate?.dataChanged()

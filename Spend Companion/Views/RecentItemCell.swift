@@ -47,8 +47,7 @@ class RecentItemCell: UITableViewCell {
         let dayString = DateFormatters.fullDateFormatter.string(from: itemDate) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: itemDate)
         formatTitleLabel(itemName: item.detail, on: dayString)
         detailTextLabel?.text = item.category?.name
-        let roundedAmount = (item.amount * 100).rounded() / 100
-        formatAmountLabel(with: roundedAmount)
+        formatAmountLabel(with: item.amount)
         if item.recurringNum != nil && item.recurringUnit != nil {
             addRecurrence()
         } else {
@@ -71,7 +70,8 @@ class RecentItemCell: UITableViewCell {
     }
     
     func formatAmountLabel(with amount: Double) {
-        amountLabel.text = CommonObjects.shared.formattedCurrency(with: amount)
+        let roundedAmount = (amount * 100).rounded() / 100
+        amountLabel.text = CommonObjects.shared.formattedCurrency(with: roundedAmount)
     }
     
     

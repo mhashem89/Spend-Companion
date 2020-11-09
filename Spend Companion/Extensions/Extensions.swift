@@ -117,6 +117,16 @@ extension UIViewController {
     
 }
 
+extension UITableView {
+    
+    func setup(delegate: UITableViewDelegate, dataSource: UITableViewDataSource, cellClass: AnyClass, cellId: String) {
+        self.delegate = delegate
+        self.dataSource = dataSource
+        self.register(cellClass.self, forCellReuseIdentifier: cellId)
+        self.tableFooterView = UIView()
+    }
+}
+
 extension UIImageView {
     var contentClippingRect: CGRect {
         guard let image = image else { return bounds }
@@ -187,11 +197,7 @@ extension UITextField {
 
 
 extension String {
-    
-    var safeEmail: String {
-        return replacingOccurrences(of: ".", with: "-")
-    }
-    
+
     func extractDate() -> String {
         let subStrings = self.split(separator: ",")
         let date = String(subStrings[0] + "," + subStrings[1])

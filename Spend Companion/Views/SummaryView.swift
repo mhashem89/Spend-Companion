@@ -53,9 +53,9 @@ class SummaryView: UIView {
     func setupUI() {
         addSubviews([segmentedControl, titleLabel, barChart, summaryLabel])
         (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
-        titleLabel.anchor(top: safeAreaLayoutGuide.topAnchor, topConstant: 15 * viewsHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
-        segmentedControl.anchor(trailing: safeAreaLayoutGuide.trailingAnchor, trailingConstant: 10 * viewsWidthScale, centerY: titleLabel.centerYAnchor, widthConstant: 117 * viewsWidthScale, heightConstant: 31 * viewsWidthScale)
-        barChart.anchor(top: titleLabel.bottomAnchor, topConstant: 20 * viewsHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, heightConstant: frame.height * 0.4)
+        titleLabel.anchor(top: safeAreaLayoutGuide.topAnchor, topConstant: 15 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
+        segmentedControl.anchor(trailing: safeAreaLayoutGuide.trailingAnchor, trailingConstant: 10 * windowWidthScale, centerY: titleLabel.centerYAnchor, widthConstant: 117 * windowWidthScale, heightConstant: 31 * windowWidthScale)
+        barChart.anchor(top: titleLabel.bottomAnchor, topConstant: 20 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, heightConstant: frame.height * 0.4)
         barChart.backgroundColor = CustomColors.systemBackground
         (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
         barChart.showsHorizontalScrollIndicator = false
@@ -64,8 +64,15 @@ class SummaryView: UIView {
         summaryLabel.anchor(top: barChart.bottomAnchor, topConstant: 15, centerX: centerXAnchor, widthConstant: frame.width * 0.9, heightConstant: frame.height * 0.17)
     }
     
+    func setupBarChart(delegate: UICollectionViewDelegate, dataSource: UICollectionViewDataSource, cellId: String) {
+        barChart.delegate = delegate
+        barChart.dataSource = dataSource
+        barChart.register(ChartCell.self, forCellWithReuseIdentifier: cellId)
+    }
     
-    func setupSummaryLabel(with viewModel: InitialViewModel, for component: Calendar.Component) {
+    
+    func configureSummaryLabel(with viewModel: InitialViewModel) {
+        let component: Calendar.Component = segmentedControl.selectedSegmentIndex == 0 ? .month : .year
         if component == .month {
             let dateComponent = Calendar.current.dateComponents([.year, .month], from: Date())
             let monthBeggining = Calendar.current.date(from: dateComponent)!
@@ -74,7 +81,6 @@ class SummaryView: UIView {
                 summaryLabel.isHidden = false
                 let averageString = CommonObjects.shared.formattedCurrency(with: average)
                 summaryLabel.text = "Average daily spending this month: \(averageString)"
-                summaryLabel.sizeToFit()
             } else {
                 summaryLabel.isHidden = true
             }

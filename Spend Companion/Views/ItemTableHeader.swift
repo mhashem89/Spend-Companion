@@ -98,11 +98,11 @@ class ItemTableHeader: UIView {
         backgroundColor = CustomColors.systemBackground
         let buttonStack = UIStackView(arrangedSubviews: [favoriteButton, sortButton, plusButton])
         separatorView.backgroundColor = CustomColors.darkGray
-        buttonStack.axis = .horizontal; buttonStack.spacing = 10 * viewsWidthScale
+        buttonStack.axis = .horizontal; buttonStack.spacing = 10 * windowWidthScale
         addSubviews([titleButton, buttonStack, separatorView])
         
-        titleButton.anchor(leading: leadingAnchor, leadingConstant: 20 * viewsWidthScale, centerY: centerYAnchor)
-        buttonStack.anchor(trailing: trailingAnchor, trailingConstant: 20 * viewsWidthScale, centerY: centerYAnchor)
+        titleButton.anchor(leading: leadingAnchor, leadingConstant: 20 * windowWidthScale, centerY: centerYAnchor)
+        buttonStack.anchor(trailing: trailingAnchor, trailingConstant: 20 * windowWidthScale, centerY: centerYAnchor)
         separatorView.anchor(leading: leadingAnchor, trailing: trailingAnchor, bottom: bottomAnchor, heightConstant: 1)
         if let category = viewModel?.category {
             favoriteButton.isHidden = category.name == "Income"

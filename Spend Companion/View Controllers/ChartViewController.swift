@@ -8,7 +8,7 @@
 
 import UIKit
 
-var viewsWidthScale: CGFloat {
+var windowWidthScale: CGFloat {
     if let window = UIApplication.shared.windows.first {
         return window.frame.width / 414
     } else {
@@ -16,7 +16,7 @@ var viewsWidthScale: CGFloat {
     }
 }
 
-var viewsHeightScale: CGFloat {
+var windowHeightScale: CGFloat {
     if let window = UIApplication.shared.windows.first {
         return window.frame.height / 896
     } else {
@@ -25,7 +25,7 @@ var viewsHeightScale: CGFloat {
 }
 
 var fontScale: CGFloat {
-    return (viewsWidthScale + viewsHeightScale) / 2
+    return (windowWidthScale + windowHeightScale) / 2
 }
 
 class ChartViewController: UIViewController, YearHeaderDelegate  {
@@ -130,10 +130,10 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     // MARK:- Selectors
     
     func setupFilterButton() {
-         filterButton.anchor(top: header.bottomAnchor, topConstant: 10, trailing: view.trailingAnchor, trailingConstant: 10 * viewsWidthScale)
+         filterButton.anchor(top: header.bottomAnchor, topConstant: 10, trailing: view.trailingAnchor, trailingConstant: 10 * windowWidthScale)
          filterButton.setAttributedTitle(NSAttributedString(string: " Filter", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)]), for: .normal)
          filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
-         filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
+         filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * windowWidthScale)
      }
     
     
@@ -179,7 +179,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     
     func setupHeader() {
-        header = CalendarHeader(frame: .init(x: 0, y: safeAreaTop, width: view.frame.width, height: viewsHeightScale < 1 ? 100 : 100 * viewsHeightScale))
+        header = CalendarHeader(frame: .init(x: 0, y: safeAreaTop, width: view.frame.width, height: windowHeightScale < 1 ? 100 : 100 * windowHeightScale))
         view.addSubview(header)
         header.headerLabel.text = selectedYear
         header.delegate = self
@@ -187,7 +187,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         header.segmentedControl.insertSegment(withTitle: "Month", at: 1, animated: false)
         header.segmentedControl.insertSegment(withTitle: "Income", at: 2, animated: false)
         header.addSegmentedControl()
-        header.segmentedControl.anchor(heightConstant: viewsHeightScale < 1 ? 32 : 32 * viewsHeightScale)
+        header.segmentedControl.anchor(heightConstant: windowHeightScale < 1 ? 32 : 32 * windowHeightScale)
         header.segmentedControl.selectedSegmentIndex = 0
         header.segmentedControl.addTarget(self, action: #selector(handleSegmentedControl), for: .valueChanged)
     }
@@ -200,7 +200,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         barChart.dataSource = self
         view.addSubview(barChart)
         (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
-        barChart.frame = .init(x: 10 * viewsWidthScale, y: 200, width: view.frame.width, height: view.frame.height - 200)
+        barChart.frame = .init(x: 10 * windowWidthScale, y: 200, width: view.frame.width, height: view.frame.height - 200)
         barChart.showsHorizontalScrollIndicator = false
         barChart.showsVerticalScrollIndicator = false
     }
@@ -287,13 +287,13 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : categoryNames[indexPath.row]
         cell.cellLabel.frame = .init(x: 0, y: 0, width: chartLabelMaxWidth, height: cell.frame.height)
         cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
-        cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * viewsWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
+        cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * windowWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
         cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
             if let total = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: selectedSegment == 1 ? filteredCategoryName : "Income") {
                 cell.valueLabel.text = String(format: "%g", total)
-                cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * viewsWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
+                cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * windowWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
                 let distanceToMove = self.scaleFactor < 1 ? CGFloat(total * self.scaleFactor) : CGFloat(total)
                 UIView.animate(withDuration: 0.5) {
                     cell.barView.frame.size.width = distanceToMove
@@ -312,7 +312,7 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
                 let percenage = value > 0 ? (value / sum) * 100 : 0
                 cell.valueLabel.text = value > 0 ? "\(String(format: "%g", value)) (\(Int(percenage))%)" : nil
                 let distanceToMove = value > 0 ? self.scaleFactor < 1 ? CGFloat(value * self.scaleFactor) : CGFloat(value) : 0.5
-                cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * viewsWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
+                cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * windowWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
                 UIView.animate(withDuration: 0.5) {
                     cell.barView.frame.size.width = distanceToMove
                     cell.valueLabel.frame.origin.x += distanceToMove

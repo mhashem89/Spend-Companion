@@ -75,13 +75,12 @@ class InitialViewController: UIViewController {
         scrollView.frame = view.bounds
         scrollView.addSubviews([summaryView, quickAddView])
         summaryView.frame = .init(x: 0, y: safeAreaTop, width: view.frame.width, height: view.frame.height * 0.3)
-        quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * viewsHeightScale)
+        quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * windowHeightScale)
         setupSummaryView()
         quickAddView.setupUI()
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
         self.scaleFactor = calcScaleFactor()
-        viewModel.fetchRecentItems()
-        recentItemsRefreshControl.addTarget(self, action: #selector(refreshRecentItems), for: .valueChanged)
+        recentItemsRefreshControl.addTarget(self, action: #selector(reloadRecentItems), for: .valueChanged)
     }
     
     
@@ -125,23 +124,22 @@ class InitialViewController: UIViewController {
             monthChanged = false
         }
         if recentItemsDidChange {
-            reloadRecentItems()
+            reloadRecentItems(withFetch: false)
         }
     }
     
-    private func reloadRecentItems() {
-        viewModel.fetchRecentItems()
-        if recentItemsTable == nil { setupRecentItemTable() }
-        recentItemsTable?.reloadData()
+    @objc func reloadRecentItems(withFetch fetch: Bool) {
+        if fetch { viewModel.fetchRecentItems() }
         if viewModel.recentItems.count > 0 {
-            if emptyItemsLabel.superview != nil { emptyItemsLabel.removeFromSuperview() }
+            if recentItemsTable == nil { setupRecentItemTable() }
+            recentItemsTable?.reloadData()
+            recentItemsRefreshControl.endRefreshing()
         }
         recentItemsDidChange = false
     }
     
     func updateData() {
-        viewModel.fetchRecentItems()
-        recentItemsTable?.reloadData()
+        reloadRecentItems(withFetch: true)
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
         viewModel.fetchMonthTotals()
         scaleFactor = calcScaleFactor()
@@ -151,16 +149,14 @@ class InitialViewController: UIViewController {
     func setupSummaryView() {
         summaryView.titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: Date()))"
         summaryView.setupUI()
-        summaryView.barChart.delegate = self
-        summaryView.barChart.dataSource = self
-        summaryView.barChart.register(ChartCell.self, forCellWithReuseIdentifier: barChartCellId)
+        summaryView.setupBarChart(delegate: self, dataSource: self, cellId: barChartCellId)
         summaryView.segmentedControl.addTarget(self, action: #selector(handleSummaryViewSegmentedControl(segmentedControl:)), for: .valueChanged)
         let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipeSummaryView(for:)))
         swipeRight.direction = .right
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipeSummaryView(for:)))
         swipeLeft.direction = .left
         [swipeLeft, swipeRight].forEach({ $0.numberOfTouchesRequired = 1; summaryView.addGestureRecognizer($0) })
-        setupSummaryLabel(for: .month)
+        summaryView.configureSummaryLabel(with: viewModel)
     }
     
     @objc func handleSummaryViewSegmentedControl(segmentedControl: UISegmentedControl) {
@@ -170,23 +166,12 @@ class InitialViewController: UIViewController {
         if segmentedControl.selectedSegmentIndex == 0 {
             summaryView.titleLabel.text = "Summary of \(currentMonth)"
             viewModel.fetchMonthTotals()
-            setupSummaryLabel(for: .month)
         } else {
             summaryView.titleLabel.text = "Summary of \(currentYear)"
-            setupSummaryLabel(for: .year)
         }
+        summaryView.configureSummaryLabel(with: viewModel)
         self.scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
-    }
-    
-    @objc func refreshRecentItems() {
-        viewModel.fetchRecentItems()
-        recentItemsTable?.reloadData()
-        recentItemsRefreshControl.endRefreshing()
-    }
-    
-    func setupSummaryLabel(for component: Calendar.Component) {
-        summaryView.setupSummaryLabel(with: viewModel, for: component)
     }
     
     @objc func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
@@ -209,15 +194,11 @@ class InitialViewController: UIViewController {
     func setupRecentItemTable() {
         emptyItemsLabel.removeFromSuperview()
         recentItemsTable = UITableView()
-        recentItemsTable?.delegate = self
-        recentItemsTable?.dataSource = self
-        recentItemsTable?.tableFooterView = UIView()
-        recentItemsTable?.register(RecentItemCell.self, forCellReuseIdentifier: tableCellId)
+        recentItemsTable?.setup(delegate: self, dataSource: self, cellClass: RecentItemCell.self, cellId: tableCellId)
         recentItemsTable?.refreshControl = recentItemsRefreshControl
         scrollView.addSubview(recentItemsTable!)
         recentItemsTable?.anchor(top: quickAddView.bottomAnchor, topConstant: 18, bottom: view.safeAreaLayoutGuide.bottomAnchor, widthConstant: view.frame.width)
     }
-    
     
     func calcScaleFactor() -> Double {
         var higherValue: Double!
@@ -229,6 +210,12 @@ class InitialViewController: UIViewController {
         let valueLabelSize = UILabel.calcSize(for: String(format: "%g", higherValue), withFont: 13 * fontScale)
         let chartLabelMaxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: 16 * fontScale).width
         return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - (70 * fontScale)) / higherValue
+    }
+    
+    func currencyChanged() {
+        quickAddView.updateCurrencySymbol()
+        recentItemsDidChange = true
+        summaryView.configureSummaryLabel(with: viewModel)
     }
     
 }
@@ -389,7 +376,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 30 * viewsHeightScale
+        return 30 * windowHeightScale
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -428,7 +415,7 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return viewsHeightScale < 1 ? 44 : 44 * fontScale
+        return windowHeightScale < 1 ? 44 : 44 * fontScale
     }
     
 }
@@ -453,11 +440,10 @@ extension InitialViewController: InitialViewModelDelegate {
     
     func recentItemsChanged() {
         if view.window != nil && presentedViewController == nil {
-            reloadRecentItems()
+            reloadRecentItems(withFetch: false)
         } else {
             recentItemsDidChange = true
         }
-        
     }
     
 }

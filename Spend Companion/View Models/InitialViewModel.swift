@@ -57,7 +57,6 @@ class InitialViewModel: NSObject {
         super.init()
         fetchMonthTotals()
         calcYearTotals(year: DateFormatters.yearFormatter.string(from: Date()))
-        fetchRecentItems()
         remindersFetchedResultsController.delegate = self
         syncReminders()
     }
@@ -114,9 +113,10 @@ class InitialViewModel: NSObject {
 
     
     func fetchRecentItems() {
+        guard let weekAgo: Date = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()),
+              let dayAfter: Date = Calendar.current.date(byAdding: .day, value: 1, to: Date())
+        else { return }
         do {
-            let weekAgo: Date = Date() - TimeInterval(60 * 60 * 24 * 7)
-            let dayAfter: Date = Date() + TimeInterval(60 * 60 * 24)
             let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
             fetchRequest.predicate = NSPredicate(format: "date > %@ AND date < %@", weekAgo as CVarArg, dayAfter as CVarArg)
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
@@ -131,7 +131,7 @@ class InitialViewModel: NSObject {
     }
     
     func deleteRecentItem(at indexPath: IndexPath) {
-        let item = recentItems[indexPath.row]
+        let item = recentItems.remove(at: indexPath.row)
         do {
             try CoreDataManager.shared.deleteItem(item: item, saveContext: true)
         } catch let err {
@@ -167,6 +167,7 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
         
         if controller == recentItemsFetchedResultControl {
             if type == .delete, !recentItems.contains(changedItem) { return }
+            recentItems = recentItemsFetchedResultControl?.fetchedObjects ?? [Item]()
             delegate?.recentItemsChanged()
         } else if controller == monthTotalFetchedResultController {
             guard let itemDate = changedItem.date else { return }

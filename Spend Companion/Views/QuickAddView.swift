@@ -61,7 +61,7 @@ class QuickAddView: UIView {
         tf.tag = 1
         tf.inputView = dayPicker
         tf.tintColor = .clear
-        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * viewsHeightScale)))
+        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
 
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
@@ -230,7 +230,7 @@ class QuickAddView: UIView {
     }
     
     private func setupAmountToolbar() {
-        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * viewsHeightScale)))
+        let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
@@ -337,23 +337,23 @@ class QuickAddView: UIView {
     func setupUI() {
         backgroundColor = CustomColors.systemBackground
         let width = frame.width * 0.4
-        let height: CGFloat = 40 * viewsHeightScale
+        let height: CGFloat = 40 * windowHeightScale
         setupAmountToolbar()
         segmentedControl.addTarget(self, action: #selector(self.handleSegmentedControl), for: .valueChanged)
         upperStack = UIStackView(arrangedSubviews: [detailLabel, recurringButton])
         lowerStack = UIStackView(arrangedSubviews: [amountTextField, categoryLabel])
-        upperStack.axis = .horizontal; upperStack.spacing = 10 * viewsWidthScale
-        lowerStack.axis = .horizontal; lowerStack.spacing = 10 * viewsWidthScale
+        upperStack.axis = .horizontal; upperStack.spacing = 10 * windowWidthScale
+        lowerStack.axis = .horizontal; lowerStack.spacing = 10 * windowWidthScale
         
         addSubviews([quickAddLabel, dayLabel, dayTextField, segmentedControl, upperStack, lowerStack])
         
-        categoryLabel.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * viewsWidthScale, heightConstant: height)
+        categoryLabel.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
         segmentedControl.anchor(widthConstant: frame.width * 0.5, heightConstant: height)
         detailLabel.anchor(widthConstant: width, heightConstant: height)
         amountTextField.anchor(widthConstant: width, heightConstant: height)
-        saveButton.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * viewsWidthScale, heightConstant: height)
+        saveButton.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
         
-        quickAddLabel.anchor(top: topAnchor, topConstant: 5, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * viewsWidthScale)
+        quickAddLabel.anchor(top: topAnchor, topConstant: 5, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
         dayLabel.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, leading: leadingAnchor, leadingConstant: frame.width * 0.036, widthConstant: width, heightConstant: height)
         dayTextField.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, leading: leadingAnchor, leadingConstant: frame.width * 0.036, widthConstant: width, heightConstant: height)
         if #available(iOS 13, *) {
@@ -365,7 +365,7 @@ class QuickAddView: UIView {
         }
 
         recurringButton.contentHorizontalAlignment = .left
-        if viewsWidthScale < 1 { recurringButton.imageEdgeInsets = UIEdgeInsets(top: 1 / viewsWidthScale, left: 1 / viewsWidthScale, bottom: 1 / viewsWidthScale, right: 1 / viewsWidthScale) }
+        if windowWidthScale < 1 { recurringButton.imageEdgeInsets = UIEdgeInsets(top: 1 / windowWidthScale, left: 1 / windowWidthScale, bottom: 1 / windowWidthScale, right: 1 / windowWidthScale) }
         upperStack.anchor(top: dayLabel.bottomAnchor, topConstant: 10, leading: dayLabel.leadingAnchor)
         segmentedControl.anchor(top: dayLabel.topAnchor, leading: dayLabel.trailingAnchor, leadingConstant: 10)
         lowerStack.anchor(top: upperStack.bottomAnchor, topConstant: 10, leading: dayLabel.leadingAnchor)

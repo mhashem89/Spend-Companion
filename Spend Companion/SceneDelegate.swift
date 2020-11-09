@@ -57,6 +57,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         if UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics), tabBar != nil {
             tabBar.authenticate()
         }
+        InitialViewController.shared.reloadRecentItems(withFetch: true)
         (UIApplication.shared.delegate as? AppDelegate)?.iCloudKeyStore.synchronize()
     }
 

@@ -84,7 +84,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return viewsHeightScale < 1 ? 44 : 44 * fontScale
+        return windowHeightScale < 1 ? 44 : 44 * fontScale
     }
     
     

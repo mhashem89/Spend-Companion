@@ -12,8 +12,6 @@ protocol CategoryViewControllerDelegate: class {
     func categoryChanged()
 }
 
-
-
 class CategoryViewController: UIViewController {
     
     // MARK:- Properties
@@ -91,7 +89,7 @@ class CategoryViewController: UIViewController {
         headerView.favoriteButton.addTarget(self, action: #selector(favoriteCategory), for: .touchUpInside)
         headerView.titleButton.addTarget(self, action: #selector(selectTitle), for: .touchUpInside)
         headerView.toggleFavoriteButton(with: viewModel)
-        headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * viewsHeightScale)
+        headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * windowHeightScale)
         headerView.setupUI(with: viewModel)
         headerView.titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
         headerView.enableButtons(with: viewModel)
@@ -176,7 +174,7 @@ class CategoryViewController: UIViewController {
         dimBackground()
         sortingVC.modalPresentationStyle = .popover
         sortingVC.delegate = self
-        sortingVC.preferredContentSize = .init(width: 200 * viewsWidthScale, height: 240 * viewsHeightScale)
+        sortingVC.preferredContentSize = .init(width: 200 * windowWidthScale, height: 240 * windowHeightScale)
         sortingVC.popoverPresentationController?.delegate = self
         sortingVC.popoverPresentationController?.sourceView = headerView.sortButton
         sortingVC.popoverPresentationController?.sourceRect = headerView.sortButton.bounds
@@ -293,7 +291,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return viewsHeightScale < 1 ? 50 : 50 * viewsHeightScale
+        return windowHeightScale < 1 ? 50 : 50 * windowHeightScale
     }
     
 }

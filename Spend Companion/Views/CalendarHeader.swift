@@ -71,7 +71,7 @@ class CalendarHeader: UICollectionViewCell {
         addSubview(segmentedControl)
         segmentedControl.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)], for: .normal)
         segmentedControl.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)], for: .selected)
-        segmentedControl.anchor(top: previousButton.bottomAnchor, topConstant: 5 * viewsHeightScale, leading: leadingAnchor, leadingConstant: 20 * viewsWidthScale, trailing: trailingAnchor, trailingConstant: 20 * viewsWidthScale)
+        segmentedControl.anchor(top: previousButton.bottomAnchor, topConstant: 5 * windowHeightScale, leading: leadingAnchor, leadingConstant: 20 * windowWidthScale, trailing: trailingAnchor, trailingConstant: 20 * windowWidthScale)
     }
     
     @objc func nextYear() {

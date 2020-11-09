@@ -195,7 +195,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return .init(top: section == 0 ? 75 : 30, left: 40 * viewsWidthScale, bottom: 20, right: 40 * viewsWidthScale)
+        return .init(top: section == 0 ? 75 : 30, left: 40 * windowWidthScale, bottom: 20, right: 40 * windowWidthScale)
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
