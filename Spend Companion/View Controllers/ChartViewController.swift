@@ -87,24 +87,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     // MARK:- Lifecycle Methods
     
-    init() {
-        super.init(nibName: nil, bundle: nil)
-        if #available(iOS 14, *) {
-            tabBarItem = UITabBarItem(title: "Chart", image: UIImage(systemName: "chart.bar.doc.horizontal"), tag: 2)
-        } else if #available(iOS 13, *) {
-            tabBarItem = UITabBarItem(title: "Chart", image: UIImage(systemName: "chart.bar.fill"), tag: 2)
-        } else {
-            let button = UITabBarItem(title: "Chart", image: nil, selectedImage: nil)
-            button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
-            button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
-            tabBarItem = button
-        }
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground

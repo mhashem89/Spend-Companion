@@ -50,6 +50,7 @@
 		D96FBD302543B38C0025F5CF /* Authenticator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD2F2543B38A0025F5CF /* Authenticator.swift */; };
 		D96FBD562544F86C0025F5CF /* LockingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D96FBD552544F86B0025F5CF /* LockingView.swift */; };
 		D97A6B3A25453963003380A7 /* BarColorChooser.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97A6B3925453963003380A7 /* BarColorChooser.swift */; };
+		D97D486F255A11D9008294FE /* CustomTabBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D97D486E255A11D9008294FE /* CustomTabBarController.swift */; };
 		D99FAE74254689510048B38D /* CustomizeAppearanceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */; };
 		D99FAE7C254799560048B38D /* CurrencyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FAE7B254799560048B38D /* CurrencyViewController.swift */; };
 		D9CA554A255711EA001C8561 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA5549255711EA001C8561 /* CoreDataManager.swift */; };
@@ -123,6 +124,7 @@
 		D96FBD2F2543B38A0025F5CF /* Authenticator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Authenticator.swift; sourceTree = "<group>"; };
 		D96FBD552544F86B0025F5CF /* LockingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockingView.swift; sourceTree = "<group>"; };
 		D97A6B3925453963003380A7 /* BarColorChooser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarColorChooser.swift; sourceTree = "<group>"; };
+		D97D486E255A11D9008294FE /* CustomTabBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomTabBarController.swift; sourceTree = "<group>"; };
 		D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomizeAppearanceController.swift; sourceTree = "<group>"; };
 		D99FAE7B254799560048B38D /* CurrencyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyViewController.swift; sourceTree = "<group>"; };
 		D9CA5549255711EA001C8561 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
@@ -256,6 +258,7 @@
 		D905F57D253D576600FE4B59 /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				D97D486E255A11D9008294FE /* CustomTabBarController.swift */,
 				D905F5A3253D584000FE4B59 /* InitialViewController.swift */,
 				D905F5A2253D584000FE4B59 /* CalenderViewController.swift */,
 				D905F5AB253D584100FE4B59 /* CategoryTitleViewController.swift */,
@@ -440,6 +443,7 @@
 				D905F59B253D582000FE4B59 /* CategoryCell.swift in Sources */,
 				D99FAE7C254799560048B38D /* CurrencyViewController.swift in Sources */,
 				D905F5B2253D584100FE4B59 /* SearchViewController.swift in Sources */,
+				D97D486F255A11D9008294FE /* CustomTabBarController.swift in Sources */,
 				D96FBD562544F86C0025F5CF /* LockingView.swift in Sources */,
 				D905F5BD253D5B9A00FE4B59 /* Extensions.swift in Sources */,
 				D905F5B4253D584100FE4B59 /* CategoryViewController.swift in Sources */,

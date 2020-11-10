@@ -22,15 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
         } else {
             self.window = UIWindow()
-            let tabBarController = UITabBarController()
-            let initialVC = UINavigationController(rootViewController: InitialViewController.shared)
-            let navVC = UINavigationController(rootViewController: CalenderViewController(collectionViewLayout: UICollectionViewFlowLayout()))
-            let button = UITabBarItem(title: "Calendar", image: nil, selectedImage: nil)
-            button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
-            button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
-            navVC.tabBarItem = button
-            let chartVC = ChartViewController()
-            tabBarController.viewControllers = [initialVC, navVC, chartVC]
+            let tabBarController = CustomTabBarController()
             window?.rootViewController = tabBarController
             window?.makeKeyAndVisible()
         }

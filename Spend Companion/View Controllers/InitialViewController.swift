@@ -60,15 +60,6 @@ class InitialViewController: UIViewController {
         quickAddView.delegate = self
         viewModel.delegate = self
         
-        if #available(iOS 13, *) {
-            tabBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house.fill"), tag: 0)
-        } else {
-            let button = UITabBarItem(title: "Home", image: nil, selectedImage: nil)
-            button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
-            button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
-            navigationController?.tabBarItem = button
-        }
-        
         navigationController?.navigationBar.isHidden = true
         view.backgroundColor = CustomColors.systemBackground
         view.addSubview(scrollView)
@@ -293,7 +284,7 @@ extension InitialViewController: QuickAddViewDelegate {
     func openRecurringWindow() {
         let recurringVC = RecurringViewController(itemRecurrence: quickAddView.itemRecurrence)
         recurringVC.delegate = self
-        recurringVC.setupController(popoverDelegate: self, sourceView: quickAddView.recurringButton, sourceRect: quickAddView.recurringButton.bounds, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale)
+        recurringVC.setupPopoverController(popoverDelegate: self, sourceView: quickAddView.recurringButton, sourceRect: quickAddView.recurringButton.bounds, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale, style: fontScale < 0.9 ? .overCurrentContext : .popover)
         recurringVC.popoverPresentationController?.permittedArrowDirections = [.down, .right]
        
         recurringVC.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: quickAddView.dayPickerDate ?? Date())

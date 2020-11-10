@@ -13,7 +13,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
 
-    var tabBar: CustomTabBarController!
+    var tabBarController: CustomTabBarController?
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -22,14 +22,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let scene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(windowScene: scene)
-        tabBar = CustomTabBarController()
-        let initialVC = UINavigationController(rootViewController: InitialViewController.shared)
-        let calendarVC = CalenderViewController(collectionViewLayout: UICollectionViewFlowLayout())
-        let navVC = UINavigationController(rootViewController: calendarVC)
-        let chartVC = ChartViewController()
-        let settingsVC = UINavigationController(rootViewController: SettingsViewController(style: .plain))
-        tabBar.viewControllers = [initialVC, navVC, chartVC, settingsVC]
-        window?.rootViewController = tabBar
+        tabBarController = CustomTabBarController()
+        window?.rootViewController = tabBarController
         window?.makeKeyAndVisible()
     }
 
@@ -54,8 +48,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneWillEnterForeground(_ scene: UIScene) {
         // Called as the scene transitions from the background to the foreground.
         // Use this method to undo the changes made on entering the background.
-        if UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics), tabBar != nil {
-            tabBar.authenticate()
+        if UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics) {
+            tabBarController?.authenticate()
         }
         InitialViewController.shared.reloadRecentItems(withFetch: true)
         (UIApplication.shared.delegate as? AppDelegate)?.iCloudKeyStore.synchronize()
@@ -74,43 +68,5 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 }
 
 
-
-class CustomTabBarController: UITabBarController {
-    
-    lazy var lockingView: LockingView = {
-        let view = LockingView()
-        view.loginButton.addTarget(self, action: #selector(authenticate), for: .touchUpInside)
-        return view
-    }()
-    
-    
-    @objc func authenticate() {
-        if !view.subviews.contains(lockingView) {
-            view.addSubview(lockingView)
-            lockingView.frame = view.bounds
-            lockingView.setupUI()
-        } else {
-            lockingView.loginButton.isHidden = true
-        }
-        Authenticator.authenticate { [weak self] (success, error) in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                if success {
-                    UIView.animate(withDuration: 0.3) {
-                        self.lockingView.frame.origin.y = self.lockingView.frame.height
-                    } completion: { (_) in
-                        self.lockingView.removeFromSuperview()
-                    }
-                } else {
-                    let ac = UIAlertController(title: "Authentication failed", message: "You could not be verified; please try again.", preferredStyle: .alert)
-                    ac.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in
-                        self.lockingView.loginButton.isHidden = false
-                    }))
-                    self.present(ac, animated: true)
-                }
-            }
-        }
-    }
-}
 
 

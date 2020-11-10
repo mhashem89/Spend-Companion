@@ -385,3 +385,32 @@ import Foundation
 //        }
 //    }
 //
+
+
+
+//let thirdBarItem: UITabBarItem = {
+//    if #available(iOS 14, *) {
+//        return UITabBarItem(title: "Chart", image: UIImage(systemName: "chart.bar.doc.horizontal"), tag: 2)
+//    } else if #available(iOS 13, *) {
+//        return UITabBarItem(title: "Chart", image: UIImage(systemName: "chart.bar.fill"), tag: 2)
+//    } else {
+//        let button = UITabBarItem(title: "Chart", image: nil, selectedImage: nil)
+//        button.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
+//        button.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
+//        return button
+//    }
+//}()
+//
+//lazy var tabBarItems: [UITabBarItem] = {
+//    if #available(iOS 13, *) {
+//        let firstBarItem = UITabBarItem(title: "Home", image: UIImage(systemName: "house.fill"), tag: 0)
+//        let secondBarItem = UITabBarItem(title: "Calendar", image: UIImage(systemName: "calendar"), tag: 1)
+//        let fourthBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 3)
+//        return [firstBarItem, secondBarItem, thirdBarItem, fourthBarItem]
+//    } else {
+//        let firstBarItem = UITabBarItem(title: "Home", image: nil, selectedImage: nil).setupForOldiOS()
+//        let secondBarItem = UITabBarItem(title: "Calendar", image: nil, selectedImage: nil).setupForOldiOS()
+//        let thirdBarItem = UITabBarItem(title: "Chart", image: nil, selectedImage: nil).setupForOldiOS()
+//        return [firstBarItem, secondBarItem, thirdBarItem]
+//    }
+//}()

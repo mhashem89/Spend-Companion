@@ -59,15 +59,6 @@ class SettingsViewController: UITableViewController {
     
 // MARK:- Lifecycle Methods
     
-    override init(style: UITableView.Style) {
-        super.init(style: style)
-        tabBarItem = UITabBarItem(title: "Settings", image: UIImage(systemName: "gear"), tag: 3)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.register(SettingsCell.self, forCellReuseIdentifier: cellId)

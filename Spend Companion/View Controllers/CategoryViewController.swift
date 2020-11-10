@@ -96,10 +96,7 @@ class CategoryViewController: UIViewController {
     }
     
     func setupTableView() {
-        tableView.register(ItemCell.self, forCellReuseIdentifier: itemId)
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.tableFooterView = UIView()
+        tableView.setup(delegate: self, dataSource: self, cellClass: ItemCell.self, cellId: itemId)
         tableView.allowsSelection = false
         tableView.keyboardDismissMode = .interactive
         tableView.anchor(top: headerView.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
@@ -173,12 +170,8 @@ class CategoryViewController: UIViewController {
     
     @objc private func presentSortingVC() {
         dimBackground()
-        sortingVC.modalPresentationStyle = .popover
+        sortingVC.setupPopoverController(popoverDelegate: self, sourceView: headerView.sortButton, sourceRect: headerView.sortButton.bounds, preferredWidth: 200 * windowWidthScale, preferredHeight: 240 * windowHeightScale, style: .popover)
         sortingVC.delegate = self
-        sortingVC.preferredContentSize = .init(width: 200 * windowWidthScale, height: 240 * windowHeightScale)
-        sortingVC.popoverPresentationController?.delegate = self
-        sortingVC.popoverPresentationController?.sourceView = headerView.sortButton
-        sortingVC.popoverPresentationController?.sourceRect = headerView.sortButton.bounds
         present(sortingVC, animated: true)
     }
     
@@ -370,7 +363,7 @@ extension CategoryViewController: ItemCellDelegate {
         activeCell = cell
         
         recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
-        recurrenceViewer?.setupController(popoverDelegate: fontScale < 0.9 ? nil : self, sourceView: cell, sourceRect: cell.recurringCircleButton.frame, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale)
+        recurrenceViewer?.setupPopoverController(popoverDelegate: fontScale < 0.9 ? nil : self, sourceView: cell, sourceRect: cell.recurringCircleButton.frame, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale, style: fontScale < 0.9 ? .overCurrentContext : .popover)
         recurrenceViewer?.delegate = self
         recurrenceViewer?.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
 

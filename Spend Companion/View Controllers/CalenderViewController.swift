@@ -26,16 +26,6 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
     
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date())
 
-    override init(collectionViewLayout layout: UICollectionViewLayout) {
-        super.init(collectionViewLayout: layout)
-        if #available(iOS 13, *) {
-            tabBarItem = UITabBarItem(title: "Calendar", image: UIImage(systemName: "calendar"), tag: 1)
-        }
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
     
     override func viewDidLoad() {
         collectionView.backgroundColor = CustomColors.systemBackground

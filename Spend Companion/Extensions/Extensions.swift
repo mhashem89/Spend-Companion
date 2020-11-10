@@ -96,6 +96,16 @@ extension UIView {
     
 }
 
+extension UITabBarItem {
+    
+    func setupForOldiOS() -> UITabBarItem {
+        self.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: 16)], for: .normal)
+        self.titlePositionAdjustment = UIOffset(horizontal: 0, vertical: -8)
+        return self
+    }
+    
+}
+
 extension UIViewController {
     
     func presentError(error: Error) {
@@ -120,6 +130,13 @@ extension UIViewController {
         present(alertController, animated: true, completion: nil)
     }
     
+    func setupPopoverController(popoverDelegate: UIPopoverPresentationControllerDelegate?, sourceView: UIView, sourceRect: CGRect, preferredWidth: CGFloat, preferredHeight: CGFloat, style: UIModalPresentationStyle) {
+        modalPresentationStyle = style
+        popoverPresentationController?.delegate = popoverDelegate
+        popoverPresentationController?.sourceView = sourceView
+        popoverPresentationController?.sourceRect = sourceRect
+        preferredContentSize = .init(width: preferredWidth, height: preferredHeight)
+    }
     
 }
 
