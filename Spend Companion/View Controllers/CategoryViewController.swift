@@ -170,7 +170,11 @@ class CategoryViewController: UIViewController {
     
     @objc private func presentSortingVC() {
         dimBackground()
-        sortingVC.setupPopoverController(popoverDelegate: self, sourceView: headerView.sortButton, sourceRect: headerView.sortButton.bounds, preferredWidth: 200 * windowWidthScale, preferredHeight: 240 * windowHeightScale, style: .popover)
+        sortingVC.setupPopoverController(popoverDelegate: self,
+                                         sourceView: headerView.sortButton,
+                                         sourceRect: headerView.sortButton.bounds,
+                                         preferredWidth: 200 * windowWidthScale, preferredHeight: 240 * windowHeightScale,
+                                         style: .popover)
         sortingVC.delegate = self
         present(sortingVC, animated: true)
     }
