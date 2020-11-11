@@ -31,7 +31,7 @@ class RecurringViewController: UIViewController {
     
     let dayPicker = UIDatePicker()
     
-    var dataChanged = false
+    var dataChanged = [ItemRecurrenceCase]()
     
     var dayPickerDate: Date?
     
@@ -242,20 +242,20 @@ class RecurringViewController: UIViewController {
     @objc func handleSegmentedControl() {
         segmentedControl.isSelected = true
         segmentedControl.layer.borderWidth = 0
-        dataChanged = true
+        dataChanged.append(.unit)
     }
     
     @objc func handleReminderSegmentedControl() {
         reminderSegmentedControl.isSelected = true
         reminderSegmentedControl.layer.borderWidth = 0
-        dataChanged = true
+        dataChanged.append(.reminderTime)
     }
     
     @objc func datePicked() {
         endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: dayPicker.date))"
         endDateLabel.textColor = CustomColors.label
         endDateLabel.layer.borderColor = CustomColors.label.cgColor
-        dataChanged = true
+        dataChanged.append(.endDate)
     }
     
     @objc func restorePurchase() {
@@ -292,7 +292,7 @@ class RecurringViewController: UIViewController {
         } else {
             reminderSegmentedControl.removeFromSuperview()
         }
-        dataChanged = true
+//        dataChanged = .reminderTime
     }
     
     func buyReminders() {
@@ -315,7 +315,7 @@ class RecurringViewController: UIViewController {
     }
     
     @objc func done() {
-        if !dataChanged { delegate?.recurringViewCancel(viewEmpty: false); return }
+        if dataChanged.isEmpty { delegate?.recurringViewCancel(viewEmpty: false); return }
         
         guard let period = periodTextField.text, let periodNum = Int(period), periodNum > 0 else {
             periodTextField.layer.borderColor = UIColor.systemRed.cgColor
@@ -353,7 +353,7 @@ extension RecurringViewController: UITextFieldDelegate {
         if !string.isEmpty {
             textField.layer.borderColor = CustomColors.label.cgColor
         }
-        dataChanged = true
+        dataChanged.append(.period)
         return true
     }
     

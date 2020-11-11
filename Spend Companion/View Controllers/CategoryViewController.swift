@@ -154,7 +154,7 @@ class CategoryViewController: UIViewController {
             self.tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
         }, completion: { _ in
             self.activeCell = self.tableView.cellForRow(at: self.tableView.lastIndexPath(inSection: 0)) as? ItemCell
-            self.dataChanged()
+            self.dataDidChange()
         })
         if let items = viewModel?.items, items.count > 1 {
             headerView.sortButton.isEnabled = true
@@ -165,7 +165,7 @@ class CategoryViewController: UIViewController {
         guard viewModel != nil else { return }
         viewModel?.favoriteCategory()
         headerView.toggleFavoriteButton(with: viewModel)
-        dataChanged()
+        dataDidChange()
     }
     
     @objc private func presentSortingVC() {
@@ -267,7 +267,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
                 tableView.deleteRows(at: [indexPath], with: .fade)
                 self?.viewModel?.deleteItem(item: item, at: indexPath.row)
             }) { (finished) in
-                self?.dataChanged()
+                self?.dataDidChange()
             }
         }
         let swipe = UISwipeActionsConfiguration(actions: [delete, move])
@@ -352,7 +352,7 @@ extension CategoryViewController: ItemCellDelegate {
         }
     }
     
-    func dataChanged() {
+    func dataDidChange() {
         navigationItem.rightBarButtonItem?.isEnabled = true
     }
     
@@ -458,7 +458,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
             itemsToBeScheduled[item] = itemRecurrence
             viewModel?.reloadData()
             tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
-            dataChanged()
+            dataDidChange()
         } catch let err {
             presentError(error: err)
         }
@@ -473,7 +473,7 @@ extension CategoryViewController: MoveItemVCDelegate {
     func moveItem(item: Item, to category: String, sisterItems: [Item]?) {
         viewModel?.moveItem(item: item, to: category, sisterItems: sisterItems)
         tableView.reloadData()
-        dataChanged()
+        dataDidChange()
     }
 }
 

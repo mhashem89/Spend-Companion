@@ -13,7 +13,7 @@ protocol ItemCellDelegate: class {
     func donePressedInDayPicker(selected day: Int, for cell: ItemCell)
     func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool)
     func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool)
-    func dataChanged()
+    func dataDidChange()
     func editingStarted(in textField: UITextField, of cell: ItemCell)
     func recurrenceButtonPressed(in cell: ItemCell)
 }
@@ -184,7 +184,7 @@ class ItemCell: UITableViewCell {
     @objc private func doneDayPicker() {
         delegate?.donePressedInDayPicker(selected: dayPicker.selectedRow(inComponent: 0), for: self)
         dayTextField.resignFirstResponder()
-        delegate?.dataChanged()
+        delegate?.dataDidChange()
     }
     
     @objc private func cancelButtonPressed() {
@@ -260,7 +260,7 @@ extension ItemCell: UITextFieldDelegate {
         guard let text = textField.text else { return false }
         let currentString: NSString = text as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
-        delegate?.dataChanged()
+        delegate?.dataDidChange()
         switch textField {
         case detailTextField:
             detailTextChanged = true

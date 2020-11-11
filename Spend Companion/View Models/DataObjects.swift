@@ -137,6 +137,9 @@ enum PurchaseIds: CustomStringConvertible {
     }
 }
 
+enum ItemRecurrenceCase {
+    case period, unit, reminderTime, endDate
+}
 
 struct ItemRecurrence {
     var period: Int
