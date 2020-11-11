@@ -227,6 +227,8 @@ class RecurringViewController: UIViewController {
     
 // MARK:- UI Methods
     
+
+    
     private func setupAmountToolbar() {
         let toolBar = UIToolbar()
         toolBar.sizeToFit()

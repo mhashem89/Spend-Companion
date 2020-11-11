@@ -367,7 +367,11 @@ extension CategoryViewController: ItemCellDelegate {
         activeCell = cell
         
         recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
-        recurrenceViewer?.setupPopoverController(popoverDelegate: fontScale < 0.9 ? nil : self, sourceView: cell, sourceRect: cell.recurringCircleButton.frame, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale, style: fontScale < 0.9 ? .overCurrentContext : .popover)
+        recurrenceViewer?.setupPopoverController(popoverDelegate: fontScale < 0.9 ? nil : self,
+                                                 sourceView: cell,
+                                                 sourceRect: cell.recurringCircleButton.frame,
+                                                 preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale,
+                                                 style: fontScale < 0.9 ? .overCurrentContext : .popover)
         recurrenceViewer?.delegate = self
         recurrenceViewer?.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: item.date ?? Date())
 

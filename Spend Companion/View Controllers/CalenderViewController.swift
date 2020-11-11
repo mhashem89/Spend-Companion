@@ -8,12 +8,6 @@
 
 import UIKit
 
-protocol YearHeaderDelegate: class {
-    
-    func yearSelected(year: String)
-}
-
-
 class CalenderViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, YearHeaderDelegate {
     
     var yearCellId = "yearCellId"

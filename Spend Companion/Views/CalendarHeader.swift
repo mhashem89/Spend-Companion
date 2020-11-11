@@ -8,6 +8,10 @@
 
 import UIKit
 
+protocol YearHeaderDelegate: class {
+    
+    func yearSelected(year: String)
+}
 
 
 class CalendarHeader: UICollectionViewCell {
@@ -76,14 +80,16 @@ class CalendarHeader: UICollectionViewCell {
     
     @objc func nextYear() {
         guard let year = headerLabel.text, let yearNumber = Int(year) else { return }
-        headerLabel.text = String(yearNumber + 1)
-        delegate?.yearSelected(year: year)
+        let nextYear = String(yearNumber + 1)
+        headerLabel.text = nextYear
+        delegate?.yearSelected(year: nextYear)
     }
     
     @objc func previousYear() {
         guard let year = headerLabel.text, let yearNumber = Int(year) else { return }
-        headerLabel.text = String(yearNumber - 1)
-        delegate?.yearSelected(year: year)
+        let previousYear = String(yearNumber - 1)
+        headerLabel.text = previousYear
+        delegate?.yearSelected(year: previousYear)
     }
 
 }
