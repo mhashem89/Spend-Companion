@@ -43,7 +43,7 @@ class InitialViewModel: NSObject {
     private lazy var remindersFetchedResultsController: NSFetchedResultsController<Item> = {
         let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
-        fetchRequest.predicate = NSPredicate(format: "(reminderUID != nil) AND (date > %@)", Date() as CVarArg)
+        fetchRequest.predicate = NSPredicate(format: "(reminderTime != nil) AND (date > %@)", Date() as CVarArg)
         let frc = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         return frc
     }()
@@ -63,9 +63,10 @@ class InitialViewModel: NSObject {
         }
     }
 
-    func saveItem(itemStruct: ItemStruct) {
+    func saveItem(itemStruct: ItemStruct, completion: @escaping (Bool) -> Void) {
         do {
             try CoreDataManager.shared.saveItem(itemStruct: itemStruct)
+            completion(true)
         } catch let err {
             delegate?.presentError(error: err)
         }
@@ -179,6 +180,7 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
                 delegate?.monthTotalChanged(forMonth: changedMonth)
             }
         } else if controller == remindersFetchedResultsController {
+            guard !UserDefaults.standard.bool(forKey: SettingNames.contextIsActive) else { return }
             switch type {
             case .update, .insert:
                 if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: changedItem) {

@@ -18,8 +18,8 @@ class CoreDataManager {
     }
     
     func saveItem(itemStruct: ItemStruct) throws {
-        guard let itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
-        let createdItem = try createNewItem(date: itemDate, itemStruct: itemStruct)
+//        guard let itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
+        let createdItem = try createNewItem(date: itemStruct.date, itemStruct: itemStruct)
         
         if itemStruct.itemRecurrence != nil {
             try createFutureItems(for: createdItem, shouldSave: true)
@@ -216,7 +216,7 @@ class CoreDataManager {
                 return
             }
         }
-        if let oldReminderUID = item.reminderUID, new {
+        if let oldReminderUID = item.reminderUID {
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [oldReminderUID])
         }
         if let reminderTime = itemRecurrence.reminderTime {
@@ -249,10 +249,11 @@ class CoreDataManager {
             if new {
                 try saveContext()
             }
-        } else {
-            item.reminderUID = nil
-            return
         }
+//        else {
+//            item.reminderUID = nil
+//            return
+//        }
     }
 
     
@@ -297,9 +298,9 @@ class CoreDataManager {
     
 
     func deleteItem(item: Item, saveContext save: Bool) throws {
-        if let reminuderUID = item.reminderUID {
-            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminuderUID])
-        }
+//        if let reminuderUID = item.reminderUID {
+//            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminuderUID])
+//        }
         context.delete(item)
         if save {
             try saveContext()

@@ -314,8 +314,10 @@ class QuickAddView: UIView {
         case .income:
             category = "Income"
         }
-        let itemStruct = ItemStruct(amount: amount, type: type, date: dayLabel.text ?? "Today", detail: detailLabel.text, itemRecurrence: self.itemRecurrence, categoryName: category)
+        let itemDate = DateFormatters.fullDateFormatter.date(from: dayLabel.text ?? "") ?? Date()
+        let itemStruct = ItemStruct(amount: amount, type: type, date: itemDate, detail: detailLabel.text, itemRecurrence: self.itemRecurrence, categoryName: category)
         amountTextField.resignFirstResponder()
+        UserDefaults.standard.setValue(true, forKey: SettingNames.contextIsActive)
         delegate?.saveItem(itemStruct: itemStruct)
     }
     

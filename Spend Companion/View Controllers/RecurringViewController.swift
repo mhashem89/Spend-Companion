@@ -13,9 +13,9 @@ import StoreKit
 
 protocol RecurringViewControllerDelegate: class {
     
-    func recurringViewCancel(viewEmpty: Bool)
+    func recurringViewCancel(wasNew: Bool)
     
-    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool)
+    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool, dataChanged: [ItemRecurrenceCase])
     
 }
 
@@ -27,7 +27,7 @@ class RecurringViewController: UIViewController {
     
     let iCloudStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
-    let reminderPurchaseProductId = "MohamedHashem.Spend_Companion.reminders_purchase"
+    let reminderPurchaseProductId = PurchaseIds.reminders.description
     
     let dayPicker = UIDatePicker()
     
@@ -37,7 +37,9 @@ class RecurringViewController: UIViewController {
     
     var upperStack: UIStackView!
     
-    var newRecurrence: Bool = true
+    var isNewRecurrence: Bool = true
+    
+    var oldRecurrence: ItemRecurrence?
     
     var questionLabel: UILabel = {
         let lbl = UILabel()
@@ -172,7 +174,8 @@ class RecurringViewController: UIViewController {
             segmentedControl.isSelected = true
             endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: itemRecurrence.endDate))"
             endDateLabel.textColor = CustomColors.label
-            newRecurrence = false
+            isNewRecurrence = false
+            oldRecurrence = itemRecurrence
             if let reminderTime = itemRecurrence.reminderTime {
                 reminderSwitch.isOn = true
                 reminderSegmentedControl.isSelected = true
@@ -291,8 +294,8 @@ class RecurringViewController: UIViewController {
             upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
         } else {
             reminderSegmentedControl.removeFromSuperview()
+            if !dataChanged.contains(.reminderTime) { dataChanged.append(.reminderTime) }
         }
-//        dataChanged = .reminderTime
     }
     
     func buyReminders() {
@@ -311,11 +314,11 @@ class RecurringViewController: UIViewController {
     }
     
     @objc func cancel() {
-        delegate?.recurringViewCancel(viewEmpty: !periodTextField.hasText && !segmentedControl.isSelected)
+        delegate?.recurringViewCancel(wasNew: isNewRecurrence)
     }
     
     @objc func done() {
-        if dataChanged.isEmpty { delegate?.recurringViewCancel(viewEmpty: false); return }
+        if dataChanged.isEmpty { delegate?.recurringViewCancel(wasNew: isNewRecurrence); return }
         
         guard let period = periodTextField.text, let periodNum = Int(period), periodNum > 0 else {
             periodTextField.layer.borderColor = UIColor.systemRed.cgColor
@@ -339,7 +342,13 @@ class RecurringViewController: UIViewController {
             return
         }
         
-        delegate?.recurringViewDone(with: ItemRecurrence(period: periodNum, unit: selectedSegment, reminderTime: reminderTime, endDate: endDate), new: newRecurrence)
+        let newItemRecurrence = ItemRecurrence(period: periodNum, unit: selectedSegment, reminderTime: reminderTime, endDate: endDate)
+        
+        if let oldRecurrence = oldRecurrence, newItemRecurrence == oldRecurrence {
+            delegate?.recurringViewCancel(wasNew: isNewRecurrence); return
+        } else {
+            delegate?.recurringViewDone(with: newItemRecurrence, new: isNewRecurrence, dataChanged: dataChanged)
+        }
     }
     
 }

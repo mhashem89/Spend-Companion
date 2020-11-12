@@ -59,7 +59,7 @@ class InitialViewController: UIViewController {
         super.viewDidLoad()
         quickAddView.delegate = self
         viewModel.delegate = self
-        
+        UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
         navigationController?.navigationBar.isHidden = true
         view.backgroundColor = CustomColors.systemBackground
         view.addSubview(scrollView)
@@ -103,6 +103,7 @@ class InitialViewController: UIViewController {
         }))
         present(alertController, animated: true) { [weak self] in
             self?.quickAddView.resignFirstResponders()
+            UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
         }
     }
     
@@ -293,18 +294,14 @@ extension InitialViewController: QuickAddViewDelegate {
     }
     
     func saveItem(itemStruct: ItemStruct) {
-        viewModel.saveItem(itemStruct: itemStruct)
+        viewModel.saveItem(itemStruct: itemStruct, completion: { [weak self] (success) in
+            if success { self?.showSavedAlert() }
+        })
         
-        showSavedAlert()
-       
-        if self.summaryView.segmentedControl.selectedSegmentIndex == 1, let dayLabelText = quickAddView.dayLabel.text {
-            let itemDate = dayLabelText == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: dayLabelText)
-            let itemYear = DateFormatters.yearFormatter.string(from: itemDate!)
-            if itemYear == DateFormatters.yearFormatter.string(from: selectedYear) {
-                self.viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
-                self.scaleFactor = self.calcScaleFactor()
-                self.summaryView.barChart.reloadData()
-            }
+        if summaryView.segmentedControl.selectedSegmentIndex == 1, itemStruct.date.yearMatches(selectedYear) {
+            self.viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
+            self.scaleFactor = self.calcScaleFactor()
+            self.summaryView.barChart.reloadData()
         }
     }
     
@@ -442,12 +439,12 @@ extension InitialViewController: InitialViewModelDelegate {
 
 extension InitialViewController: RecurringViewControllerDelegate {
     
-    func recurringViewCancel(viewEmpty: Bool) {
+    func recurringViewCancel(wasNew: Bool) {
         dismiss(animated: true, completion: nil)
         dimmingView.removeFromSuperview()
     }
     
-    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool) {
+    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool, dataChanged: [ItemRecurrenceCase]) {
         quickAddView.itemRecurrence = itemRecurrence
         dimmingView.removeFromSuperview()
         dismiss(animated: true, completion: nil)

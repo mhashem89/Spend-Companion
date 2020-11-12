@@ -124,11 +124,11 @@ class CategoryViewController: UIViewController {
         do {
             try viewModel?.save()
             try itemsToBeScheduled.keys.forEach { (item) in
-                try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item])
+                try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item], createNew: item.reminderUID == nil)
                 if let sisterItems = item.futureItems(), sisterItems.count > 0 {
                     for item in sisterItems {
                         if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
-                            try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence)
+                            try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence, createNew: item.reminderUID == nil)
                         }
                     }
                 }
@@ -137,12 +137,16 @@ class CategoryViewController: UIViewController {
             presentError(error: err)
         }
         delegate?.categoryChanged()
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true) {
+            UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
+        }
     }
     
     @objc private func cancel() {
         cancelChanges = true
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true) {
+            UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
+        }
     }
     
     @objc private func addItem() {
@@ -259,6 +263,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
                             self?.tableView.reloadData()
                         } else {
                             self?.viewModel?.context.delete($0)
+                            if let itemReminder = $0.reminderUID { self?.viewModel?.reminderUIDsForDeletion.append(itemReminder) }
                         }
                     })
                 }
@@ -428,15 +433,13 @@ extension CategoryViewController: SortingViewControllerDelegate {
 
 extension CategoryViewController: RecurringViewControllerDelegate {
     
-    func recurringViewCancel(viewEmpty: Bool) {
+    func recurringViewCancel(wasNew : Bool) {
         recurrenceViewer?.dismiss(animated: true, completion: nil)
         dimmingView.removeFromSuperview()
-        if viewEmpty {
-            activeCell?.recurringCircleButton.isHidden = true
-        }
+        activeCell?.recurringCircleButton.isHidden = wasNew
     }
     
-    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool) {
+    func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool, dataChanged: [ItemRecurrenceCase]) {
         dimmingView.removeFromSuperview()
         recurrenceViewer?.dismiss(animated: true) { [unowned self] in
             guard let activeCell = activeCell,
@@ -446,15 +449,15 @@ extension CategoryViewController: RecurringViewControllerDelegate {
             let alertController = UIAlertController(title: nil, message: "This change will be applied to all future transactions", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: nil))
             alertController.addAction(UIAlertAction(title: "Apply", style: .default, handler: { (action) in
-                updateItemRecurrence(for: item, with: itemRecurrence, isNew: new)
+                updateItemRecurrence(for: item, with: itemRecurrence, isNew: new, dataChanged: dataChanged)
             }))
-            new || item.futureItems() == nil ? updateItemRecurrence(for: item, with: itemRecurrence, isNew: new) : present(alertController, animated: true, completion: nil)
+            new || item.futureItems() == nil ? updateItemRecurrence(for: item, with: itemRecurrence, isNew: new, dataChanged: dataChanged) : present(alertController, animated: true, completion: nil)
         }
     }
     
-    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence, isNew: Bool) {
+    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence, isNew: Bool, dataChanged: [ItemRecurrenceCase]) {
         do {
-            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, isNew: isNew)
+            try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, isNew: isNew, dataChanged: dataChanged)
             itemsToBeScheduled[item] = itemRecurrence
             viewModel?.reloadData()
             tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)

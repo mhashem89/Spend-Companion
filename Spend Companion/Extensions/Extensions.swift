@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 
 extension UIView {
     
@@ -232,6 +233,10 @@ extension String {
 extension Date {
     func dayMatches(_ date: Date) -> Bool {
         return DateFormatters.fullDateFormatter.string(from: date) == DateFormatters.fullDateFormatter.string(from: self)
+    }
+    
+    func yearMatches(_ date: Date) -> Bool {
+        return DateFormatters.yearFormatter.string(from: date) == DateFormatters.yearFormatter.string(from: self)
     }
 }
 

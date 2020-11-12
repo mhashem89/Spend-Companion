@@ -34,6 +34,7 @@ class CategoryViewModel {
     
     init(month: Month, category: Category? = nil) {
         self.month = month
+        UserDefaults.standard.setValue(true, forKey: SettingNames.contextIsActive)
         if let category = category {
             self.category = category
             checkIfFavorite()
@@ -118,6 +119,7 @@ class CategoryViewModel {
     }
     
     func deleteItem(item: Item, at index: Int) {
+        if let itemReminder = item.reminderUID { reminderUIDsForDeletion.append(itemReminder) }
         try? CoreDataManager.shared.deleteItem(item: item, saveContext: false)
         items?.remove(at: index)
     }
@@ -132,28 +134,28 @@ class CategoryViewModel {
         }
     }
     
-    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, isNew: Bool) throws {
-        item.recurringNum = NSNumber(value: newRecurrence.period)
-        item.recurringUnit = NSNumber(value: newRecurrence.unit.rawValue)
-        item.recurringEndDate = newRecurrence.endDate
+    func updateItemRecurrence(for item: Item, with newRecurrence: ItemRecurrence, isNew: Bool, dataChanged: [ItemRecurrenceCase]) throws {
         
-        switch (item.reminderTime, newRecurrence.reminderTime) {
-        case (nil, nil):
-            break
-        case (.some(_), nil):
-            item.reminderTime = nil
-            item.reminderUID = nil
-        case (nil, .some(let newReminderTime)):
-            item.reminderTime = NSNumber(value: newReminderTime)
-        case (.some(let oldReminderTime), .some(let newReminderTime)):
-            if Int(truncating: oldReminderTime) != newReminderTime {
+        if dataChanged.contains(.reminderTime) {
+            if let newReminderTime = newRecurrence.reminderTime {
                 item.reminderTime = NSNumber(value: newReminderTime)
+                item.futureItems()?.forEach({ $0.reminderTime = item.reminderTime })
+            } else {
+                item.reminderTime = nil
+                item.futureItems()?.forEach({ $0.reminderTime = nil })
             }
         }
-        try item.futureItems()?.forEach({ (item) in
-            try CoreDataManager.shared.deleteItem(item: item, saveContext: false)
-        })
-        try CoreDataManager.shared.createFutureItems(for: item, shouldSave: false)
+        
+        if dataChanged.count > 1 {
+            item.recurringNum = NSNumber(value: newRecurrence.period)
+            item.recurringUnit = NSNumber(value: newRecurrence.unit.rawValue)
+            item.recurringEndDate = newRecurrence.endDate
+
+            try item.futureItems()?.forEach({ (item) in
+                try CoreDataManager.shared.deleteItem(item: item, saveContext: false)
+            })
+            try CoreDataManager.shared.createFutureItems(for: item, shouldSave: false)
+        }
     }
     
     

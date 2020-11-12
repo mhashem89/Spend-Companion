@@ -84,7 +84,7 @@ struct YearTotals {
 struct ItemStruct {
     var amount: Double
     var type: ItemType
-    var date: String
+    var date: Date
     var detail: String?
     var itemRecurrence: ItemRecurrence?
     var categoryName: String?
@@ -92,8 +92,7 @@ struct ItemStruct {
     
     static func itemStruct(from item: Item) -> ItemStruct? {
         guard let itemDate = item.date else { return nil }
-        let date = DateFormatters.fullDateFormatter.string(from: itemDate)
-        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: date, detail: item.detail, itemRecurrence: ItemRecurrence.createItemRecurrence(from: item), categoryName: item.category?.name, sisterItems: item.sisterItems?.allObjects as? [Item])
+        return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: itemDate, detail: item.detail, itemRecurrence: ItemRecurrence.createItemRecurrence(from: item), categoryName: item.category?.name, sisterItems: item.sisterItems?.allObjects as? [Item])
     }
     
 }
@@ -123,6 +122,7 @@ struct SettingNames {
     static let currency = "currency"
     static let remindersPurchased = "remindersPurchased"
     static let iCloudSyncPurchased = "iCloudSync Purchased"
+    static let contextIsActive = "contextIsActive"
 }
 
 
@@ -141,7 +141,7 @@ enum ItemRecurrenceCase {
     case period, unit, reminderTime, endDate
 }
 
-struct ItemRecurrence {
+struct ItemRecurrence: Equatable {
     var period: Int
     var unit: RecurringUnit
     var reminderTime: Int?

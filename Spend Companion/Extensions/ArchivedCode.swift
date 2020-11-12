@@ -414,3 +414,19 @@ import Foundation
 //        return [firstBarItem, secondBarItem, thirdBarItem]
 //    }
 //}()
+
+
+
+//            switch (item.reminderTime, newRecurrence.reminderTime) {
+//            case (nil, nil):
+//                break
+//            case (.some(_), nil):
+//                item.reminderTime = nil
+//                item.reminderUID = nil
+//            case (nil, .some(let newReminderTime)):
+//                item.reminderTime = NSNumber(value: newReminderTime)
+//            case (.some(let oldReminderTime), .some(let newReminderTime)):
+//                if Int(truncating: oldReminderTime) != newReminderTime {
+//                    item.reminderTime = NSNumber(value: newReminderTime)
+//                }
+//            }
