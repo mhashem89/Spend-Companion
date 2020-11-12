@@ -247,7 +247,6 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         }
         cell.formatValueLabel(with: value)
         cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: priorValue, height: 25)
-        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + priorValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
         let scaledValue = self.scaleFactor < 1 ? CGFloat(value * self.scaleFactor) : CGFloat(value)
         let distanceToMove = scaledValue - priorValue

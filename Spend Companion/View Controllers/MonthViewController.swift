@@ -91,6 +91,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
             navigationItem.rightBarButtonItem?.isEnabled = false
         } else {
             navigationItem.rightBarButtonItem?.isEnabled = true
+            centerTextView.removeFromSuperview()
         }
         
     }

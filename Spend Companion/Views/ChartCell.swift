@@ -24,7 +24,7 @@ class ChartCell: UICollectionViewCell {
     
     var barView: UIView = {
         let view = UIView()
-        view.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
+        view.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1)
         return view
     }()
     

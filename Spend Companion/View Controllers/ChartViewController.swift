@@ -107,14 +107,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
-        UNUserNotificationCenter.current().getPendingNotificationRequests { (requests) in
-            DispatchQueue.main.async {
-                requests.forEach({
-                    print("WTF", $0.trigger)
-                    print("WTF", $0.content.title)
-                })
-            }
-        }
     }
     
     // MARK:- Selectors
@@ -278,7 +270,6 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         cell.cellLabel.frame = .init(x: 0, y: 0, width: chartLabelMaxWidth, height: cell.frame.height)
         cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * windowWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
-        cell.barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .systemRed
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
             if let total = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: selectedSegment == 1 ? filteredCategoryName : "Income") {
