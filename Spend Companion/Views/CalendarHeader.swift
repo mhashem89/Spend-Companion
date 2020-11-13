@@ -8,7 +8,7 @@
 
 import UIKit
 
-protocol YearHeaderDelegate: class {
+protocol CalendarHeaderDelegate: class {
     
     func yearSelected(year: String)
 }
@@ -25,7 +25,7 @@ class CalendarHeader: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    weak var delegate: YearHeaderDelegate?
+    weak var delegate: CalendarHeaderDelegate?
     
     let headerLabel: UILabel = {
         let label = UILabel()

@@ -8,7 +8,7 @@
 
 import UIKit
 
-class CalenderViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, YearHeaderDelegate {
+class CalenderViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, CalendarHeaderDelegate {
     
     var yearCellId = "yearCellId"
     var monthCellId = "monthCellId"

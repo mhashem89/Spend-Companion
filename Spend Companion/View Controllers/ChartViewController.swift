@@ -28,7 +28,7 @@ var fontScale: CGFloat {
     return (windowWidthScale + windowHeightScale) / 2
 }
 
-class ChartViewController: UIViewController, YearHeaderDelegate  {
+class ChartViewController: UIViewController  {
     
     // MARK:- Properties
     
@@ -70,7 +70,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date()) {
         didSet {
             categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
-            categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear)
+            categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
         }
     }
         
@@ -80,7 +80,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     
     var safeAreaTop: CGFloat {
         let top = UIApplication.shared.windows.first?.safeAreaInsets.top
-        return top ?? 0
+        return top ?? 15
     }
     
     var scaleFactor: Double = 1
@@ -103,7 +103,7 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
-        categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear)
+        categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
@@ -219,11 +219,6 @@ class ChartViewController: UIViewController, YearHeaderDelegate  {
         dimmingView.frame = view.bounds
     }
   
-    func yearSelected(year: String) {
-        self.selectedYear = year
-        self.scaleFactor = calcScaleFactor()
-        barChart.reloadData()
-    }
     
     func calcMaxWidth(for names: [String], withSize fontSize: CGFloat) -> CGFloat {
         var maxWidth: CGFloat = 0
@@ -307,6 +302,17 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         return .init(width: collectionView.frame.width, height: fontScale < 1 ? 40 : 40 * fontScale)
     }
 
+}
+
+// MARK:- Calendar Header Delegate
+
+extension ChartViewController: CalendarHeaderDelegate {
+    
+    func yearSelected(year: String) {
+        self.selectedYear = year
+        self.scaleFactor = calcScaleFactor()
+        barChart.reloadData()
+    }
 }
 
 
