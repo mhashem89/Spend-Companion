@@ -17,6 +17,7 @@ protocol SettingsCellDelegate: class {
     
     func settingsTogglePressed(toggleIsON: Bool, in cell: SettingsCell)
     
+    func purchaseButtonPressed()
     
 }
 
@@ -91,14 +92,14 @@ class SettingsViewController: UITableViewController {
         
         switch indexPath.row {
         case 0:
-            cell.settingsToggle.isOn = iCloudKeyStore.bool(forKey: "iCloud sync")
-            cell.setupUI()
+            cell.settingsToggle.isOn = iCloudKeyStore.bool(forKey: SettingNames.iCloudSync)
+            cell.setupUI(for: .iCloudSync, isPurchased: iCloudKeyStore.bool(forKey: SettingNames.iCloudSyncPurchased))
             cell.textLabel?.text = settings[indexPath.row]
             cell.detailTextLabel?.text = "sets iCloud sync across all devices"
             cell.selectionStyle = .none
         case 1:
             cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics)
-            cell.setupUI()
+            cell.setupUI(for: .biometrics)
             cell.textLabel?.text = settings[indexPath.row]
             cell.selectionStyle = .none
         case 2:
@@ -176,6 +177,12 @@ class SettingsViewController: UITableViewController {
 @available(iOS 13, *)
 extension SettingsViewController: SettingsCellDelegate {
     
+    
+    func purchaseButtonPressed() {
+        buyiCloudSync()
+    }
+    
+    
     func settingsTogglePressed(toggleIsON: Bool, in cell: SettingsCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
         switch (indexPath.row, toggleIsON) {
@@ -183,7 +190,7 @@ extension SettingsViewController: SettingsCellDelegate {
             CKContainer.default().accountStatus { [self] (status, error) in
                 DispatchQueue.main.async {
                     if status == .available {
-                        iCloudKeyStore.bool(forKey: iCloudPurchased) ? toggleiCloudSync(sync: toggleIsON) : buyiCloudSync()
+                        toggleiCloudSync(sync: toggleIsON)
                     } else {
                         let alertController = UIAlertController(title: "Error: iCloud not available", message: "Please sign in to your iCloud account and make sure it is enabled for Spend Companion", preferredStyle: .alert)
                         alertController.addAction(UIAlertAction(title: "Done", style: .default, handler: { (action) in
@@ -229,21 +236,16 @@ extension SettingsViewController: SKPaymentTransactionObserver {
                 guard transaction.payment.productIdentifier == iCloudPurchaseProductID else { return }
                 if iCloudKeyStore.bool(forKey: iCloudPurchased) == false {
                     iCloudKeyStore.set(true, forKey: iCloudPurchased)
-                    let alertController = UIAlertController(title: "iCloud sync purchased!", message: "Now transactions will sync across all your devices", preferredStyle: .alert)
-                    alertController.addAction(UIAlertAction(title: "Done", style: .default, handler: nil))
-                    present(alertController, animated: true, completion: nil)
-                    toggleiCloudSync(sync: true)
+                    tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
                     queue.finishTransaction(transaction)
                 }
             case .failed:
                 guard transaction.payment.productIdentifier == iCloudPurchaseProductID else { return }
                 queue.finishTransaction(transaction)
-                (tableView.cellForRow(at: IndexPath(item: 0, section: 0)) as? SettingsCell)?.settingsToggle.setOn(false, animated: true)
             case .restored:
                 if transaction.original?.payment.productIdentifier == iCloudPurchaseProductID, iCloudKeyStore.bool(forKey: iCloudPurchased) == false {
                     iCloudKeyStore.set(true, forKey: iCloudPurchased)
-                    toggleiCloudSync(sync: true)
-                    (tableView.cellForRow(at: IndexPath(item: 0, section: 0)) as? SettingsCell)?.settingsToggle.setOn(true, animated: true)
+                    tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
                 } else if transaction.original?.payment.productIdentifier == reminderPurchaseProductId, iCloudKeyStore.bool(forKey: remindersPurchased) == false {
                     iCloudKeyStore.set(true, forKey: remindersPurchased)
                 }
@@ -260,6 +262,8 @@ class SettingsCell: UITableViewCell {
     
     var settingsToggle = UISwitch()
     
+    var purchaseButton = UIButton.purchaseButton(withFont: UIFont.boldSystemFont(ofSize: 14))
+    
     weak var delegate: SettingsCellDelegate?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -270,15 +274,31 @@ class SettingsCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupUI() {
-        addSubview(settingsToggle)
-        settingsToggle.anchor(trailing: trailingAnchor, trailingConstant: 20, centerY: centerYAnchor)
-        settingsToggle.addTarget(self, action: #selector(settingsTogglePressed), for: .valueChanged)
+    func setupUI(for setting: Setting, isPurchased purchased: Bool = true) {
+        if setting == .iCloudSync, !purchased {
+            settingsToggle.removeFromSuperview()
+            addSubview(purchaseButton)
+            purchaseButton.anchor(trailing: trailingAnchor, trailingConstant: 20, centerY: centerYAnchor, widthConstant: 75)
+            purchaseButton.addTarget(self, action: #selector(purchaseButtonPressed), for: .touchUpInside)
+        } else {
+            purchaseButton.removeFromSuperview()
+            addSubview(settingsToggle)
+            settingsToggle.anchor(trailing: trailingAnchor, trailingConstant: 20, centerY: centerYAnchor)
+            settingsToggle.addTarget(self, action: #selector(settingsTogglePressed), for: .valueChanged)
+        }
     }
     
     @objc func settingsTogglePressed() {
         delegate?.settingsTogglePressed(toggleIsON: settingsToggle.isOn, in: self)
     }
     
+    @objc func purchaseButtonPressed() {
+        delegate?.purchaseButtonPressed()
+    }
     
+    
+}
+
+enum Setting {
+    case iCloudSync, biometrics
 }

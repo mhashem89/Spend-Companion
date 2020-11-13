@@ -23,7 +23,9 @@ class RecurringViewController: UIViewController {
     
     weak var delegate: RecurringViewControllerDelegate?
     
-    let remindersPurchased = "remindersPurchased"
+    var remindersPurchased: Bool {
+        return iCloudStore.bool(forKey: SettingNames.remindersPurchased)
+    }
     
     let iCloudStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
@@ -36,10 +38,13 @@ class RecurringViewController: UIViewController {
     var dayPickerDate: Date?
     
     var upperStack: UIStackView!
+    var reminderStack: UIStackView?
     
     var isNewRecurrence: Bool = true
     
     var oldRecurrence: ItemRecurrence?
+    
+    let purchaseButton = UIButton.purchaseButton(withFont: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 14 * fontScale))
     
     var questionLabel: UILabel = {
         let lbl = UILabel()
@@ -190,14 +195,16 @@ class RecurringViewController: UIViewController {
     
     override func viewDidLoad() {
         view.backgroundColor = CustomColors.systemBackground.withAlphaComponent(fontScale < 1 ? 1 : 0.6)
-        let reminderStack = UIStackView(arrangedSubviews: [reminderSwitch, reminderLabel])
-        reminderStack.axis = .horizontal; reminderStack.spacing = 10; reminderStack.alignment = .center
+        reminderStack = UIStackView(arrangedSubviews: [remindersPurchased ? reminderSwitch : purchaseButton, reminderLabel])
+        reminderStack?.axis = .horizontal; reminderStack?.spacing = 10; reminderStack?.alignment = .center
+        reminderStack?.distribution = remindersPurchased ? .fill : .fillEqually
         if #available(iOS 13, *) {} else {
-            reminderStack.insertArrangedSubview(restorePurchaseButton, at: 2)
+            reminderStack?.insertArrangedSubview(restorePurchaseButton, at: 2)
             restorePurchaseButton.addTarget(self, action: #selector(restorePurchase), for: .touchUpInside)
         }
         reminderSwitch.addTarget(self, action: #selector(toggleReminder), for: .touchUpInside)
-        upperStack = UIStackView(arrangedSubviews: [questionLabel, periodTextField, segmentedControl, reminderStack, endDateLabel])
+        purchaseButton.addTarget(self, action: #selector(buyReminders), for: .touchUpInside)
+        upperStack = UIStackView(arrangedSubviews: [questionLabel, periodTextField, segmentedControl, reminderStack!, endDateLabel])
         if reminderSwitch.isOn {
             upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
         }
@@ -287,10 +294,6 @@ class RecurringViewController: UIViewController {
     
     @objc func toggleReminder() {
         if reminderSwitch.isOn {
-            guard iCloudStore.bool(forKey: remindersPurchased) else {
-                buyReminders()
-                return
-            }
             upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
         } else {
             reminderSegmentedControl.removeFromSuperview()
@@ -298,12 +301,12 @@ class RecurringViewController: UIViewController {
         }
     }
     
-    func buyReminders() {
+    @objc func buyReminders() {
         let alertController = UIAlertController(title: "Purchase Reminders", message: "for 0.99 USD (or equivalent in local currency) you can set custom reminders for any recurring transaction", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { (_) in
             if SKPaymentQueue.canMakePayments() {
                 let remindersPayment = SKMutablePayment()
-                remindersPayment.productIdentifier = "MohamedHashem.Spend_Companion.reminders_purchase"
+                remindersPayment.productIdentifier = PurchaseIds.reminders.description
                 SKPaymentQueue.default().add(remindersPayment)
             }
         }))
@@ -377,17 +380,21 @@ extension RecurringViewController: SKPaymentTransactionObserver {
             guard transaction.payment.productIdentifier == reminderPurchaseProductId else { return }
             switch transaction.transactionState {
             case .purchased:
-                if iCloudStore.bool(forKey: remindersPurchased) == false {
-                    iCloudStore.set(true, forKey: remindersPurchased)
-                    upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
+                if remindersPurchased == false {
+                    iCloudStore.set(true, forKey: SettingNames.remindersPurchased)
+                    purchaseButton.removeFromSuperview()
+                    reminderStack?.insertArrangedSubview(reminderSwitch, at: 0)
+                    reminderStack?.distribution = .fill
                     queue.finishTransaction(transaction)
                 }
             case .failed:
-                reminderSwitch.setOn(false, animated: true)
                 queue.finishTransaction(transaction)
             case .restored:
-                if iCloudStore.bool(forKey: remindersPurchased) == false {
-                    iCloudStore.set(true, forKey: remindersPurchased)
+                if remindersPurchased == false {
+                    iCloudStore.set(true, forKey: SettingNames.remindersPurchased)
+                    purchaseButton.removeFromSuperview()
+                    reminderStack?.insertArrangedSubview(reminderSwitch, at: 0)
+                    reminderStack?.distribution = .fill
                 }
                 queue.finishTransaction(transaction)
             default:

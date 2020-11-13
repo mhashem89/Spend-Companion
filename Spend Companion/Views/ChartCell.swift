@@ -60,7 +60,15 @@ class ChartCell: UICollectionViewCell {
         addSubviews([cellLabel, barView, valueLabel])
     }
     
-    func formatValueLabel(with amount: Double) {
-        valueLabel.text = numberFormatter.string(from: NSNumber(value: amount))
+    func formatValueLabel(with amount: Double, withPercentage percentage: Double? = nil) {
+        guard amount > 0,
+              let numberString = numberFormatter.string(from: NSNumber(value: amount))
+        else { valueLabel.text = nil; return }
+        if let percentage = percentage {
+            valueLabel.text = "\(numberString) (\(Int(percentage))%)"
+        } else {
+            valueLabel.text = numberString
+        }
+        
     }
 }

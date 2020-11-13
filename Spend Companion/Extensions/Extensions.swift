@@ -245,6 +245,16 @@ extension UIColor {
     static let backgroundColor = UIColor(red: 25/255, green: 25/255, blue: 25/255, alpha: 1)
 }
 
+extension UIButton {
+    static func purchaseButton(withFont font: UIFont) -> UIButton {
+        let button = UIButton(type: .system)
+        let title = NSAttributedString(string: "Purchase", attributes: [.font: font, .foregroundColor: UIColor.white])
+        button.setAttributedTitle(title, for: .normal)
+        button.layer.cornerRadius = 5
+        button.backgroundColor = CustomColors.blue
+        return button
+    }
+}
 
 
 extension UILabel {

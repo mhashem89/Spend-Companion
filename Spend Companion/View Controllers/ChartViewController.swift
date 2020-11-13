@@ -268,7 +268,7 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
             if let total = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: selectedSegment == 1 ? filteredCategoryName : "Income") {
-                cell.valueLabel.text = String(format: "%g", total)
+                cell.formatValueLabel(with: total)
                 cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * windowWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
                 let distanceToMove = self.scaleFactor < 1 ? CGFloat(total * self.scaleFactor) : CGFloat(total)
                 UIView.animate(withDuration: 0.5) {
@@ -285,8 +285,8 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
             cell.cellLabel.text = categoryName
             if let value = categoryTotals[categoryName] {
                 let sum = Array(categoryTotals.values).sum() ?? 1
-                let percenage = value > 0 ? (value / sum) * 100 : 0
-                cell.valueLabel.text = value > 0 ? "\(String(format: "%g", value)) (\(Int(percenage))%)" : nil
+                let percentage = value > 0 ? (value / sum) * 100 : 0
+                cell.formatValueLabel(with: value, withPercentage: percentage)
                 let distanceToMove = value > 0 ? self.scaleFactor < 1 ? CGFloat(value * self.scaleFactor) : CGFloat(value) : 0.5
                 cell.valueLabel.frame = .init(origin: CGPoint(x: chartLabelMaxWidth + (8 * windowWidthScale), y: cell.frame.height * 0.27), size: cell.valueLabel.intrinsicContentSize)
                 UIView.animate(withDuration: 0.5) {
