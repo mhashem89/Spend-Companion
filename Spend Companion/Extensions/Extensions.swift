@@ -188,30 +188,32 @@ extension UITextField {
         tf.autocorrectionType = .no
         tf.isSecureTextEntry = isSecureEntry
         tf.textColor = .black
-        tf.addLeftPadding(10)
+        tf.addLeftPadding(padding: 10)
         return tf
     }
     
-    func addLeftPadding(_ padding: CGFloat, withSymbol symbol: String? = nil) {
-        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: padding, height: self.frame.height))
+    func addLeftPadding(padding: CGFloat? = nil, withSymbol symbol: String? = nil) {
+        let leftView = UIView(frame: CGRect(x: 0, y: 0, width: padding ?? 10, height: self.frame.height))
         if let symbol = symbol {
             let symbolLabel = UILabel()
             symbolLabel.text = symbol
             symbolLabel.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
             leftView.addSubview(symbolLabel)
+            leftView.frame.size.width = UILabel.calcSize(for: symbol, withFont: fontScale < 1 ? 14 : 16 * fontScale).width + 2
             symbolLabel.fillSuperView()
         }
         self.leftView = leftView
         self.leftViewMode = .always
     }
     
-    func addRightPadding(_ padding: CGFloat, withSymbol symbol: String? = nil) {
-        let rightView = UIView(frame: CGRect(x: 0, y: 0, width: padding, height: self.frame.height))
+    func addRightPadding(padding: CGFloat? = nil, withSymbol symbol: String? = nil) {
+        let rightView = UIView(frame: CGRect(x: 0, y: 0, width: padding ?? 10, height: self.frame.height))
         if let symbol = symbol {
             let symbolLabel = UILabel()
             symbolLabel.text = " \(symbol)"
             symbolLabel.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
             rightView.addSubview(symbolLabel)
+            rightView.frame.size.width = UILabel.calcSize(for: symbol, withFont: fontScale < 1 ? 14 : 16 * fontScale).width
             symbolLabel.fillSuperView()
         }
         self.rightView = rightView

@@ -89,9 +89,9 @@ class ItemCell: UITableViewCell {
         tf.placeholder = "...     "
         let currencySymbol = CommonObjects.shared.currencySymbol
         if currencySymbol.position == .left {
-            tf.addLeftPadding(10, withSymbol: currencySymbol.symbol)
+            tf.addLeftPadding(withSymbol: currencySymbol.symbol)
         } else {
-            tf.addRightPadding(10, withSymbol: currencySymbol.symbol)
+            tf.addRightPadding(withSymbol: currencySymbol.symbol)
         }
         tf.keyboardType = .decimalPad
         return tf

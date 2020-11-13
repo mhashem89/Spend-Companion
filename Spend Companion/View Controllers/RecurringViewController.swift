@@ -75,7 +75,7 @@ class RecurringViewController: UIViewController {
         tf.layer.cornerRadius = 5
         tf.layer.borderColor = CustomColors.label.cgColor
         tf.layer.borderWidth = 1
-        tf.addLeftPadding(10)
+        tf.addLeftPadding(padding: 10)
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
         return tf
     }()

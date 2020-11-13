@@ -25,6 +25,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let tabBarController = CustomTabBarController()
             window?.rootViewController = tabBarController
             window?.makeKeyAndVisible()
+            InitialViewController.shared.reloadRecentItems(withFetch: true)
         }
         
         UNUserNotificationCenter.current().delegate = self
@@ -108,7 +109,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         })
         return container
     }
-    
 
     // MARK: - Core Data Saving support
 
@@ -119,10 +119,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 try context.save()
             } catch {
                 throw SaveError.saveError
-//                // Replace this implementation with code to handle the error appropriately.
-//                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-//                let nserror = error as NSError
-//                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }
