@@ -229,22 +229,15 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
         cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         var value: Double = 0
         var priorValue: CGFloat = 0
-        switch (summaryView.segmentedControl.selectedSegmentIndex, indexPath.row) {
-        case (0, 0):
-            value = viewModel.currentMonthTotalIncome
-            priorValue = selectedMonthScaledData.0
-        case (0, 1):
-            value = viewModel.currentMonthTotalSpending
-            priorValue = selectedMonthScaledData.1
-        case (1, 0):
-            value = viewModel.currentYearTotalIncome
-            priorValue = selectedYearScaledData.0
-        case (1, 1):
-            value = viewModel.currentYearTotalSpending
-            priorValue = selectedYearScaledData.1
-        default:
-            break
+        
+        if summaryView.segmentedControl.selectedSegmentIndex == 0 {
+            value = indexPath.row == 0 ? viewModel.currentMonthTotalIncome : viewModel.currentMonthTotalSpending
+            priorValue = indexPath.row == 0 ? selectedMonthScaledData.0 : selectedMonthScaledData.1
+        } else {
+            value = indexPath.row == 0 ? viewModel.currentYearTotalIncome : viewModel.currentYearTotalSpending
+            priorValue = indexPath.row == 0 ? selectedYearScaledData.0 : selectedYearScaledData.1
         }
+        
         cell.formatValueLabel(with: value)
         cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: priorValue, height: 25)
         cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + priorValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
@@ -255,14 +248,10 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
             cell.valueLabel.frame.origin.x += distanceToMove
         } completion: { [self] (_) in
             switch (summaryView.segmentedControl.selectedSegmentIndex, indexPath.row) {
-            case (0, 0):
-                selectedMonthScaledData.0 = scaledValue
-            case (0, 1):
-                selectedMonthScaledData.1 = scaledValue
-            case (1, 0):
-                selectedYearScaledData.0 = scaledValue
-            case (1, 1):
-                selectedYearScaledData.1 = scaledValue
+            case (0, 0): selectedMonthScaledData.0 = scaledValue
+            case (0, 1): selectedMonthScaledData.1 = scaledValue
+            case (1, 0): selectedYearScaledData.0 = scaledValue
+            case (1, 1): selectedYearScaledData.1 = scaledValue
             default:
                 break
             }
