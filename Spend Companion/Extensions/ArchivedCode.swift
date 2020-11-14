@@ -430,3 +430,16 @@ import Foundation
 //                    item.reminderTime = NSNumber(value: newReminderTime)
 //                }
 //            }
+
+
+
+
+
+//        let alertController = UIAlertController(title: "Saved successfully!", message: nil, preferredStyle: .alert)
+//        alertController.addAction(UIAlertAction(title: "Done", style: .default, handler: { [weak self] (_) in
+//            self?.quickAddView.clearView()
+//        }))
+//        present(alertController, animated: true) { [weak self] in
+//            self?.quickAddView.resignFirstResponders()
+//            UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
+//        }

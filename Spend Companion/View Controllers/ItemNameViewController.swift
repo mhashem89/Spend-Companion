@@ -29,6 +29,13 @@ class ItemNameViewController: UIViewController, UITableViewDelegate, UITableView
     var itemName: String?
     
     var itemNames = [String]()
+    lazy var tableItemNames = itemNames {
+        didSet {
+            itemNamesTable.beginUpdates()
+            itemNamesTable.reloadSections(IndexSet(arrayLiteral: 0), with: .none)
+            itemNamesTable.endUpdates()
+        }
+    }
     
     weak var delegate: ItemNameViewControllerDelegate?
     
@@ -42,8 +49,6 @@ class ItemNameViewController: UIViewController, UITableViewDelegate, UITableView
         
         titleTextField.anchor(top: view.safeAreaLayoutGuide.topAnchor, topConstant: 15, leading: view.leadingAnchor, leadingConstant: 15, trailing: view.trailingAnchor, trailingConstant: 15, heightConstant: 40)
         itemNamesTable.anchor(top: titleTextField.bottomAnchor, topConstant: 10, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
-        
-        
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
     }
     
@@ -86,12 +91,12 @@ class ItemNameViewController: UIViewController, UITableViewDelegate, UITableView
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return itemNames.count
+        return tableItemNames.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
-        cell.textLabel?.text = itemNames[indexPath.row]
+        cell.textLabel?.text = tableItemNames[indexPath.row]
         cell.textLabel?.font = UIFont.systemFont(ofSize: 18)
         return cell
     }
@@ -113,6 +118,12 @@ class ItemNameViewController: UIViewController, UITableViewDelegate, UITableView
         guard let text = textField.text else { return false }
         let currentString: NSString = text as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
+        let lowerCaseString = String(newString).lowercased()
+        if !lowerCaseString.isEmpty {
+            tableItemNames = itemNames.filter({ $0.lowercased().starts(with: lowerCaseString) })
+        } else {
+            tableItemNames = itemNames
+        }
         return newString.length < 19
     }
     

@@ -266,6 +266,20 @@ extension UILabel {
         label.font = UIFont.systemFont(ofSize: fontSize)
         return label.intrinsicContentSize
     }
+    
+    static func savedLabel() -> UILabel {
+        let label = UILabel()
+        label.font = UIFont.boldSystemFont(ofSize: 16)
+        label.text = "Saved successfully!"
+        label.backgroundColor = CustomColors.darkGray.withAlphaComponent(0.5)
+        label.textColor = .white
+        label.layer.cornerRadius = 10
+        label.isHidden = true
+        label.textAlignment = .center
+        label.clipsToBounds = true
+        return label
+    }
+    
 }
 
 

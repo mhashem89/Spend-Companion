@@ -37,6 +37,7 @@ class InitialViewController: UIViewController {
     var quickAddView = QuickAddView()
     let viewModel = InitialViewModel()
     let summaryLabels = ["Total Income", "Total Spending"]
+    let savedLabel = UILabel.savedLabel()
     
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
    
@@ -64,9 +65,10 @@ class InitialViewController: UIViewController {
         view.backgroundColor = CustomColors.systemBackground
         view.addSubview(scrollView)
         scrollView.frame = view.bounds
-        scrollView.addSubviews([summaryView, quickAddView])
+        scrollView.addSubviews([summaryView, quickAddView, savedLabel])
         summaryView.frame = .init(x: 0, y: safeAreaTop, width: view.frame.width, height: view.frame.height * 0.3)
         quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * windowHeightScale)
+        savedLabel.frame = .init(x: view.frame.width * 0.25, y: -80, width: view.frame.width * 0.5, height: 40)
         setupSummaryView()
         quickAddView.setupUI()
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
@@ -97,13 +99,18 @@ class InitialViewController: UIViewController {
     }
     
     func showSavedAlert() {
-        let alertController = UIAlertController(title: "Saved successfully!", message: nil, preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: "Done", style: .default, handler: { [weak self] (_) in
+        savedLabel.isHidden = false
+        UIView.animate(withDuration: 0.5) { [weak self] in
+            self?.savedLabel.frame.origin.y += 90
+        } completion: { [weak self] (_) in
             self?.quickAddView.clearView()
-        }))
-        present(alertController, animated: true) { [weak self] in
             self?.quickAddView.resignFirstResponders()
             UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
+            UIView.animate(withDuration: 0.3, delay: 2, options: .curveLinear) { [weak self] in
+                self?.savedLabel.frame.origin.y -= 90
+            } completion: { [weak self] (_) in
+                self?.savedLabel.isHidden = true
+            }
         }
     }
     

@@ -31,6 +31,13 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
     var recentNames = [String]()
     var favorites = [String]()
     var fixedCategories = ["Income"]
+    var tableRecentNames: [String]? {
+        didSet {
+            categoriesTable.beginUpdates()
+            categoriesTable.reloadSections(IndexSet(arrayLiteral: 2), with: .none)
+            categoriesTable.endUpdates()
+        }
+    }
     
     weak var delegate: CategoryTitleViewControllerDelegate?
     
@@ -45,11 +52,11 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         titleTextField.anchor(top: view.safeAreaLayoutGuide.topAnchor, topConstant: 15, leading: view.leadingAnchor, leadingConstant: 15, trailing: view.trailingAnchor, trailingConstant: 15, heightConstant: 40)
         categoriesTable.anchor(top: titleTextField.bottomAnchor, topConstant: 10, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
         
-        recentNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: nil).sorted(by: { $0 < $1 })
-        recentNames = recentNames.filter( { !favorites.contains($0) && !["Recurring Expenses", "Income"].contains($0) } )
-        
         favorites = CoreDataManager.shared.fetchFavorites()
-        
+        recentNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: nil).sorted(by: { $0 < $1 })
+        recentNames = recentNames.filter( { !favorites.contains($0) && !["Income"].contains($0) } )
+        tableRecentNames = recentNames
+      
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(done))
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
     }
@@ -112,7 +119,7 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         case 1:
             return favorites.count
         case 2:
-            return recentNames.count
+            return tableRecentNames?.count ?? recentNames.count
         default:
             return 0
         }
@@ -126,7 +133,7 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         case 1:
             cell.textLabel?.text = favorites[indexPath.row]
         case 2:
-            cell.textLabel?.text = recentNames[indexPath.row]
+            cell.textLabel?.text = tableRecentNames?[indexPath.row]
         default:
             break
         }
@@ -151,6 +158,12 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         guard let text = textField.text else { return false }
         let currentString: NSString = text as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
+        let lowerCaseString = String(newString).lowercased()
+        if !lowerCaseString.isEmpty {
+            tableRecentNames = recentNames.filter({ $0.lowercased().starts(with: lowerCaseString) })
+        } else {
+            tableRecentNames = recentNames
+        }
         return newString.length < 16
     }
     

@@ -250,10 +250,6 @@ class CoreDataManager {
                 try saveContext()
             }
         }
-//        else {
-//            item.reminderUID = nil
-//            return
-//        }
     }
 
     
@@ -298,9 +294,6 @@ class CoreDataManager {
     
 
     func deleteItem(item: Item, saveContext save: Bool) throws {
-//        if let reminuderUID = item.reminderUID {
-//            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [reminuderUID])
-//        }
         context.delete(item)
         if save {
             try saveContext()
