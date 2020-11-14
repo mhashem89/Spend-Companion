@@ -135,7 +135,7 @@ class SettingsViewController: UITableViewController {
 // MARK:- Methods
     
     func buyiCloudSync() {
-        let alertController = UIAlertController(title: "Purchase iCloud sync", message: "for 1.99 USD (or equivalent in local currency) you can sync your transactions across all devices, syncing happens automatically!", preferredStyle: .actionSheet)
+        let alertController = UIAlertController(title: "Purchase iCloud sync", message: "backup and sync your transactions across all devices signed in to iCloud for a one-time payment of 1.99 USD (or equivalent in local currency)", preferredStyle: .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { [unowned self] (_) in
             if SKPaymentQueue.canMakePayments() {
                 let paymentRequest = SKMutablePayment()
