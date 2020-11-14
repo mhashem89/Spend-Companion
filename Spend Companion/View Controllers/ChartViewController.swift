@@ -33,7 +33,14 @@ class ChartViewController: UIViewController  {
     // MARK:- Properties
     
     var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-    var categoryNames = [String]()
+    var categoryNames = [String]() {
+        didSet {
+            categoryNames = categoryNames.sorted(by: {
+                guard let amount0 = categoryTotals[$0], let amount1 = categoryTotals[$1] else { return false }
+                return amount0 > amount1
+            })
+        }
+    }
     var categoryTotals = [String: Double]()
     var filteredMonthName: String?
     var filteredCategoryName: String?
@@ -69,8 +76,8 @@ class ChartViewController: UIViewController  {
     
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date()) {
         didSet {
-            categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
             categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
+            categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
         }
     }
         
@@ -102,8 +109,8 @@ class ChartViewController: UIViewController  {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
         categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: filteredMonthName)
+        categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
         scaleFactor = calcScaleFactor()
         barChart.reloadData()
         filterButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
@@ -117,7 +124,6 @@ class ChartViewController: UIViewController  {
          filterButton.addTarget(self, action: #selector(showFilter), for: .touchUpInside)
          filteredRowLabel.anchor(top: filterButton.topAnchor, leading: view.leadingAnchor, leadingConstant: 10 * windowWidthScale)
      }
-    
     
     @objc func showFilter() {
         dimBackground()
