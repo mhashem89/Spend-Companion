@@ -63,14 +63,13 @@ class CategoryViewController: UIViewController {
         view.backgroundColor = CustomColors.systemBackground
         title = month.date
         view.addSubviews([tableView, headerView])
+        setupHeaderView()
         setupTableView()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save))
         navigationItem.rightBarButtonItem?.isEnabled = false
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
        
-        setupHeaderView()
-    
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillShow(notification:)), name: UIResponder.keyboardDidShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
@@ -91,7 +90,6 @@ class CategoryViewController: UIViewController {
         headerView.toggleFavoriteButton(with: viewModel)
         headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * windowHeightScale)
         headerView.setupUI(with: viewModel)
-        headerView.titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
         headerView.enableButtons(with: viewModel)
     }
     
@@ -189,6 +187,7 @@ class CategoryViewController: UIViewController {
         else { return }
         view.frame.size.height = viewFrameHeight - keyboardFrame.height
         tableView.frame.size.height = tableViewFrameHeight - keyboardFrame.height
+        scrollToActiveRow()
     }
     
     @objc func handleKeyboardWillHide(notification: NSNotification) {

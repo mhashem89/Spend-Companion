@@ -99,6 +99,7 @@ class ItemTableHeader: UIView {
         let buttonStack = UIStackView(arrangedSubviews: [favoriteButton, sortButton, plusButton])
         separatorView.backgroundColor = CustomColors.darkGray
         buttonStack.axis = .horizontal; buttonStack.spacing = 10 * windowWidthScale
+        titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
         addSubviews([titleButton, buttonStack, separatorView])
         
         titleButton.anchor(leading: leadingAnchor, leadingConstant: 20 * windowWidthScale, centerY: centerYAnchor)
