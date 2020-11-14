@@ -362,6 +362,7 @@ extension ChartViewController: FilterViewControllerDelegate {
         if selectedSegment == 0 {
             filteredMonthName = rowName
             categoryTotals = CoreDataManager.shared.fetchCategoryTotals(for: selectedYear, forMonth: rowName)
+            categoryNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: selectedYear)
             scaleFactor = calcScaleFactor()
         } else {
             filteredCategoryName = rowName

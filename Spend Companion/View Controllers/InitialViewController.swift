@@ -38,11 +38,8 @@ class InitialViewController: UIViewController {
     let viewModel = InitialViewModel()
     let summaryLabels = ["Total Income", "Total Spending"]
     let savedLabel = UILabel.savedLabel()
-    
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
-   
     var recentItemsRefreshControl = UIRefreshControl()
-    
     var recentItemsTable: UITableView?
     
     var emptyItemsLabel: UILabel = {
