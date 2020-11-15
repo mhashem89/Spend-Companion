@@ -20,6 +20,17 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
     
     var selectedYear: String = DateFormatters.yearFormatter.string(from: Date())
 
+    var yearTotals = [String: (spending: Double?, income: Double?)]()
+    
+    override init(collectionViewLayout layout: UICollectionViewLayout) {
+        super.init(collectionViewLayout: layout)
+        loadData()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     
     override func viewDidLoad() {
         collectionView.backgroundColor = CustomColors.systemBackground
@@ -37,6 +48,15 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = false
         collectionView.reloadSections(IndexSet(arrayLiteral: 1))
+    }
+    
+    func loadData() {
+        months.forEach { [weak self] (month) in
+            let monthString = "\(month) \(selectedYear)"
+            let spending = CoreDataManager.shared.calcCategoryTotalForMonth(monthString)
+            let income = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: "Income")
+            self?.yearTotals[monthString] = (spending, income)
+        }
     }
     
     func setupNavBar() {
@@ -76,8 +96,8 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
             cell.layer.cornerRadius = (view.frame.width * 0.24) / 2
             cell.monthLabel.text = months[indexPath.item]
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
-            let totalSpending = CoreDataManager.shared.calcCategoryTotalForMonth(monthString)
-            let totalIncome = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: "Income")
+            let totalSpending = yearTotals[monthString]?.spending
+            let totalIncome = yearTotals[monthString]?.income
             if totalSpending != nil || totalIncome != nil {
                 let totalSpendingString = CommonObjects.shared.formattedCurrency(with: totalSpending ?? 0)
                 let totalIncomeString = CommonObjects.shared.formattedCurrency(with: totalIncome ?? 0)
@@ -121,6 +141,7 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
     
     func yearSelected(year: String) {
         self.selectedYear = year
+        loadData()
         chosenColor = colors.randomElement()
         collectionView.reloadSections(IndexSet(arrayLiteral: 1))
     }

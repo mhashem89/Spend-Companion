@@ -18,7 +18,6 @@ class CoreDataManager {
     }
     
     func saveItem(itemStruct: ItemStruct) throws {
-//        guard let itemDate = itemStruct.date == "Today" ? Date() : DateFormatters.fullDateFormatter.date(from: itemStruct.date) else { return }
         let createdItem = try createNewItem(date: itemStruct.date, itemStruct: itemStruct)
         
         if itemStruct.itemRecurrence != nil {
