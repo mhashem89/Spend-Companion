@@ -182,8 +182,7 @@ class CategoryViewController: UIViewController {
     }
     
     @objc func handleKeyboardWillShow(notification: NSNotification) {
-        guard UIDevice.current.userInterfaceIdiom != .pad,
-              let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect
+        guard let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect
         else { return }
         view.frame.size.height = viewFrameHeight - keyboardFrame.height
         tableView.frame.size.height = tableViewFrameHeight - keyboardFrame.height
@@ -191,7 +190,6 @@ class CategoryViewController: UIViewController {
     }
     
     @objc func handleKeyboardWillHide(notification: NSNotification) {
-        guard UIDevice.current.userInterfaceIdiom != .pad else { return }
         if view.frame.height != viewFrameHeight {
             view.frame.size.height = viewFrameHeight
             tableView.frame.size.height = tableViewFrameHeight
