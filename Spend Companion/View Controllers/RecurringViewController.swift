@@ -302,7 +302,8 @@ class RecurringViewController: UIViewController {
     }
     
     @objc func buyReminders() {
-        let alertController = UIAlertController(title: "Purchase Reminders", message: "set custom reminders for any recurring transaction for a one-time payment of 0.99 USD (or equivalent in local currency)", preferredStyle: .actionSheet)
+        let idiom = UIDevice.current.userInterfaceIdiom
+        let alertController = UIAlertController(title: "Purchase Reminders", message: "set custom reminders for any recurring transaction for a one-time payment of 0.99 USD (or equivalent in local currency)", preferredStyle: idiom == .pad ? .alert : .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { (_) in
             if SKPaymentQueue.canMakePayments() {
                 let remindersPayment = SKMutablePayment()
