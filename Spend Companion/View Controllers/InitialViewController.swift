@@ -10,7 +10,6 @@ import UIKit
 
 class InitialViewController: UIViewController {
     
-    
 // MARK:- Properties
     
     let barChartCellId = "barChartCellId"
@@ -22,9 +21,9 @@ class InitialViewController: UIViewController {
     }
     
     static let shared = InitialViewController()
+    let viewModel = InitialViewModel()
     
-    var scaleFactor: Double = 1
-    
+    lazy var scaleFactor: Double = calcScaleFactor()
     var selectedMonth = Date()
     var selectedYear = Date()
     var selectedMonthScaledData: (CGFloat, CGFloat) = (0,0)
@@ -35,21 +34,11 @@ class InitialViewController: UIViewController {
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
     var quickAddView = QuickAddView()
-    let viewModel = InitialViewModel()
     let summaryLabels = ["Total Income", "Total Spending"]
     let savedLabel = UILabel.savedLabel()
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
-    var recentItemsRefreshControl = UIRefreshControl()
     var recentItemsTable: UITableView?
-    
-    var emptyItemsLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.text = "Items from last 7 days will appear here"
-        lbl.textColor = CustomColors.darkGray
-        lbl.font = UIFont.italicSystemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
-        return lbl
-    }()
-    
+    var emptyItemsLabel = UILabel.emptyItemsLabel()
     
 // MARK:- Life cycle functions
     
@@ -68,11 +57,7 @@ class InitialViewController: UIViewController {
         savedLabel.frame = .init(x: view.frame.width * 0.25, y: -80, width: view.frame.width * 0.5, height: 40)
         setupSummaryView()
         quickAddView.setupUI()
-        viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
-        self.scaleFactor = calcScaleFactor()
-        recentItemsRefreshControl.addTarget(self, action: #selector(reloadRecentItems), for: .valueChanged)
     }
-    
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -86,7 +71,6 @@ class InitialViewController: UIViewController {
         quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
         quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
     }
-    
     
 // MARK:- Methods
     
@@ -129,7 +113,6 @@ class InitialViewController: UIViewController {
         if viewModel.recentItems.count > 0 {
             if recentItemsTable == nil { setupRecentItemTable() }
             recentItemsTable?.reloadData()
-            recentItemsRefreshControl.endRefreshing()
         }
         recentItemsDidChange = false
     }
@@ -181,23 +164,20 @@ class InitialViewController: UIViewController {
             summaryView.titleLabel.text = "Summary of \(DateFormatters.yearFormatter.string(from: selectedYear))"
             viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
         }
-        
         self.scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
     }
-    
     
     func setupRecentItemTable() {
         emptyItemsLabel.removeFromSuperview()
         recentItemsTable = UITableView()
         recentItemsTable?.setup(delegate: self, dataSource: self, cellClass: RecentItemCell.self, cellId: tableCellId)
-        recentItemsTable?.refreshControl = recentItemsRefreshControl
         scrollView.addSubview(recentItemsTable!)
         recentItemsTable?.anchor(top: quickAddView.bottomAnchor, topConstant: 18, bottom: view.safeAreaLayoutGuide.bottomAnchor, widthConstant: view.frame.width)
     }
     
     func calcScaleFactor() -> Double {
-        var higherValue: Double!
+        var higherValue: Double = 1
         if summaryView.segmentedControl.selectedSegmentIndex == 0 {
             higherValue = viewModel.maxMonthSpendingInYear
         } else {
@@ -213,7 +193,6 @@ class InitialViewController: UIViewController {
         recentItemsDidChange = true
         summaryView.configureSummaryLabel(with: viewModel)
     }
-    
 }
 
 // MARK:- Bar Chart Delegate
@@ -266,9 +245,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return .init(width: collectionView.frame.width, height: summaryView.frame.height * 0.19)
     }
-    
 }
-
 
 // MARK:- Quick Add View Delegate
 
@@ -277,9 +254,13 @@ extension InitialViewController: QuickAddViewDelegate {
     func openRecurringWindow() {
         let recurringVC = RecurringViewController(itemRecurrence: quickAddView.itemRecurrence)
         recurringVC.delegate = self
-        recurringVC.setupPopoverController(popoverDelegate: self, sourceView: quickAddView.recurringButton, sourceRect: quickAddView.recurringButton.bounds, preferredWidth: fontScale < 1 ? 220 : 220 * fontScale, preferredHeight: fontScale < 1 ? 330 : 330 * fontScale, style: fontScale < 0.9 ? .overCurrentContext : .popover)
+        recurringVC.setupPopoverController(popoverDelegate: self,
+                                           sourceView: quickAddView.recurringButton,
+                                           sourceRect: quickAddView.recurringButton.bounds,
+                                           preferredWidth: fontScale < 1 ? 220 : 220 * fontScale,
+                                           preferredHeight: fontScale < 1 ? 330 : 330 * fontScale,
+                                           style: fontScale < 0.9 ? .overCurrentContext : .popover)
         recurringVC.popoverPresentationController?.permittedArrowDirections = [.down, .right]
-       
         recurringVC.dayPicker.minimumDate = Calendar.current.date(byAdding: .day, value: 1, to: quickAddView.dayPickerDate ?? Date())
         present(recurringVC, animated: true)
         dimBackground()
@@ -315,7 +296,6 @@ extension InitialViewController: QuickAddViewDelegate {
     
 }
 
-
 // MARK:- Category Title View Controller Delegate
 
 extension InitialViewController: CategoryTitleViewControllerDelegate {
@@ -326,7 +306,6 @@ extension InitialViewController: CategoryTitleViewControllerDelegate {
         quickAddView.categoryLabel.textColor = CustomColors.label
         quickAddView.showSaveButton()
     }
-    
 }
 
 // MARK:- Item Name View Controller Delegate
@@ -338,14 +317,11 @@ extension InitialViewController: ItemNameViewControllerDelegate {
         quickAddView.detailLabel.textColor = CustomColors.label
         quickAddView.showSaveButton()
     }
-    
 }
 
 // MARK:- Recent Items Table Delegate
 
-
 extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
-    
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let label = UILabel()
@@ -396,7 +372,6 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return windowHeightScale < 1 ? 44 : 44 * fontScale
     }
-    
 }
 
 // MARK:- View Model Delegate
@@ -416,7 +391,6 @@ extension InitialViewController: InitialViewModelDelegate {
         }
     }
     
-    
     func recentItemsChanged() {
         if view.window != nil && presentedViewController == nil {
             reloadRecentItems(withFetch: false)
@@ -424,7 +398,6 @@ extension InitialViewController: InitialViewModelDelegate {
             recentItemsDidChange = true
         }
     }
-    
 }
 
 // MARK:- Recurring View Controller Delegate
@@ -441,7 +414,6 @@ extension InitialViewController: RecurringViewControllerDelegate {
         dimmingView.removeFromSuperview()
         dismiss(animated: true, completion: nil)
     }
-    
 }
 
 // MARK:- UIPopover presentation controller delegate
@@ -455,6 +427,4 @@ extension InitialViewController: UIPopoverPresentationControllerDelegate {
     func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool {
         return false
     }
-    
-    
 }

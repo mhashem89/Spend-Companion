@@ -85,7 +85,9 @@ class CoreDataManager {
         guard let month = checkMonth(monthString: monthString, createNew: true)  else { return nil }
         let fetchRequest = NSFetchRequest<Category>(entityName: "Category")
         fetchRequest.predicate = NSPredicate(format: "name = %@ AND month = %@", categoryName, month)
-        if let fetchedCategory = try? context.fetch(fetchRequest).first {
+        guard let fetchedCategories = try? context.fetch(fetchRequest) else { return nil }
+        if let fetchedCategory = fetchedCategories.first {
+            if fetchedCategories.count > 1 { mergeCategories(fetchedCategories) }
             return fetchedCategory
         } else if createNew {
             let newCategory = Category(context: context)
@@ -100,7 +102,9 @@ class CoreDataManager {
     func checkMonth(monthString: String, createNew: Bool = false) -> Month? {
         let fetchRequest = NSFetchRequest<Month>(entityName: "Month")
         fetchRequest.predicate = NSPredicate(format: "date = %@", monthString)
-        if let fetchedMonth = try? context.fetch(fetchRequest).first {
+        guard let fetchedMonths = try? context.fetch(fetchRequest) else { return nil }
+        if let fetchedMonth = fetchedMonths.first {
+            if fetchedMonths.count > 1 { mergeMonths(months: fetchedMonths) }
             return fetchedMonth
         } else if createNew {
             let newMonth = Month(context: context)
@@ -112,6 +116,24 @@ class CoreDataManager {
         }
     }
     
+    func mergeMonths(months: [Month]) {
+        var filteredMonths = months
+        let first = filteredMonths.removeFirst()
+        filteredMonths.forEach { (month) in
+            (month.categories?.allObjects as? [Category])?.forEach({ $0.month = first })
+            (month.items?.allObjects as? [Item])?.forEach({ $0.month = first })
+            context.delete(month)
+        }
+    }
+    
+    func mergeCategories(_ categories: [Category]) {
+        var filteredCategories = categories
+        let first = filteredCategories.removeFirst()
+        filteredCategories.forEach { (category) in
+            (category.items?.allObjects as? [Item])?.forEach({ $0.category = first })
+            context.delete(category)
+        }
+    }
     
     func extractMonthString(from dayString: String) -> String {
         let segments = dayString.split(separator: " ")
