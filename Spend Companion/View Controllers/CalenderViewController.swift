@@ -22,16 +22,6 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
 
     var yearTotals = [String: (spending: Double?, income: Double?)]()
     
-    override init(collectionViewLayout layout: UICollectionViewLayout) {
-        super.init(collectionViewLayout: layout)
-        loadData()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    
     override func viewDidLoad() {
         collectionView.backgroundColor = CustomColors.systemBackground
         collectionView.register(CalendarCell.self, forCellWithReuseIdentifier: monthCellId)
@@ -47,7 +37,8 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         tabBarController?.tabBar.isHidden = false
-        collectionView.reloadSections(IndexSet(arrayLiteral: 1))
+        loadData()
+        collectionView.reloadData()
     }
     
     func loadData() {

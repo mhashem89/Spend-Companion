@@ -72,14 +72,6 @@ class InitialViewModel: NSObject {
         }
     }
     
-    
-    func scheduleReminder(for item: Item, with itemRecurrence: ItemRecurrence, createNew new: Bool = true) {
-        do {
-            try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence, createNew: new)
-        } catch let err {
-            delegate?.presentError(error: err)
-        }
-    }
 
     func calcYearTotals(year: String) {
         currentYearTotalIncome = 0
@@ -151,7 +143,7 @@ class InitialViewModel: NSObject {
             if let fetchedItems = remindersFetchedResultsController.fetchedObjects {
                 for item in fetchedItems {
                     if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
-                        scheduleReminder(for: item, with: itemRecurrence, createNew: false)
+                        try CoreDataManager.shared.scheduleReminder(for: item, with: itemRecurrence, createNew: false)
                     }
                 }
             }
@@ -184,7 +176,7 @@ extension InitialViewModel: NSFetchedResultsControllerDelegate {
             switch type {
             case .update, .insert:
                 if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: changedItem) {
-                    scheduleReminder(for: changedItem, with: itemRecurrence, createNew: false)
+                    try? CoreDataManager.shared.scheduleReminder(for: changedItem, with: itemRecurrence, createNew: false)
                 }
             case .delete:
                 if let itemReminderUID = changedItem.reminderUID {
