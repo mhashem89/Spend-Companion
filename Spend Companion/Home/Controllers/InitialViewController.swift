@@ -13,7 +13,6 @@ class InitialViewController: UIViewController {
 // MARK:- Properties
     
     let barChartCellId = "barChartCellId"
-    let tableCellId = "tableCellId"
     
     var safeAreaTop: CGFloat {
         let top = UIApplication.shared.windows.first?.safeAreaInsets.top
@@ -171,7 +170,7 @@ class InitialViewController: UIViewController {
     func setupRecentItemTable() {
         emptyItemsLabel.removeFromSuperview()
         recentItemsTable = UITableView()
-        recentItemsTable?.setup(delegate: self, dataSource: self, cellClass: RecentItemCell.self, cellId: tableCellId)
+        recentItemsTable?.setup(delegate: self, dataSource: viewModel, cellClass: RecentItemCell.self, cellId: viewModel.tableCellId)
         scrollView.addSubview(recentItemsTable!)
         recentItemsTable?.anchor(top: quickAddView.bottomAnchor, topConstant: 18, bottom: view.safeAreaLayoutGuide.bottomAnchor, widthConstant: view.frame.width)
     }
@@ -321,7 +320,7 @@ extension InitialViewController: ItemNameViewControllerDelegate {
 
 // MARK:- Recent Items Table Delegate
 
-extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
+extension InitialViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let label = UILabel()
@@ -332,17 +331,6 @@ extension InitialViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 30 * windowHeightScale
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.recentItems.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = recentItemsTable?.dequeueReusableCell(withIdentifier: tableCellId, for: indexPath) as! RecentItemCell
-        let item = viewModel.recentItems[indexPath.row]
-        cell.configureCell(for: item)
-        return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

@@ -26,6 +26,8 @@ class InitialViewModel: NSObject {
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }
     
+    let tableCellId = "tableCellId"
+
     weak var delegate: InitialViewModelDelegate?
     
     private(set) var recentItems = [Item]()
@@ -150,6 +152,21 @@ class InitialViewModel: NSObject {
         } catch let err {
             delegate?.presentError(error: err)
         }
+    }
+    
+}
+
+extension InitialViewModel: UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return recentItems.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: tableCellId, for: indexPath) as! RecentItemCell
+        let item = recentItems[indexPath.row]
+        cell.configureCell(for: item)
+        return cell
     }
     
 }

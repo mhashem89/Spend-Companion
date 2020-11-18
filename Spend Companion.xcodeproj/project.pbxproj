@@ -155,6 +155,108 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7D251F2D2564C2CA00DD9F4B /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				7D251F3A2564C60400DD9F4B /* Views */,
+				7D251F392564C5EC00DD9F4B /* Controllers */,
+				D905F583253D579E00FE4B59 /* InitialViewModel.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		7D251F2E2564C32300DD9F4B /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				7D251F452564C64B00DD9F4B /* Views */,
+				7D251F3E2564C63500DD9F4B /* Controllers */,
+				D905F582253D579E00FE4B59 /* MonthViewModel.swift */,
+				D905F57F253D579E00FE4B59 /* SearchViewModel.swift */,
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
+		7D251F2F2564C3D500DD9F4B /* Category Table */ = {
+			isa = PBXGroup;
+			children = (
+				7D251F592564C66D00DD9F4B /* Views */,
+				7D251F4F2564C65F00DD9F4B /* Controllers */,
+				D905F580253D579E00FE4B59 /* CategoryViewModel.swift */,
+			);
+			path = "Category Table";
+			sourceTree = "<group>";
+		};
+		7D251F392564C5EC00DD9F4B /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				D97D486E255A11D9008294FE /* CustomTabBarController.swift */,
+				D905F5A3253D584000FE4B59 /* InitialViewController.swift */,
+				D905F5AC253D584100FE4B59 /* ItemNameViewController.swift */,
+				D905F5A6253D584000FE4B59 /* RecurringViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		7D251F3A2564C60400DD9F4B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D905F591253D582000FE4B59 /* QuickAddView.swift */,
+				D905F58D253D581F00FE4B59 /* RecentItemCell.swift */,
+				D96FBD552544F86B0025F5CF /* LockingView.swift */,
+				D905F58F253D581F00FE4B59 /* SummaryView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		7D251F3E2564C63500DD9F4B /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				D905F5A4253D584000FE4B59 /* MonthViewController.swift */,
+				D905F5A2253D584000FE4B59 /* CalenderViewController.swift */,
+				D905F5A7253D584100FE4B59 /* SearchViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		7D251F452564C64B00DD9F4B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D905F595253D582000FE4B59 /* CalendarCell.swift */,
+				D905F590253D582000FE4B59 /* CalendarHeader.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		7D251F4F2564C65F00DD9F4B /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				D905F5A9253D584100FE4B59 /* CategoryViewController.swift */,
+				D905F5AB253D584100FE4B59 /* CategoryTitleViewController.swift */,
+				D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */,
+				D905F5A8253D584100FE4B59 /* SortingViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
+		7D251F592564C66D00DD9F4B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D905F593253D582000FE4B59 /* ItemTableHeader.swift */,
+				D905F592253D582000FE4B59 /* CategoryCell.swift */,
+				D905F58E253D581F00FE4B59 /* ItemCell.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		7D251F602564C69E00DD9F4B /* Controllers */ = {
+			isa = PBXGroup;
+			children = (
+				D905F5AA253D584100FE4B59 /* ChartViewController.swift */,
+				D905F5A5253D584000FE4B59 /* FilterViewController.swift */,
+			);
+			path = Controllers;
+			sourceTree = "<group>";
+		};
 		D905F52D253D543F00FE4B59 = {
 			isa = PBXGroup;
 			children = (
@@ -180,9 +282,11 @@
 			isa = PBXGroup;
 			children = (
 				D905F56F253D549C00FE4B59 /* Spend Companion.entitlements */,
-				D905F57B253D574200FE4B59 /* View Models */,
-				D905F57D253D576600FE4B59 /* View Controllers */,
-				D905F57C253D575600FE4B59 /* Views */,
+				7D251F2D2564C2CA00DD9F4B /* Home */,
+				7D251F2E2564C32300DD9F4B /* Calendar */,
+				7D251F2F2564C3D500DD9F4B /* Category Table */,
+				D905F57B253D574200FE4B59 /* Charts */,
+				D905F57D253D576600FE4B59 /* Settings */,
 				D905F5BB253D5B7700FE4B59 /* Extensions */,
 				D905F539253D543F00FE4B59 /* AppDelegate.swift */,
 				D905F53B253D543F00FE4B59 /* SceneDelegate.swift */,
@@ -221,58 +325,26 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		D905F57B253D574200FE4B59 /* View Models */ = {
+		D905F57B253D574200FE4B59 /* Charts */ = {
 			isa = PBXGroup;
 			children = (
-				D905F583253D579E00FE4B59 /* InitialViewModel.swift */,
-				D905F580253D579E00FE4B59 /* CategoryViewModel.swift */,
-				D905F582253D579E00FE4B59 /* MonthViewModel.swift */,
-				D905F57F253D579E00FE4B59 /* SearchViewModel.swift */,
+				7D251F602564C69E00DD9F4B /* Controllers */,
+				D905F594253D582000FE4B59 /* ChartCell.swift */,
 				D96FBD16254090EF0025F5CF /* DataObjects.swift */,
 				D9CA5549255711EA001C8561 /* CoreDataManager.swift */,
 			);
-			path = "View Models";
+			path = Charts;
 			sourceTree = "<group>";
 		};
-		D905F57C253D575600FE4B59 /* Views */ = {
+		D905F57D253D576600FE4B59 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				D905F595253D582000FE4B59 /* CalendarCell.swift */,
-				D905F590253D582000FE4B59 /* CalendarHeader.swift */,
-				D905F592253D582000FE4B59 /* CategoryCell.swift */,
-				D905F594253D582000FE4B59 /* ChartCell.swift */,
-				D905F58E253D581F00FE4B59 /* ItemCell.swift */,
-				D905F593253D582000FE4B59 /* ItemTableHeader.swift */,
-				D905F591253D582000FE4B59 /* QuickAddView.swift */,
-				D905F58D253D581F00FE4B59 /* RecentItemCell.swift */,
-				D905F58F253D581F00FE4B59 /* SummaryView.swift */,
-				D96FBD552544F86B0025F5CF /* LockingView.swift */,
-				D97A6B3925453963003380A7 /* BarColorChooser.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		D905F57D253D576600FE4B59 /* View Controllers */ = {
-			isa = PBXGroup;
-			children = (
-				D97D486E255A11D9008294FE /* CustomTabBarController.swift */,
-				D905F5A3253D584000FE4B59 /* InitialViewController.swift */,
-				D905F5A2253D584000FE4B59 /* CalenderViewController.swift */,
-				D905F5AB253D584100FE4B59 /* CategoryTitleViewController.swift */,
-				D905F5A9253D584100FE4B59 /* CategoryViewController.swift */,
-				D9255A5C254FD5C40071B89D /* MoveItemViewController.swift */,
-				D905F5AA253D584100FE4B59 /* ChartViewController.swift */,
-				D905F5A5253D584000FE4B59 /* FilterViewController.swift */,
-				D905F5AC253D584100FE4B59 /* ItemNameViewController.swift */,
-				D905F5A4253D584000FE4B59 /* MonthViewController.swift */,
-				D905F5A6253D584000FE4B59 /* RecurringViewController.swift */,
-				D905F5A7253D584100FE4B59 /* SearchViewController.swift */,
-				D905F5A8253D584100FE4B59 /* SortingViewController.swift */,
 				D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */,
 				D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */,
 				D99FAE7B254799560048B38D /* CurrencyViewController.swift */,
+				D97A6B3925453963003380A7 /* BarColorChooser.swift */,
 			);
-			path = "View Controllers";
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		D905F5BB253D5B7700FE4B59 /* Extensions */ = {
