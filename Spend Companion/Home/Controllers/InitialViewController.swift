@@ -170,7 +170,7 @@ class InitialViewController: UIViewController {
     func setupRecentItemTable() {
         emptyItemsLabel.removeFromSuperview()
         recentItemsTable = UITableView()
-        recentItemsTable?.setup(delegate: self, dataSource: viewModel, cellClass: RecentItemCell.self, cellId: viewModel.tableCellId)
+        recentItemsTable?.setup(delegate: self, dataSource: viewModel, cellClass: RecentItemCell.self, cellId: RecentItemCell.reuseIdentifier)
         scrollView.addSubview(recentItemsTable!)
         recentItemsTable?.anchor(top: quickAddView.bottomAnchor, topConstant: 18, bottom: view.safeAreaLayoutGuide.bottomAnchor, widthConstant: view.frame.width)
     }
@@ -343,7 +343,9 @@ extension InitialViewController: UITableViewDelegate {
         if let itemIndex = categoryVC.viewModel?.items?.firstIndex(of: item) {
             present(navVC, animated: true) {
                 let selectedIndexPath = IndexPath(item: itemIndex, section: 0)
-                categoryVC.activeCell = categoryVC.tableView.cellForRow(at: selectedIndexPath) as? ItemCell
+                categoryVC.tableView.scrollToRow(at: selectedIndexPath, at: .none, animated: false)
+                let selectedCell = categoryVC.tableView.cellForRow(at: selectedIndexPath) as? ItemCell
+                selectedCell?.isHighlighted = true
             }
         }
     }

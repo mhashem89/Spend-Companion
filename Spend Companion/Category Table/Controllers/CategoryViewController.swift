@@ -16,7 +16,6 @@ class CategoryViewController: UIViewController {
     
     // MARK:- Properties
     
-    let itemId = "itemId"
     var viewModel: CategoryViewModel?
     var month: Month
     var delegate: CategoryViewControllerDelegate?
@@ -94,7 +93,7 @@ class CategoryViewController: UIViewController {
     }
     
     func setupTableView() {
-        tableView.setup(delegate: self, dataSource: self, cellClass: ItemCell.self, cellId: itemId)
+        tableView.setup(delegate: self, dataSource: self, cellClass: ItemCell.self, cellId: ItemCell.reuseIdentifier)
         tableView.allowsSelection = false
         tableView.keyboardDismissMode = .interactive
         tableView.anchor(top: headerView.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
@@ -193,7 +192,7 @@ class CategoryViewController: UIViewController {
         if view.frame.height != viewFrameHeight {
             view.frame.size.height = viewFrameHeight
             tableView.frame.size.height = tableViewFrameHeight
-            tableView.setContentOffset(.zero, animated: true)
+//            tableView.setContentOffset(.zero, animated: true)
         }
     }
     
@@ -226,9 +225,8 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         return viewModel?.items?.count ?? 0
     }
 
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: itemId, for: indexPath) as! ItemCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: ItemCell.reuseIdentifier, for: indexPath) as! ItemCell
         cell.setupUI()
         cell.configure(for: viewModel?.items?[indexPath.row])
         cell.dayPicker.delegate = self
@@ -237,7 +235,6 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         if cell.isHighlighted { cell.isHighlighted = false }
         return cell
     }
-
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let item = viewModel?.items?[indexPath.row], let categoryName = item.category?.name else { return nil }

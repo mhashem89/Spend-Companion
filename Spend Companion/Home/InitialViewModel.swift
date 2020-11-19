@@ -25,8 +25,6 @@ class InitialViewModel: NSObject {
     private var context: NSManagedObjectContext {
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }
-    
-    let tableCellId = "tableCellId"
 
     weak var delegate: InitialViewModelDelegate?
     
@@ -163,7 +161,7 @@ extension InitialViewModel: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: tableCellId, for: indexPath) as! RecentItemCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: RecentItemCell.reuseIdentifier, for: indexPath) as! RecentItemCell
         let item = recentItems[indexPath.row]
         cell.configureCell(for: item)
         return cell

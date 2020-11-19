@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D251F702564E81000DD9F4B /* SettingsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D251F6F2564E81000DD9F4B /* SettingsCell.swift */; };
 		D905F53A253D543F00FE4B59 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F539253D543F00FE4B59 /* AppDelegate.swift */; };
 		D905F53C253D543F00FE4B59 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D905F53B253D543F00FE4B59 /* SceneDelegate.swift */; };
 		D905F544253D543F00FE4B59 /* Spend_Companion.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = D905F542253D543F00FE4B59 /* Spend_Companion.xcdatamodeld */; };
@@ -73,6 +74,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D251F6F2564E81000DD9F4B /* SettingsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsCell.swift; sourceTree = "<group>"; };
 		D905F536253D543F00FE4B59 /* Spend Companion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Spend Companion.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D905F539253D543F00FE4B59 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D905F53B253D543F00FE4B59 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -340,6 +342,7 @@
 			isa = PBXGroup;
 			children = (
 				D905F5E2253E4A7A00FE4B59 /* SettingsViewController.swift */,
+				7D251F6F2564E81000DD9F4B /* SettingsCell.swift */,
 				D99FAE73254689510048B38D /* CustomizeAppearanceController.swift */,
 				D99FAE7B254799560048B38D /* CurrencyViewController.swift */,
 				D97A6B3925453963003380A7 /* BarColorChooser.swift */,
@@ -494,6 +497,7 @@
 				D905F589253D579E00FE4B59 /* InitialViewModel.swift in Sources */,
 				D905F585253D579E00FE4B59 /* SearchViewModel.swift in Sources */,
 				D905F5E3253E4A7A00FE4B59 /* SettingsViewController.swift in Sources */,
+				7D251F702564E81000DD9F4B /* SettingsCell.swift in Sources */,
 				D905F544253D543F00FE4B59 /* Spend_Companion.xcdatamodeld in Sources */,
 				D905F5B0253D584100FE4B59 /* FilterViewController.swift in Sources */,
 				D905F588253D579E00FE4B59 /* MonthViewModel.swift in Sources */,

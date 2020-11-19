@@ -41,20 +41,16 @@ class QuickAddView: UIView {
         return lbl
     }()
     
-    
     var dayLabel: UILabel = {
         let label = UILabel()
+        label.addBorder()
         label.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
         label.isUserInteractionEnabled = true
         label.textAlignment = .center
         label.text = "Today"
         label.textColor = CustomColors.label
-        label.layer.cornerRadius = 5
-        label.layer.borderWidth = 1
-        label.layer.borderColor = CustomColors.label.cgColor
         return label
     }()
-    
     
     lazy var dayTextField: UITextField = {
         let tf = UITextField()
@@ -95,15 +91,12 @@ class QuickAddView: UIView {
     
     var categoryLabel: UILabel = {
         let lbl = UILabel()
+        lbl.addBorder()
         lbl.text = "Category"
         lbl.textAlignment = .center
         lbl.isUserInteractionEnabled = true
         lbl.textColor = CustomColors.darkGray
         lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        lbl.layer.cornerRadius = 5
-        lbl.clipsToBounds = true
-        lbl.layer.borderWidth = 1
-        lbl.layer.borderColor = CustomColors.label.cgColor
         lbl.alpha = 0
         return lbl
     }()
@@ -120,29 +113,24 @@ class QuickAddView: UIView {
     
     lazy var detailLabel: UILabel = {
         let lbl = UILabel()
+        lbl.addBorder()
         lbl.tag = 2
         lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
         lbl.text = "Description"
         lbl.textColor = CustomColors.darkGray
         lbl.textAlignment = .center
-        lbl.layer.cornerRadius = 5
-        lbl.clipsToBounds = true
-        lbl.layer.borderWidth = 1
-        lbl.layer.borderColor = CustomColors.label.cgColor
         lbl.isUserInteractionEnabled = true
         return lbl
     }()
     
     lazy var amountTextField: UITextField = {
         let tf = UITextField()
+        tf.addBorder()
         tf.tag = 3
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
         tf.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")...    "
         tf.textAlignment = .center
         tf.keyboardType = .decimalPad
-        tf.layer.cornerRadius = 5
-        tf.layer.borderWidth = 1
-        tf.layer.borderColor = CustomColors.label.cgColor
         tf.delegate = self
         return tf
     }()
@@ -154,7 +142,6 @@ class QuickAddView: UIView {
         }
         return button
     }()
-    
     
     var saveButton: UIButton = {
         let button = UIButton(type: .system)
@@ -187,8 +174,6 @@ class QuickAddView: UIView {
             }
         }
     }
-        
-    
     
 // MARK:- UI Methods
     
@@ -239,7 +224,6 @@ class QuickAddView: UIView {
         amountTextField.inputAccessoryView = toolBar
     }
     
-    
     @objc private func doneButtonPressed() {
         if dayTextField.isFirstResponder {
             dayTextField.resignFirstResponder()
@@ -264,7 +248,6 @@ class QuickAddView: UIView {
             dayTextField.resignFirstResponder()
         }
     }
-    
     
     @objc func chooseCategory() {
         delegate?.showCategoryTitleVC()
@@ -381,9 +364,7 @@ class QuickAddView: UIView {
         let itemTap = UITapGestureRecognizer(target: self, action: #selector(chooseItemName))
         detailLabel.addGestureRecognizer(itemTap)
     }
-    
 }
-
 
 // MARK:- UITextField Delegate
 

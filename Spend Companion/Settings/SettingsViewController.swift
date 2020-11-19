@@ -26,9 +26,7 @@ class SettingsViewController: UITableViewController {
     
     
 // MARK:- Properties
-    
-    var cellId = "cellId"
-    
+        
     var iCloudKeyStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
     let iCloudPurchaseProductID = PurchaseIds.iCloudSync.description
@@ -62,7 +60,7 @@ class SettingsViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        tableView.register(SettingsCell.self, forCellReuseIdentifier: cellId)
+        tableView.register(SettingsCell.self, forCellReuseIdentifier: SettingsCell.reuseIdentifier)
         navigationController?.navigationBar.prefersLargeTitles = true
         title = "Settings"
         SKPaymentQueue.default().add(self)
@@ -87,7 +85,7 @@ class SettingsViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! SettingsCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: SettingsCell.reuseIdentifier, for: indexPath) as! SettingsCell
         cell.textLabel?.font = UIFont.systemFont(ofSize: 18)
         
         switch indexPath.row {
@@ -257,48 +255,7 @@ extension SettingsViewController: SKPaymentTransactionObserver {
     
 }
 
-// MARK:- Settings Cell
-
-class SettingsCell: UITableViewCell {
-    
-    var settingsToggle = UISwitch()
-    
-    var purchaseButton = UIButton.purchaseButton(withFont: UIFont.boldSystemFont(ofSize: 14))
-    
-    weak var delegate: SettingsCellDelegate?
-    
-    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
-        super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
-    func setupUI(for setting: Setting, isPurchased purchased: Bool = true) {
-        if setting == .iCloudSync, !purchased {
-            settingsToggle.removeFromSuperview()
-            addSubview(purchaseButton)
-            purchaseButton.anchor(trailing: trailingAnchor, trailingConstant: 20, centerY: centerYAnchor, widthConstant: 75)
-            purchaseButton.addTarget(self, action: #selector(purchaseButtonPressed), for: .touchUpInside)
-        } else {
-            purchaseButton.removeFromSuperview()
-            addSubview(settingsToggle)
-            settingsToggle.anchor(trailing: trailingAnchor, trailingConstant: 20, centerY: centerYAnchor)
-            settingsToggle.addTarget(self, action: #selector(settingsTogglePressed), for: .valueChanged)
-        }
-    }
-    
-    @objc func settingsTogglePressed() {
-        delegate?.settingsTogglePressed(toggleIsON: settingsToggle.isOn, in: self)
-    }
-    
-    @objc func purchaseButtonPressed() {
-        delegate?.purchaseButtonPressed()
-    }
-    
-    
-}
+// MARK:- Settings
 
 enum Setting {
     case iCloudSync, biometrics

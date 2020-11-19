@@ -95,6 +95,13 @@ extension UIView {
         return self
     }
     
+    func addBorder() {
+        layer.cornerRadius = 5
+        layer.borderWidth = 1
+        layer.borderColor = CustomColors.label.cgColor
+        clipsToBounds = true
+    }
+    
 }
 
 extension UITabBarItem {
@@ -139,16 +146,6 @@ extension UIViewController {
         preferredContentSize = .init(width: preferredWidth, height: preferredHeight)
     }
     
-}
-
-extension UITableView {
-    
-    func setup(delegate: UITableViewDelegate, dataSource: UITableViewDataSource, cellClass: AnyClass, cellId: String) {
-        self.delegate = delegate
-        self.dataSource = dataSource
-        self.register(cellClass.self, forCellReuseIdentifier: cellId)
-        self.tableFooterView = UIView()
-    }
 }
 
 extension UIImageView {
@@ -339,6 +336,20 @@ extension UITableView {
     func lastIndexPath(inSection section: Int) -> IndexPath {
         let numberOfRowsInSection = self.numberOfRows(inSection: section)
         return IndexPath(row: numberOfRowsInSection > 0 ? numberOfRowsInSection - 1 : 0 , section: section)
+    }
+    
+    func setup(delegate: UITableViewDelegate, dataSource: UITableViewDataSource, cellClass: AnyClass, cellId: String) {
+        self.delegate = delegate
+        self.dataSource = dataSource
+        self.register(cellClass.self, forCellReuseIdentifier: cellId)
+        self.tableFooterView = UIView()
+    }
+}
+
+extension UITableViewCell {
+    
+    static var reuseIdentifier: String {
+        return String(describing: self)
     }
 }
 
