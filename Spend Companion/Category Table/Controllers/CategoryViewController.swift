@@ -22,11 +22,14 @@ class CategoryViewController: UIViewController {
     var tableView = UITableView(frame: .zero, style: .plain)
     var viewFrameHeight: CGFloat = 0
     var tableViewFrameHeight: CGFloat = 0
-    var activeCell: ItemCell? {
+    var activeIndexPath: IndexPath? {
         didSet {
+            guard let activeIndexPath = activeIndexPath else { return }
+            activeCell = tableView.cellForRow(at: activeIndexPath) as? ItemCell
             scrollToActiveRow()
         }
     }
+    var activeCell: ItemCell?
     var headerView = ItemTableHeader()
     var recurrenceViewer: RecurringViewController?
     let sortingVC = SortingViewController()
@@ -115,7 +118,6 @@ class CategoryViewController: UIViewController {
         }
     }
     
-    
     @objc private func save() {
         activeCell?.resignFirstResponders()
         do {
@@ -153,9 +155,9 @@ class CategoryViewController: UIViewController {
             let itemCount = self.viewModel?.items?.count ?? 1
             let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
             self.tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
-        }, completion: { _ in
-            self.activeCell = self.tableView.cellForRow(at: self.tableView.lastIndexPath(inSection: 0)) as? ItemCell
-            self.dataDidChange()
+        }, completion: { [weak self] _ in
+            self?.activeIndexPath = self?.tableView.lastIndexPath(inSection: 0)
+            self?.dataDidChange()
         })
         if let items = viewModel?.items, items.count > 1 {
             headerView.sortButton.isEnabled = true
@@ -202,14 +204,14 @@ class CategoryViewController: UIViewController {
     }
    
     func scrollToActiveRow() {
-        guard let activeCell = activeCell, let activeIndexPath = tableView.indexPath(for: activeCell) else { return }
+        guard let activeIndexPath = activeIndexPath else { return }
         tableView.scrollToRow(at: activeIndexPath, at: .none, animated: true)
         if let visiblePaths = tableView.indexPathsForVisibleRows {
             for indexPath in visiblePaths {
                 tableView.cellForRow(at: indexPath)?.isHighlighted = false
             }
         }
-        activeCell.isHighlighted = true
+        activeCell?.isHighlighted = true
     }
 }
 
@@ -238,7 +240,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let item = viewModel?.items?[indexPath.row], let categoryName = item.category?.name else { return nil }
-        activeCell = tableView.cellForRow(at: indexPath) as? ItemCell
+        activeIndexPath = indexPath
         let move = UIContextualAction(style: .normal, title: "Move") { [weak self] (_, _, _) in
             guard let categories = item.month?.categories?.allObjects as? [Category] else { return }
             let moveItemVC = MoveItemViewController(item: item, selectedCategory: categoryName)
@@ -275,7 +277,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, leadingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let item = viewModel?.items?[indexPath.row], item.recurringNum == nil else { return nil }
-        activeCell = tableView.cellForRow(at: indexPath) as? ItemCell
+        activeIndexPath = indexPath
         let setRecurring = UIContextualAction(style: .normal, title: "Recurring") { [weak self] (_, _, _) in
             if let cell = tableView.cellForRow(at: indexPath) as? ItemCell {
                 cell.recurringCircleButton.isHidden = false
@@ -356,14 +358,14 @@ extension CategoryViewController: ItemCellDelegate {
     }
     
     func editingStarted(in textField: UITextField, of cell: ItemCell) {
-        self.activeCell = cell
+        self.activeIndexPath = tableView.indexPath(for: cell)
     }
     
     func recurrenceButtonPressed(in cell: ItemCell) {
         guard let indexPath = tableView.indexPath(for: cell),
               let item = viewModel?.items?[indexPath.row]
         else { return }
-        activeCell = cell
+        activeIndexPath = tableView.indexPath(for: cell)
         
         recurrenceViewer = RecurringViewController(itemRecurrence: ItemRecurrence.createItemRecurrence(from: item))
         recurrenceViewer?.setupPopoverController(popoverDelegate: fontScale < 0.9 ? nil : self,
@@ -436,8 +438,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
     func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool, dataChanged: [ItemRecurrenceCase]) {
         dimmingView.removeFromSuperview()
         recurrenceViewer?.dismiss(animated: true) { [unowned self] in
-            guard let activeCell = activeCell,
-                  let indexPath = tableView.indexPath(for: activeCell),
+            guard let indexPath = activeIndexPath,
                   let item = viewModel?.items?[indexPath.row]
                   else { return }
             let alertController = UIAlertController(title: nil, message: "This change will be applied to all future transactions", preferredStyle: .alert)
