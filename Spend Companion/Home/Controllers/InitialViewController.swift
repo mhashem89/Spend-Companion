@@ -349,15 +349,6 @@ extension InitialViewController: UITableViewDelegate {
             }
         }
     }
-
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            tableView.performBatchUpdates({
-                tableView.deleteRows(at: [indexPath], with: .automatic)
-                viewModel.deleteRecentItem(at: indexPath)
-            }, completion: nil)
-        }
-    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return windowHeightScale < 1 ? 44 : 44 * fontScale

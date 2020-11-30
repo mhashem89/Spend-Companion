@@ -167,6 +167,16 @@ extension InitialViewModel: UITableViewDataSource {
         return cell
     }
     
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            tableView.performBatchUpdates({
+                tableView.deleteRows(at: [indexPath], with: .automatic)
+                deleteRecentItem(at: indexPath)
+            }, completion: nil)
+        }
+    }
+    
 }
 
 

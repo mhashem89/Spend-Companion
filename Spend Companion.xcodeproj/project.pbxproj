@@ -202,10 +202,10 @@
 		7D251F3A2564C60400DD9F4B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				D905F58F253D581F00FE4B59 /* SummaryView.swift */,
 				D905F591253D582000FE4B59 /* QuickAddView.swift */,
 				D905F58D253D581F00FE4B59 /* RecentItemCell.swift */,
 				D96FBD552544F86B0025F5CF /* LockingView.swift */,
-				D905F58F253D581F00FE4B59 /* SummaryView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";

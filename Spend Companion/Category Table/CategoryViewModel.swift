@@ -22,7 +22,7 @@ class CategoryViewModel {
         }
     }
     var month: Month
-    var items: [Item]?
+    private(set) var items: [Item]?
     var isFavorite: Bool = false
     var reminderUIDsForDeletion = [String]()
     var currentSortingSelection: (option: SortingOption, direction: SortingDirection) = (.date, .ascending) {

@@ -129,7 +129,6 @@ class SettingsViewController: UITableViewController {
         }
     }
     
-    
 // MARK:- Methods
     
     func buyiCloudSync() {
@@ -168,7 +167,6 @@ class SettingsViewController: UITableViewController {
     @objc func restorePurchases() {
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
-    
 }
 
 // MARK:- Settings Cell Delegate
@@ -180,8 +178,7 @@ extension SettingsViewController: SettingsCellDelegate {
     func purchaseButtonPressed() {
         buyiCloudSync()
     }
-    
-    
+
     func settingsTogglePressed(toggleIsON: Bool, in cell: SettingsCell) {
         guard let indexPath = tableView.indexPath(for: cell) else { return }
         switch (indexPath.row, toggleIsON) {
@@ -219,14 +216,12 @@ extension SettingsViewController: SettingsCellDelegate {
             break
         }
     }
-    
 }
 
 // MARK:- SKPayment Transaction Observer
 
 @available(iOS 13, *)
 extension SettingsViewController: SKPaymentTransactionObserver {
-    
     
     func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         for transaction in transactions {
@@ -252,7 +247,6 @@ extension SettingsViewController: SKPaymentTransactionObserver {
             }
         }
     }
-    
 }
 
 // MARK:- Settings
