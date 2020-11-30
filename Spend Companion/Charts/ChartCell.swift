@@ -22,11 +22,7 @@ class ChartCell: UICollectionViewCell {
         return formatter
     }()
     
-    var barView: UIView = {
-        let view = UIView()
-        view.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1)
-        return view
-    }()
+    var barView = UIView()
     
     var valueLabel: UILabel = {
         let lbl = UILabel()
@@ -47,17 +43,16 @@ class ChartCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupUI()
+        addSubviews([cellLabel, barView, valueLabel])
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
-    
-    private func setupUI() {
+    func setupUI() {
         backgroundColor = CustomColors.systemBackground
-        addSubviews([cellLabel, barView, valueLabel])
+        barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1)
     }
     
     func formatValueLabel(with amount: Double, withPercentage percentage: Double? = nil) {
@@ -69,6 +64,5 @@ class ChartCell: UICollectionViewCell {
         } else {
             valueLabel.text = numberString
         }
-        
     }
 }

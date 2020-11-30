@@ -205,6 +205,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: barChartCellId, for: indexPath) as! ChartCell
+        cell.setupUI()
         cell.cellLabel.text = summaryLabels[indexPath.item]
         let maxWidth = UILabel.calcSize(for: summaryLabels.longestString() ?? "", withFont: fontScale < 1 ? 14 : 16 * fontScale).width
         cell.cellLabel.frame = .init(x: 0, y: 0, width: maxWidth + 8, height: cell.frame.height)
