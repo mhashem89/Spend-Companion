@@ -9,18 +9,20 @@
 import UIKit
 
 protocol QuickAddViewDelegate: class {
-    
+    /// Brings up view controller to choose the category title
     func showCategoryTitleVC()
-    
+    /// Tells the delegate to save the item but providing a struct from the info user has entered
     func saveItem(itemStruct: ItemStruct)
-    
+    /// Tells the delegate to open the view controller for choosing item recurrence
     func openRecurringWindow()
-    
+    /// Tells the delegate to show view controller to choose item name (description)
     func showItemNameVC()
 }
 
 
 class QuickAddView: UIView {
+
+// MARK:- Properties
     
     let dayPicker = UIDatePicker()
     
@@ -325,18 +327,10 @@ class QuickAddView: UIView {
         let height: CGFloat = 40 * windowHeightScale
         setupAmountToolbar()
         segmentedControl.addTarget(self, action: #selector(self.handleSegmentedControl), for: .valueChanged)
-        upperStack = UIStackView(arrangedSubviews: [detailLabel, recurringButton])
-        lowerStack = UIStackView(arrangedSubviews: [amountTextField, categoryLabel])
-        upperStack.axis = .horizontal; upperStack.spacing = 10 * windowWidthScale
-        lowerStack.axis = .horizontal; lowerStack.spacing = 10 * windowWidthScale
         
+        setupStackViews()
         addSubviews([quickAddLabel, dayLabel, dayTextField, segmentedControl, upperStack, lowerStack])
-        
-        categoryLabel.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
-        segmentedControl.anchor(widthConstant: frame.width * 0.5, heightConstant: height)
-        detailLabel.anchor(widthConstant: width, heightConstant: height)
-        amountTextField.anchor(widthConstant: width, heightConstant: height)
-        saveButton.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
+        anchorSubviews(withWidth: width, withHeigh: height)
         
         quickAddLabel.anchor(top: topAnchor, topConstant: 5, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
         dayLabel.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, leading: leadingAnchor, leadingConstant: frame.width * 0.036, widthConstant: width, heightConstant: height)
@@ -364,6 +358,22 @@ class QuickAddView: UIView {
         let itemTap = UITapGestureRecognizer(target: self, action: #selector(chooseItemName))
         detailLabel.addGestureRecognizer(itemTap)
     }
+    
+    func setupStackViews() {
+        upperStack = UIStackView(arrangedSubviews: [detailLabel, recurringButton])
+        lowerStack = UIStackView(arrangedSubviews: [amountTextField, categoryLabel])
+        upperStack.axis = .horizontal; upperStack.spacing = 10 * windowWidthScale
+        lowerStack.axis = .horizontal; lowerStack.spacing = 10 * windowWidthScale
+    }
+    
+    func anchorSubviews(withWidth width: CGFloat, withHeigh height: CGFloat) {
+        categoryLabel.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
+        segmentedControl.anchor(widthConstant: frame.width * 0.5, heightConstant: height)
+        detailLabel.anchor(widthConstant: width, heightConstant: height)
+        amountTextField.anchor(widthConstant: width, heightConstant: height)
+        saveButton.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
+    }
+    
 }
 
 // MARK:- UITextField Delegate

@@ -52,15 +52,10 @@ class SummaryView: UIView {
     
     func setupUI() {
         addSubviews([segmentedControl, titleLabel, barChart, summaryLabel])
-        (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
+        
         titleLabel.anchor(top: safeAreaLayoutGuide.topAnchor, topConstant: 15 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
         segmentedControl.anchor(trailing: safeAreaLayoutGuide.trailingAnchor, trailingConstant: 10 * windowWidthScale, centerY: titleLabel.centerYAnchor, widthConstant: 117 * windowWidthScale, heightConstant: 31 * windowWidthScale)
         barChart.anchor(top: titleLabel.bottomAnchor, topConstant: 20 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, heightConstant: frame.height * 0.4)
-        barChart.backgroundColor = CustomColors.systemBackground
-        (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
-        barChart.showsHorizontalScrollIndicator = false
-        barChart.showsVerticalScrollIndicator = false
-        
         summaryLabel.anchor(top: barChart.bottomAnchor, topConstant: 15, centerX: centerXAnchor, widthConstant: frame.width * 0.9, heightConstant: frame.height * 0.17)
     }
     
@@ -68,6 +63,11 @@ class SummaryView: UIView {
         barChart.delegate = delegate
         barChart.dataSource = dataSource
         barChart.register(ChartCell.self, forCellWithReuseIdentifier: cellId)
+        
+        barChart.backgroundColor = CustomColors.systemBackground
+        (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
+        barChart.showsHorizontalScrollIndicator = false
+        barChart.showsVerticalScrollIndicator = false
     }
     
     
