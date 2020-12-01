@@ -11,6 +11,8 @@ import UIKit
 
 class SummaryView: UIView {
     
+// MARK:- Properties
+    
     var titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = CustomColors.label
@@ -41,6 +43,8 @@ class SummaryView: UIView {
     var barChart = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     
     
+//  MARK:- Methods
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = CustomColors.systemBackground
@@ -53,6 +57,7 @@ class SummaryView: UIView {
     func setupUI() {
         addSubviews([segmentedControl, titleLabel, barChart, summaryLabel])
         
+    // Anrhor subviews
         titleLabel.anchor(top: safeAreaLayoutGuide.topAnchor, topConstant: 15 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
         segmentedControl.anchor(trailing: safeAreaLayoutGuide.trailingAnchor, trailingConstant: 10 * windowWidthScale, centerY: titleLabel.centerYAnchor, widthConstant: 117 * windowWidthScale, heightConstant: 31 * windowWidthScale)
         barChart.anchor(top: titleLabel.bottomAnchor, topConstant: 20 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, heightConstant: frame.height * 0.4)
@@ -70,24 +75,31 @@ class SummaryView: UIView {
         barChart.showsVerticalScrollIndicator = false
     }
     
-    
+/// Configures summary label according to whether the user selected to view bar chart by month or year
     func configureSummaryLabel(with viewModel: InitialViewModel) {
         let component: Calendar.Component = segmentedControl.selectedSegmentIndex == 0 ? .month : .year
         if component == .month {
             let dateComponent = Calendar.current.dateComponents([.year, .month], from: Date())
+            
+            // Calculate the number of days since beginning of the month till today
             let monthBeggining = Calendar.current.date(from: dateComponent)!
             if let numDays = Calendar.current.dateComponents([.day], from: monthBeggining, to: Date()).day, viewModel.currentYearTotalSpending > 0, numDays > 7 {
+                
+                // Calculate the   average spending over the duration of time since beginning of the month
                 let average = (viewModel.currentMonthTotalSpending / Double(numDays)).rounded()
+                
                 summaryLabel.isHidden = false
-                let averageString = CommonObjects.shared.formattedCurrency(with: average)
+                
+                let averageString = CommonObjects.shared.formattedCurrency(with: average) // Add currency symbol
                 summaryLabel.text = "Average daily spending this month: \(averageString)"
             } else {
                 summaryLabel.isHidden = true
             }
         } else if component == .year {
+            // Calculate the difference between average income and average spending this year
             if let averageThisYear = try? CoreDataManager.shared.calcYearAverage(for: DateFormatters.yearFormatter.string(from: Date())) {
                 summaryLabel.isHidden = false
-                let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))
+                let averageString = CommonObjects.shared.formattedCurrency(with: Double(averageThisYear))  // Add currency symbol
                 if averageThisYear > 0 {
                     summaryLabel.text = "On average this year, you make \(averageString) more than you spend per month"
                 } else {

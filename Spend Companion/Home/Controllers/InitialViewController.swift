@@ -50,10 +50,11 @@ class InitialViewController: UIViewController {
         view.backgroundColor = CustomColors.systemBackground
         view.addSubview(scrollView)
         scrollView.frame = view.bounds
-        scrollView.addSubviews([summaryView, quickAddView, savedLabel])
+        scrollView.addSubviews([summaryView, quickAddView, savedLabel, emptyItemsLabel])
         summaryView.frame = .init(x: 0, y: safeAreaTop, width: view.frame.width, height: view.frame.height * 0.3)
         quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * windowHeightScale)
         savedLabel.frame = .init(x: view.frame.width * 0.25, y: -80, width: view.frame.width * 0.5, height: 40)
+        emptyItemsLabel.anchor(top: quickAddView.bottomAnchor, topConstant: view.frame.height * 0.1, centerX: view.centerXAnchor)
         setupSummaryView()
         quickAddView.setupUI()
     }
@@ -61,8 +62,7 @@ class InitialViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if viewModel.recentItems.count == 0 {
-            scrollView.addSubview(emptyItemsLabel)
-            emptyItemsLabel.anchor(top: quickAddView.bottomAnchor, topConstant: view.frame.height * 0.1, centerX: view.centerXAnchor)
+            emptyItemsLabel.isHidden = false
         } else if recentItemsTable == nil {
             setupRecentItemTable()
         }
@@ -112,7 +112,9 @@ class InitialViewController: UIViewController {
         if viewModel.recentItems.count > 0 {
             if recentItemsTable == nil { setupRecentItemTable() }
             recentItemsTable?.reloadData()
+            emptyItemsLabel.isHidden = true
         }
+        recentItemsTable?.reloadData()
         recentItemsDidChange = false
     }
     

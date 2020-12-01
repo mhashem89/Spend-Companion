@@ -38,11 +38,14 @@ class CoreDataManager {
             case .week: dateComponent.weekOfYear = itemRecurrence.period
             }
             
-            repeat {
+            while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate {
                 itemDate = Calendar.current.date(byAdding: dateComponent, to: itemDate)!
                 let newItem = try createNewItem(date: itemDate, itemStruct: itemStruct, save: save)
                 items.append(newItem)
-            } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate
+            }
+//            repeat {
+//
+//            } while Calendar.current.date(byAdding: dateComponent, to: itemDate)! <= adjustedEndDate
             
             if items.count > 1 {
                 for item in items {

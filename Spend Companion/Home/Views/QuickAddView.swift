@@ -36,13 +36,35 @@ class QuickAddView: UIView {
         }
     }
     
+    var dayPickerDate: Date?
+    
+    var isRecurring: Bool = false {
+        didSet {
+            if #available(iOS 13, *) {
+                recurringButton.setImage(UIImage(systemName: isRecurring ? "checkmark.square" : "square"), for: .normal)
+            } else {
+                recurringButton.setAttributedTitle(NSAttributedString(string: isRecurring ? "☑ Recurring" : "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale), .foregroundColor: UIColor.black]), for: .normal)
+            }
+            switch isRecurring {
+            case true:
+                recurringCircleButton.alpha = 1
+            case false:
+                recurringCircleButton.alpha = 0
+                itemRecurrence = nil
+            }
+        }
+    }
+    
+// MARK:- Subviews
+    
     var quickAddLabel: UILabel = {
         let lbl = UILabel()
-        lbl.text = "Quickly add an item"
+        lbl.text = "Quickly add a transaction"
         lbl.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 18 * fontScale)
         return lbl
     }()
     
+    // The label that displays transaction date
     var dayLabel: UILabel = {
         let label = UILabel()
         label.addBorder()
@@ -54,33 +76,34 @@ class QuickAddView: UIView {
         return label
     }()
     
+    // The textfield that becomes first responder when dayLabel is clicked in order to display the date picker
     lazy var dayTextField: UITextField = {
         let tf = UITextField()
         tf.tag = 1
         tf.inputView = dayPicker
         tf.tintColor = .clear
+        
+        // Setup the toolbar that shows up when the textField becomes first responder
         let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
-
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
         let todayButton = UIBarButtonItem(title: "Today", style: .plain, target: self, action: #selector(todayButtonDayPicker))
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
-        
         toolBar.setItems([cancelButton, todayButton, spacer, doneButton], animated: false)
         
+        // Setup the date picker
         dayPicker.datePickerMode = .date
         dayPicker.addTarget(self, action: #selector(datePicked), for: .valueChanged)
-        if #available(iOS 14.0, *) {
-            dayPicker.preferredDatePickerStyle = .wheels
-        }
+        if #available(iOS 14.0, *) { dayPicker.preferredDatePickerStyle = .wheels }
+        
         tf.inputView = dayPicker
         tf.inputAccessoryView = toolBar
-        
         return tf
     }()
     
-    let segmentedControl: UISegmentedControl = {
+    // The "Income/Expense" segmented control
+    var segmentedControl: UISegmentedControl = {
         let sc = UISegmentedControl()
         sc.insertSegment(withTitle: "Expense", at: 0, animated: false)
         sc.insertSegment(withTitle: "Income", at: 1, animated: false)
@@ -91,6 +114,61 @@ class QuickAddView: UIView {
         return sc
     }()
     
+    // The label that displays description of the transaction
+    var detailLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.addBorder()
+        lbl.tag = 2
+        lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
+        lbl.text = "Description"
+        lbl.textColor = CustomColors.darkGray
+        lbl.textAlignment = .center
+        lbl.isUserInteractionEnabled = true
+        return lbl
+    }()
+    
+    // The button to toggle recurrence of a transaction
+    var recurringButton: UIButton = {
+        let button = UIButton(type: .system)
+        if #available(iOS 13, *) {
+            button.setImage(UIImage(systemName: "square"), for: .normal)
+            let title = NSAttributedString(string: "Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)])
+            button.setAttributedTitle(title, for: .normal)
+        } else {
+            let title = NSAttributedString(string: "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale), .foregroundColor: UIColor.black])
+            button.setAttributedTitle(title, for: .normal)
+        }
+        if windowWidthScale < 1 { button.imageEdgeInsets = UIEdgeInsets(top: 1 / windowWidthScale, left: 1 / windowWidthScale, bottom: 1 / windowWidthScale, right: 1 / windowWidthScale) }
+        button.contentHorizontalAlignment = .left
+        return button
+    }()
+    
+    // Button that indicates item recurrence is set
+    var recurringCircleButton: UIButton = {
+        let button = UIButton(type: .system)
+        if #available(iOS 13, *) {
+            button.setImage(UIImage(systemName: "arrow.clockwise.circle"), for: .normal)
+        } else {
+            button.setAttributedTitle(NSAttributedString(string: "⟳", attributes: [.font: UIFont.boldSystemFont(ofSize: 18)]), for: .normal)
+        }
+        button.contentHorizontalAlignment = .left
+        button.alpha = 0
+        return button
+    }()
+    
+    lazy var amountTextField: UITextField = {
+        let tf = UITextField()
+        tf.addBorder()
+        tf.tag = 3
+        tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
+        tf.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")...    "
+        tf.textAlignment = .center
+        tf.keyboardType = .decimalPad
+        tf.delegate = self
+        tf.inputAccessoryView = amountToolbar()
+        return tf
+    }()
+
     var categoryLabel: UILabel = {
         let lbl = UILabel()
         lbl.addBorder()
@@ -103,48 +181,6 @@ class QuickAddView: UIView {
         return lbl
     }()
     
-    var recurringCircleButton: UIButton = {
-        let button = UIButton(type: .system)
-        if #available(iOS 13, *) {
-            button.setImage(UIImage(systemName: "arrow.clockwise.circle"), for: .normal)
-        } else {
-            button.setAttributedTitle(NSAttributedString(string: "⟳", attributes: [.font: UIFont.boldSystemFont(ofSize: 18)]), for: .normal)
-        }
-        return button
-    }()
-    
-    lazy var detailLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.addBorder()
-        lbl.tag = 2
-        lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        lbl.text = "Description"
-        lbl.textColor = CustomColors.darkGray
-        lbl.textAlignment = .center
-        lbl.isUserInteractionEnabled = true
-        return lbl
-    }()
-    
-    lazy var amountTextField: UITextField = {
-        let tf = UITextField()
-        tf.addBorder()
-        tf.tag = 3
-        tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        tf.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")...    "
-        tf.textAlignment = .center
-        tf.keyboardType = .decimalPad
-        tf.delegate = self
-        return tf
-    }()
-    
-    var recurringButton: UIButton = {
-        let button = UIButton(type: .system)
-        if #available(iOS 13, *) {
-            button.setImage(UIImage(systemName: "square"), for: .normal)
-        }
-        return button
-    }()
-    
     var saveButton: UIButton = {
         let button = UIButton(type: .system)
         let saveString = NSAttributedString(string: "Save", attributes: [.font: UIFont.boldSystemFont(ofSize: 22 * fontScale), .foregroundColor: UIColor.white])
@@ -152,48 +188,70 @@ class QuickAddView: UIView {
         button.layer.cornerRadius = 5
         button.clipsToBounds = true
         button.backgroundColor = .systemBlue
+        button.alpha = 0
         return button
     }()
     
-    var dayPickerDate: Date?
-    
-    var upperStack: UIStackView!
-    var lowerStack: UIStackView!
-    
-    var isRecurring: Bool = false {
-        didSet {
-            if #available(iOS 13, *) {
-                recurringButton.setImage(UIImage(systemName: isRecurring ? "checkmark.square" : "square"), for: .normal)
-            } else {
-                recurringButton.setAttributedTitle(NSAttributedString(string: isRecurring ? "☑ Recurring" : "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale), .foregroundColor: UIColor.black]), for: .normal)
-            }
-            switch isRecurring {
-            case true:
-                upperStack.insertArrangedSubview(recurringCircleButton, at: 2)
-            case false:
-                recurringCircleButton.removeFromSuperview()
-                itemRecurrence = nil
-            }
-        }
-    }
+    // These are the stackViews that will be used to build the view
+    lazy var leftStack = UIStackView(arrangedSubviews: [dayLabel, detailLabel, amountTextField])
+    lazy var rightStack = UIStackView(arrangedSubviews: [segmentedControl, recurringStack, buttonStack])
+    lazy var recurringStack = UIStackView(arrangedSubviews: [recurringButton, recurringCircleButton])
+    lazy var buttonStack = UIStackView(arrangedSubviews: [categoryLabel, saveButton])
+    lazy var fullStack = UIStackView(arrangedSubviews: [leftStack, rightStack])
     
 // MARK:- UI Methods
     
-    @objc func isRecurringToggle() {
-        if isRecurring {
-            isRecurring = false
-        } else {
-            let tap = UITapGestureRecognizer(target: self, action: #selector(periodLabelTap))
-            recurringCircleButton.addGestureRecognizer(tap)
-            delegate?.openRecurringWindow()
-        }
+    func setupUI() {
+        // The width and height values adjusted for window size that I will use for the subviews' frames
+        let width = frame.width * 0.4
+        let height: CGFloat = 40 * windowHeightScale
+        
+        anchorSubviews(withWidth: width, withHeigh: height)
+        setupStackViews()
+        addSubviews([quickAddLabel, fullStack])
+        
+        quickAddLabel.anchor(top: topAnchor, topConstant: 5, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
+        fullStack.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, centerX: centerXAnchor, widthConstant: frame.width * 0.95)
+        
+        // Add textField on top of the day label so that it becomes first responder when label is clicked. The textField is transparent.
+        dayLabel.addSubview(dayTextField)
+        dayTextField.fillSuperView()
+        
+        // Add tap gestures to to recognize when item detail label or category name label are tapped
+        categoryLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.chooseCategory)))
+        detailLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(chooseItemName)))
+        
+        // Add targets to the rest of subviews
+        segmentedControl.addTarget(self, action: #selector(self.handleSegmentedControl), for: .valueChanged)
+        saveButton.addTarget(self, action: #selector(saveButtonPressed), for: .touchUpInside)
+        recurringButton.addTarget(self, action: #selector(isRecurringToggle), for: .touchUpInside)
+        recurringCircleButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(openRecurringWindow)))
     }
     
-    @objc func periodLabelTap() {
+    private func setupStackViews() {
+        buttonStack.spacing = 5; buttonStack.distribution = .fillEqually
+        [leftStack, rightStack].forEach({ $0.axis = .vertical; $0.spacing = 10 })
+        fullStack.axis = .horizontal; fullStack.spacing = 10 * windowWidthScale
+    }
+    /// Setup the height and width of the subviews
+    private func anchorSubviews(withWidth width: CGFloat, withHeigh height: CGFloat) {
+        [dayLabel, detailLabel, amountTextField].forEach({
+            $0.anchor(widthConstant: width, heightConstant: height)
+        })
+        categoryLabel.anchor(heightConstant: height)
+        recurringButton.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale)
+    }
+    
+    /// Responds when recurring button is tapped. If the user had already chosen recurring then it just cancels the existing recurrence, otherwise it opens the recurring view controlled.
+    @objc private func isRecurringToggle() {
+        isRecurring ? isRecurring = false : openRecurringWindow()
+    }
+    /// Open the recurring view controller
+    @objc private func openRecurringWindow() {
         delegate?.openRecurringWindow()
     }
-    
-    @objc func datePicked() {
+    /// Gets called when the user chooses a date in the date picker.. Converts the date picked into text displayed by the day label.
+    @objc private func datePicked() {
         if dayPicker.date.dayMatches(Date()) {
             dayLabel.text = "Today"
         } else {
@@ -202,8 +260,8 @@ class QuickAddView: UIView {
         dayLabel.textColor = CustomColors.label
         dayLabel.layer.borderColor = CustomColors.label.cgColor
     }
-    
-    @objc func handleSegmentedControl() {
+    /// Handles  when user persses the "income/expense" segmented control. If expense is chosen then it shows the category label, otherwise hides it.
+    @objc private func handleSegmentedControl() {
         segmentedControl.layer.borderColor = UIColor.clear.cgColor
         segmentedControl.isSelected = true
         switch segmentedControl.selectedSegmentIndex {
@@ -215,17 +273,17 @@ class QuickAddView: UIView {
             break
         }
     }
-    
-    private func setupAmountToolbar() {
+    /// Returns toolbar to be used when the amount textField becomes firest resopnder. It has "Cancel" and "Done" buttons.
+    private func amountToolbar() -> UIToolbar {
         let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelButtonPressed))
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneButtonPressed))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         toolBar.setItems([cancelButton, spacer, doneButton], animated: false)
-        amountTextField.inputAccessoryView = toolBar
+        return toolBar
     }
-    
+    /// Gets called when the user presses "Done" in the toolbar of the date picker or the amount text field.
     @objc private func doneButtonPressed() {
         if dayTextField.isFirstResponder {
             dayTextField.resignFirstResponder()
@@ -236,12 +294,12 @@ class QuickAddView: UIView {
             amountTextField.resignFirstResponder()
         }
     }
-    
+    /// Gets called when the user presses "Today" button in the toolbar of the date picker. Switches the date to today's date.
     @objc func todayButtonDayPicker() {
         dayPicker.date = Date()
         dayLabel.text = "Today"
     }
-    
+    /// Gets called when cancel button is pressed in either date picker or amount text field. Reverts the date displayed on day label to last chosen value.
     @objc private func cancelButtonPressed() {
         if amountTextField.isFirstResponder {
             amountTextField.resignFirstResponder()
@@ -250,22 +308,20 @@ class QuickAddView: UIView {
             dayTextField.resignFirstResponder()
         }
     }
-    
-    @objc func chooseCategory() {
+    /// Tells the delegate to open the view controller to choose category name.
+    @objc private func chooseCategory() {
         delegate?.showCategoryTitleVC()
         resignFirstResponders()
     }
-    
-    @objc func chooseItemName() {
+    /// Tells the delegate to open the view controller to choose item name.
+    @objc private func chooseItemName() {
         delegate?.showItemNameVC()
     }
     
     func showSaveButton() {
-        if !lowerStack.arrangedSubviews.contains(saveButton) {
-            lowerStack.insertArrangedSubview(saveButton, at: 2)
-        }
+        saveButton.alpha = 1
     }
-    
+    /// Gets called when the user changes the currency symbol in settings.
     func updateCurrencySymbol() {
         amountTextField.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")..    "
     }
@@ -278,9 +334,8 @@ class QuickAddView: UIView {
             amountTextField.resignFirstResponder()
         }
     }
-    
-    @objc func saveButtonPressed() {
-        
+    /// Gets called when the save button is pressed. Performs validation logic to make sure neither transaction type nor amount  is missing, otherwise turns the missing field's border into red.
+    @objc private func saveButtonPressed() {
         guard segmentedControl.isSelected,
               let type = ItemType(rawValue: Int16(segmentedControl.selectedSegmentIndex))
         else {
@@ -291,7 +346,7 @@ class QuickAddView: UIView {
             amountTextField.layer.borderColor = UIColor.red.cgColor
             return
         }
-        
+        // Construct the item struct that will be sent to the delegate
         var category: String?
         switch type {
         case .spending:
@@ -301,11 +356,14 @@ class QuickAddView: UIView {
         }
         let itemDate = DateFormatters.fullDateFormatter.date(from: dayLabel.text ?? "") ?? Date()
         let itemStruct = ItemStruct(amount: amount, type: type, date: itemDate, detail: detailLabel.text, itemRecurrence: self.itemRecurrence, categoryName: category)
-        amountTextField.resignFirstResponder()
+      
+        // Keep track if the new item that will be added is coming from the current device or from a different device. This is needed to ***
         UserDefaults.standard.setValue(true, forKey: SettingNames.contextIsActive)
+        
         delegate?.saveItem(itemStruct: itemStruct)
+        amountTextField.resignFirstResponder()
     }
-    
+    /// Clears all the labels and text fields and resets the view to original state.
     func clearView() {
         dayTextField.text = nil
         detailLabel.text = "Description"
@@ -313,67 +371,12 @@ class QuickAddView: UIView {
         segmentedControl.selectedSegmentIndex = UISegmentedControl.noSegment
         segmentedControl.isSelected = false
         amountTextField.text = nil
-        saveButton.removeFromSuperview()
+        saveButton.alpha = 0
         isRecurring = false
         categoryLabel.text = "Category"
         categoryLabel.textColor = CustomColors.darkGray
         categoryLabel.alpha = 0
-        recurringCircleButton.isHidden = true
     }
-    
-    func setupUI() {
-        backgroundColor = CustomColors.systemBackground
-        let width = frame.width * 0.4
-        let height: CGFloat = 40 * windowHeightScale
-        setupAmountToolbar()
-        segmentedControl.addTarget(self, action: #selector(self.handleSegmentedControl), for: .valueChanged)
-        
-        setupStackViews()
-        addSubviews([quickAddLabel, dayLabel, dayTextField, segmentedControl, upperStack, lowerStack])
-        anchorSubviews(withWidth: width, withHeigh: height)
-        
-        quickAddLabel.anchor(top: topAnchor, topConstant: 5, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
-        dayLabel.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, leading: leadingAnchor, leadingConstant: frame.width * 0.036, widthConstant: width, heightConstant: height)
-        dayTextField.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, leading: leadingAnchor, leadingConstant: frame.width * 0.036, widthConstant: width, heightConstant: height)
-        if #available(iOS 13, *) {
-            let title = NSAttributedString(string: "Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)])
-            recurringButton.setAttributedTitle(title, for: .normal)
-        } else {
-            let title = NSAttributedString(string: "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale), .foregroundColor: UIColor.black])
-            recurringButton.setAttributedTitle(title, for: .normal)
-        }
-
-        recurringButton.contentHorizontalAlignment = .left
-        if windowWidthScale < 1 { recurringButton.imageEdgeInsets = UIEdgeInsets(top: 1 / windowWidthScale, left: 1 / windowWidthScale, bottom: 1 / windowWidthScale, right: 1 / windowWidthScale) }
-        upperStack.anchor(top: dayLabel.bottomAnchor, topConstant: 10, leading: dayLabel.leadingAnchor)
-        segmentedControl.anchor(top: dayLabel.topAnchor, leading: dayLabel.trailingAnchor, leadingConstant: 10)
-        lowerStack.anchor(top: upperStack.bottomAnchor, topConstant: 10, leading: dayLabel.leadingAnchor)
-        
-        let tap = UITapGestureRecognizer(target: self, action: #selector(self.chooseCategory))
-        categoryLabel.addGestureRecognizer(tap)
-        
-        saveButton.addTarget(self, action: #selector(saveButtonPressed), for: .touchUpInside)
-        recurringButton.addTarget(self, action: #selector(isRecurringToggle), for: .touchUpInside)
-        
-        let itemTap = UITapGestureRecognizer(target: self, action: #selector(chooseItemName))
-        detailLabel.addGestureRecognizer(itemTap)
-    }
-    
-    func setupStackViews() {
-        upperStack = UIStackView(arrangedSubviews: [detailLabel, recurringButton])
-        lowerStack = UIStackView(arrangedSubviews: [amountTextField, categoryLabel])
-        upperStack.axis = .horizontal; upperStack.spacing = 10 * windowWidthScale
-        lowerStack.axis = .horizontal; lowerStack.spacing = 10 * windowWidthScale
-    }
-    
-    func anchorSubviews(withWidth width: CGFloat, withHeigh height: CGFloat) {
-        categoryLabel.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
-        segmentedControl.anchor(widthConstant: frame.width * 0.5, heightConstant: height)
-        detailLabel.anchor(widthConstant: width, heightConstant: height)
-        amountTextField.anchor(widthConstant: width, heightConstant: height)
-        saveButton.anchor(widthConstant: fontScale < 1 ? min(frame.width * 0.25, 125) : 95 * windowWidthScale, heightConstant: height)
-    }
-    
 }
 
 // MARK:- UITextField Delegate
