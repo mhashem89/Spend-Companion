@@ -267,10 +267,8 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: yearBarChartCell, for: indexPath) as! ChartCell
-        cell.setupUI()
         cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : categoryNames[indexPath.row]
-        cell.cellLabel.frame = .init(x: 0, y: 0, width: chartLabelMaxWidth, height: cell.frame.height)
-        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
+        cell.setupUI(withLabelWidth: chartLabelMaxWidth)
         cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * windowWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
         if selectedSegment == 1 || selectedSegment == 2 {
             let monthString = "\(months[indexPath.item]) \(selectedYear)"

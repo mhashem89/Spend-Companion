@@ -12,34 +12,36 @@ class InitialViewController: UIViewController {
     
 // MARK:- Properties
     
-    let barChartCellId = "barChartCellId"
-    
-    var safeAreaTop: CGFloat {
-        let top = UIApplication.shared.windows.first?.safeAreaInsets.top
-        return top ?? 44
+    private var safeAreaTop: CGFloat {
+        return UIApplication.shared.windows.first?.safeAreaInsets.top ?? 44
     }
     
     static let shared = InitialViewController()
-    let viewModel = InitialViewModel()
+    private let viewModel = InitialViewModel()
     
-    lazy var scaleFactor: Double = calcScaleFactor()
-    var selectedMonth = Date()
-    var selectedYear = Date()
-    var selectedMonthScaledData: (CGFloat, CGFloat) = (0,0)
-    var selectedYearScaledData: (CGFloat, CGFloat) = (0,0)
-    var monthChanged: Bool = false
-    var recentItemsDidChange: Bool = false
+    private lazy var scaleFactor: Double = calcScaleFactor()  // Used to scale the length of the bar chart
+    private var selectedMonth = Date()  // The selected month in the summary view
+    private var selectedYear = Date()   // The selected year in the summary view
+    
+    // Used to keep track of the bar chart length for the animation
+    private var selectedMonthScaledData: (CGFloat, CGFloat) = (0,0)
+    private var selectedYearScaledData: (CGFloat, CGFloat) = (0,0)
+    
+    private var monthChanged: Bool = false  // Keep track if one of the items of the selected month has changed
+    private var recentItemsDidChange: Bool = false // Keep track if one of the recent items has changed
+    
+// MARK:- Subviews
     
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
     var quickAddView = QuickAddView()
     let summaryLabels = ["Total Income", "Total Spending"]
-    let savedLabel = UILabel.savedLabel()
+    let savedLabel = UILabel.savedLabel() // Shows up when a new transaction is successfully saved
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
     var recentItemsTable: UITableView?
-    var emptyItemsLabel = UILabel.emptyItemsLabel()
+    var emptyItemsLabel = UILabel.emptyItemsLabel() // Shows up initially when there are no recent items to display
     
-// MARK:- Life cycle functions
+// MARK:- Life cycle methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,13 +50,18 @@ class InitialViewController: UIViewController {
         UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
         navigationController?.navigationBar.isHidden = true
         view.backgroundColor = CustomColors.systemBackground
+        
+        // Add the main scroll view and the subviews
         view.addSubview(scrollView)
         scrollView.frame = view.bounds
         scrollView.addSubviews([summaryView, quickAddView, savedLabel, emptyItemsLabel])
+        
+        // Setup the subviews' frames
         summaryView.frame = .init(x: 0, y: safeAreaTop, width: view.frame.width, height: view.frame.height * 0.3)
         quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * windowHeightScale)
         savedLabel.frame = .init(x: view.frame.width * 0.25, y: -80, width: view.frame.width * 0.5, height: 40)
         emptyItemsLabel.anchor(top: quickAddView.bottomAnchor, topConstant: view.frame.height * 0.1, centerX: view.centerXAnchor)
+        
         setupSummaryView()
         quickAddView.setupUI()
     }
@@ -67,24 +74,44 @@ class InitialViewController: UIViewController {
             setupRecentItemTable()
         }
         reloadDataAfterChange()
-        quickAddView.recurringButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
-        quickAddView.recurringCircleButton.tintColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
+        quickAddView.buttonColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
     }
     
 // MARK:- Methods
+    
+    private func setupSummaryView() {
+        summaryView.setupUI()
+        summaryView.configureSummaryLabel(with: viewModel)
+        summaryView.setupBarChart(delegate: self, dataSource: self, cellId: ChartCell.reuseIdentifier)
+        summaryView.segmentedControl.addTarget(self, action: #selector(handleSummaryViewSegmentedControl(segmentedControl:)), for: .valueChanged)
+        
+        // Add left and right swipe gestures to the summary view
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipeSummaryView(for:)))
+        swipeRight.direction = .right
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipeSummaryView(for:)))
+        swipeLeft.direction = .left
+        [swipeLeft, swipeRight].forEach({ $0.numberOfTouchesRequired = 1; summaryView.addGestureRecognizer($0) })
+    }
+    
+    private func setupRecentItemTable() {
+        emptyItemsLabel.removeFromSuperview()
+        recentItemsTable = UITableView()
+        recentItemsTable?.setup(delegate: self, dataSource: viewModel, cellClass: RecentItemCell.self, cellId: RecentItemCell.reuseIdentifier)
+        scrollView.addSubview(recentItemsTable!)
+        recentItemsTable?.anchor(top: quickAddView.bottomAnchor, topConstant: 18, bottom: view.safeAreaLayoutGuide.bottomAnchor, widthConstant: view.frame.width)
+    }
     
     private func dimBackground() {
         navigationController?.view.addSubview(dimmingView)
         dimmingView.fillSuperView()
     }
-    
-    func showSavedAlert() {
+    /// Animates the alert that shows up when a new transaction is saved
+    private func showSavedAlert() {
         savedLabel.isHidden = false
         UIView.animate(withDuration: 0.5) { [weak self] in
             self?.savedLabel.frame.origin.y += 90
         } completion: { [weak self] (_) in
             self?.quickAddView.clearView()
-            self?.quickAddView.resignFirstResponders()
             UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
             UIView.animate(withDuration: 0.3, delay: 2, options: .curveLinear) { [weak self] in
                 self?.savedLabel.frame.origin.y -= 90
@@ -93,53 +120,41 @@ class InitialViewController: UIViewController {
             }
         }
     }
-    
+    /// Reloads the bar chart and recent items table if the data had changed while the view controller was not visible
     func reloadDataAfterChange() {
         if monthChanged && summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            viewModel.fetchMonthTotals(forDate: selectedMonth)
-            viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
-            scaleFactor = calcScaleFactor()
-            summaryView.barChart.reloadData()
+            reloadBarChartData()
             monthChanged = false
         }
         if recentItemsDidChange {
             reloadRecentItems(withFetch: false)
         }
     }
-    
+    /// Asks the recent items table to reload data. If "withFetch" is true then performs a fetch from the context
     @objc func reloadRecentItems(withFetch fetch: Bool) {
         if fetch { viewModel.fetchRecentItems() }
         if viewModel.recentItems.count > 0 {
             if recentItemsTable == nil { setupRecentItemTable() }
-            recentItemsTable?.reloadData()
             emptyItemsLabel.isHidden = true
         }
         recentItemsTable?.reloadData()
         recentItemsDidChange = false
     }
-    
-    func updateData() {
-        reloadRecentItems(withFetch: true)
+    /// Fetches total spending and total income for the selected month and reloads the bar chart
+    private func reloadBarChartData() {
+        viewModel.fetchMonthTotals(forDate: selectedMonth)
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
-        viewModel.fetchMonthTotals()
         scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
     }
     
-    func setupSummaryView() {
-        summaryView.titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: Date()))"
-        summaryView.setupUI()
-        summaryView.setupBarChart(delegate: self, dataSource: self, cellId: barChartCellId)
-        summaryView.segmentedControl.addTarget(self, action: #selector(handleSummaryViewSegmentedControl(segmentedControl:)), for: .valueChanged)
-        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(swipeSummaryView(for:)))
-        swipeRight.direction = .right
-        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipeSummaryView(for:)))
-        swipeLeft.direction = .left
-        [swipeLeft, swipeRight].forEach({ $0.numberOfTouchesRequired = 1; summaryView.addGestureRecognizer($0) })
-        summaryView.configureSummaryLabel(with: viewModel)
+    /// Updates both the bar chart data and the recent items table, performs a new fetch from the context
+    func updateData() {
+        reloadRecentItems(withFetch: true)
+        reloadBarChartData()
     }
-    
-    @objc func handleSummaryViewSegmentedControl(segmentedControl: UISegmentedControl) {
+
+    @objc private func handleSummaryViewSegmentedControl(segmentedControl: UISegmentedControl) {
         let currentMonth = DateFormatters.monthYearFormatter.string(from: Date())
         let currentYear = DateFormatters.yearFormatter.string(from: Date())
         viewModel.calcYearTotals(year: currentYear)
@@ -154,7 +169,7 @@ class InitialViewController: UIViewController {
         summaryView.barChart.reloadData()
     }
     
-    @objc func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
+    @objc private func swipeSummaryView(for gesture: UISwipeGestureRecognizer) {
         if summaryView.segmentedControl.selectedSegmentIndex == 0 {
             selectedMonth = Calendar.current.date(byAdding: .month, value: gesture.direction == .left ? 1 : -1, to: selectedMonth)!
             summaryView.titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: selectedMonth))"
@@ -168,36 +183,22 @@ class InitialViewController: UIViewController {
         self.scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
     }
-    
-    func setupRecentItemTable() {
-        emptyItemsLabel.removeFromSuperview()
-        recentItemsTable = UITableView()
-        recentItemsTable?.setup(delegate: self, dataSource: viewModel, cellClass: RecentItemCell.self, cellId: RecentItemCell.reuseIdentifier)
-        scrollView.addSubview(recentItemsTable!)
-        recentItemsTable?.anchor(top: quickAddView.bottomAnchor, topConstant: 18, bottom: view.safeAreaLayoutGuide.bottomAnchor, widthConstant: view.frame.width)
-    }
-    
-    func calcScaleFactor() -> Double {
-        var higherValue: Double = 1
-        if summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            higherValue = viewModel.maxMonthSpendingInYear
-        } else {
-            higherValue = max(viewModel.currentYearTotalIncome, viewModel.currentYearTotalSpending)
-        }
+    /// Returns the scale ratio used to calculate the length of the bar chart
+    private func calcScaleFactor() -> Double {
+        let higherValue: Double = max(viewModel.currentYearTotalIncome, viewModel.currentYearTotalSpending)
         let valueLabelSize = UILabel.calcSize(for: String(format: "%g", higherValue), withFont: 13 * fontScale)
         let chartLabelMaxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: 16 * fontScale).width
         return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - (70 * fontScale)) / higherValue
     }
-    
+    /// Gets called when the user changes currency symbol in settings to update the symbol in all the subviews
     func currencyChanged() {
+        summaryView.configureSummaryLabel(with: viewModel)
         quickAddView.updateCurrencySymbol()
         recentItemsDidChange = true
-        summaryView.configureSummaryLabel(with: viewModel)
     }
 }
 
 // MARK:- Bar Chart Delegate
-
 
 extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
@@ -206,28 +207,33 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: barChartCellId, for: indexPath) as! ChartCell
-        cell.setupUI()
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ChartCell.reuseIdentifier, for: indexPath) as! ChartCell
         cell.cellLabel.text = summaryLabels[indexPath.item]
+        
+        // Calculate the width for a label that accomodates the longer of "Total Income" and "Total Spending"
         let maxWidth = UILabel.calcSize(for: summaryLabels.longestString() ?? "", withFont: fontScale < 1 ? 14 : 16 * fontScale).width
-        cell.cellLabel.frame = .init(x: 0, y: 0, width: maxWidth + 8, height: cell.frame.height)
-        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
-        var value: Double = 0
-        var priorValue: CGFloat = 0
+        cell.setupUI(withLabelWidth: maxWidth + 8)
+        
+        // The values used to animate the bar chart from the prior value to the new value
+        var newValue: Double = 0
+        var oldValue: CGFloat = 0
         
         if summaryView.segmentedControl.selectedSegmentIndex == 0 {
-            value = indexPath.row == 0 ? viewModel.currentMonthTotalIncome : viewModel.currentMonthTotalSpending
-            priorValue = indexPath.row == 0 ? selectedMonthScaledData.0 : selectedMonthScaledData.1
+            newValue = indexPath.row == 0 ? viewModel.currentMonthTotalIncome : viewModel.currentMonthTotalSpending
+            oldValue = indexPath.row == 0 ? selectedMonthScaledData.0 : selectedMonthScaledData.1
         } else {
-            value = indexPath.row == 0 ? viewModel.currentYearTotalIncome : viewModel.currentYearTotalSpending
-            priorValue = indexPath.row == 0 ? selectedYearScaledData.0 : selectedYearScaledData.1
+            newValue = indexPath.row == 0 ? viewModel.currentYearTotalIncome : viewModel.currentYearTotalSpending
+            oldValue = indexPath.row == 0 ? selectedYearScaledData.0 : selectedYearScaledData.1
         }
         
-        cell.formatValueLabel(with: value)
-        cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: priorValue, height: 25)
-        cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + priorValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
-        let scaledValue = self.scaleFactor < 1 ? CGFloat(value * self.scaleFactor) : CGFloat(value)
-        let distanceToMove = scaledValue - priorValue
+        cell.formatValueLabel(with: newValue)
+        cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: oldValue, height: 25)
+        cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + oldValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
+        
+        // Scale down the value if it cannot be accomodated by the screen
+        let scaledValue = self.scaleFactor < 1 ? CGFloat(newValue * self.scaleFactor) : CGFloat(newValue)
+        let distanceToMove = scaledValue - oldValue
+        
         UIView.animate(withDuration: 0.5) {
             cell.barView.frame.size.width += distanceToMove
             cell.valueLabel.frame.origin.x += distanceToMove
@@ -273,6 +279,7 @@ extension InitialViewController: QuickAddViewDelegate {
             if success { self?.showSavedAlert() }
         })
         
+        // Update the bar chart if the segmented control has "Year" selected
         if summaryView.segmentedControl.selectedSegmentIndex == 1, itemStruct.date.yearMatches(selectedYear) {
             self.viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
             self.scaleFactor = self.calcScaleFactor()
@@ -295,7 +302,6 @@ extension InitialViewController: QuickAddViewDelegate {
         let navVC = UINavigationController(rootViewController: itemNameVC)
         present(navVC, animated: true)
     }
-    
 }
 
 // MARK:- Category Title View Controller Delegate
@@ -340,6 +346,8 @@ extension InitialViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: true)
         let item = self.viewModel.recentItems[indexPath.row]
         guard let itemMonth = item.month else { return }
+        
+        // Creates a new instance of the view controller that displays the category table, and highlights the selected item after the view controller is presented
         let categoryVC = CategoryViewController(month: itemMonth, category: item.category)
         let navVC = UINavigationController(rootViewController: categoryVC)
         navVC.modalPresentationStyle = .fullScreen
@@ -363,12 +371,12 @@ extension InitialViewController: UITableViewDelegate {
 extension InitialViewController: InitialViewModelDelegate {
     
     func monthTotalChanged(forMonth: Month) {
+        // Check if the month whose items changed is the month displayed in the summary view otherwise do nothing
         if forMonth.date == DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth) && summaryView.segmentedControl.selectedSegmentIndex == 0 {
+            
+            // If the view controller is visible the updates the bar chart data, otherwise sets monthChanged to true to keep track of it
             if view.window != nil && presentedViewController == nil {
-                viewModel.fetchMonthTotals(forDate: selectedMonth)
-                viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedMonth))
-                scaleFactor = calcScaleFactor()
-                summaryView.barChart.reloadData()
+                reloadBarChartData()
             } else {
                 monthChanged = true
             }

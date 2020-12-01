@@ -11,7 +11,6 @@ import UIKit
 
 class RecentItemCell: UITableViewCell {
     
-    
     var amountLabel: UILabel = {
         let lbl = UILabel()
         lbl.textColor = CustomColors.label
@@ -24,7 +23,6 @@ class RecentItemCell: UITableViewCell {
         button.setAttributedTitle(NSAttributedString(string: "⟳", attributes: [.font: UIFont.boldSystemFont(ofSize: 30 * fontScale)]), for: .normal)
         return button
     }()
-    
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
@@ -40,7 +38,7 @@ class RecentItemCell: UITableViewCell {
         amountLabel.anchor(trailing: trailingAnchor, trailingConstant: 10, centerY: centerYAnchor)
         detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
     }
-    
+    /// Configures the cell by adding item name and date, and recurrence label if needed
     func configureCell(for item: Item) {
         guard let itemDate = item.date else { return }
         let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
@@ -54,13 +52,13 @@ class RecentItemCell: UITableViewCell {
             recurringCircleButton.removeFromSuperview()
         }
     }
-    
+    /// Add recurrence label
     func addRecurrence() {
         addSubview(recurringCircleButton)
         recurringCircleButton.anchor(leading: textLabel?.trailingAnchor, leadingConstant: 10, centerY: centerYAnchor)
     }
     
-    func formatTitleLabel(itemName name: String?, on date: String) {
+    private func formatTitleLabel(itemName name: String?, on date: String) {
         let titleString = NSMutableAttributedString(string: name ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
         
         let formattedDayString = NSAttributedString(string: "   \(date)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.systemGray])
@@ -69,7 +67,7 @@ class RecentItemCell: UITableViewCell {
         textLabel?.attributedText = titleString
     }
     
-    func formatAmountLabel(with amount: Double) {
+    private func formatAmountLabel(with amount: Double) {
         let roundedAmount = (amount * 100).rounded() / 100
         amountLabel.text = CommonObjects.shared.formattedCurrency(with: roundedAmount)
     }

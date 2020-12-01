@@ -154,6 +154,8 @@ class InitialViewModel: NSObject {
     
 }
 
+// MARK:- Recent Items Table Data Source
+
 extension InitialViewModel: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {

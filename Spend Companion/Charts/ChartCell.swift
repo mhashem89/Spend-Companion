@@ -50,9 +50,11 @@ class ChartCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupUI() {
+    func setupUI(withLabelWidth maxWidth: CGFloat) {
         backgroundColor = CustomColors.systemBackground
         barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1)
+        cellLabel.frame = .init(x: 0, y: 0, width: maxWidth, height: frame.height)
+        cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
     }
     
     func formatValueLabel(with amount: Double, withPercentage percentage: Double? = nil) {

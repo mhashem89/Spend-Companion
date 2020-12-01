@@ -25,9 +25,7 @@ class QuickAddView: UIView {
 // MARK:- Properties
     
     let dayPicker = UIDatePicker()
-    
     weak var delegate: QuickAddViewDelegate?
-    
     var itemRecurrence: ItemRecurrence? {
         didSet {
             if itemRecurrence != nil, !isRecurring {
@@ -35,9 +33,7 @@ class QuickAddView: UIView {
             }
         }
     }
-    
     var dayPickerDate: Date?
-    
     var isRecurring: Bool = false {
         didSet {
             if #available(iOS 13, *) {
@@ -52,6 +48,11 @@ class QuickAddView: UIView {
                 recurringCircleButton.alpha = 0
                 itemRecurrence = nil
             }
+        }
+    }
+    var buttonColor: UIColor? {
+        didSet {
+            [recurringButton, recurringCircleButton].forEach({ $0.tintColor = buttonColor })
         }
     }
     
@@ -325,7 +326,7 @@ class QuickAddView: UIView {
     func updateCurrencySymbol() {
         amountTextField.placeholder = "\(CommonObjects.shared.currencySymbol.symbol ?? "")..    "
     }
-    
+    /// Resign all the active text fields if they are first responders
     func resignFirstResponders() {
         if dayTextField.isFirstResponder {
             dayTextField.resignFirstResponder()
@@ -376,6 +377,7 @@ class QuickAddView: UIView {
         categoryLabel.text = "Category"
         categoryLabel.textColor = CustomColors.darkGray
         categoryLabel.alpha = 0
+        resignFirstResponders()
     }
 }
 

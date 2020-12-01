@@ -353,6 +353,11 @@ extension UITableViewCell {
     }
 }
 
+extension UICollectionViewCell {
+    static var reuseIdentifier: String {
+        return String(describing: self)
+    }
+}
 
 extension UserDefaults {
     

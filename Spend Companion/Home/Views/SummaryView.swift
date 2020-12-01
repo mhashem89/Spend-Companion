@@ -62,6 +62,7 @@ class SummaryView: UIView {
         segmentedControl.anchor(trailing: safeAreaLayoutGuide.trailingAnchor, trailingConstant: 10 * windowWidthScale, centerY: titleLabel.centerYAnchor, widthConstant: 117 * windowWidthScale, heightConstant: 31 * windowWidthScale)
         barChart.anchor(top: titleLabel.bottomAnchor, topConstant: 20 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, heightConstant: frame.height * 0.4)
         summaryLabel.anchor(top: barChart.bottomAnchor, topConstant: 15, centerX: centerXAnchor, widthConstant: frame.width * 0.9, heightConstant: frame.height * 0.17)
+        titleLabel.text = "Summary of \(DateFormatters.monthYearFormatter.string(from: Date()))"
     }
     
     func setupBarChart(delegate: UICollectionViewDelegate, dataSource: UICollectionViewDataSource, cellId: String) {
