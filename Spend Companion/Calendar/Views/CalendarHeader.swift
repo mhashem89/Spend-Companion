@@ -9,23 +9,15 @@
 import UIKit
 
 protocol CalendarHeaderDelegate: class {
-    
+    /// Passes the year selection to the delegate when the user goes to the previous or next year
     func yearSelected(year: String)
 }
 
-
 class CalendarHeader: UICollectionViewCell {
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
     weak var delegate: CalendarHeaderDelegate?
+    
+// MARK:- Subviews
     
     let headerLabel: UILabel = {
         let label = UILabel()
@@ -34,7 +26,7 @@ class CalendarHeader: UICollectionViewCell {
         return label
     }()
     
-    let nextButton: UIButton = {
+    private let nextButton: UIButton = {
         let button = UIButton(type: .system)
         if #available(iOS 13, *) {
             button.setImage(UIImage(systemName: "chevron.right.square"), for: .normal)
@@ -46,7 +38,7 @@ class CalendarHeader: UICollectionViewCell {
         return button
     }()
     
-    let previousButton: UIButton = {
+    private let previousButton: UIButton = {
         let button = UIButton(type: .system)
         button.imageView?.contentMode = .scaleAspectFill
         if #available(iOS 13, *) {
@@ -60,6 +52,17 @@ class CalendarHeader: UICollectionViewCell {
     
     let segmentedControl = UISegmentedControl()
     
+// MARK:- Methods
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     func setupUI() {
         addSubviews([previousButton, headerLabel, nextButton])
         
@@ -70,28 +73,27 @@ class CalendarHeader: UICollectionViewCell {
         previousButton.addTarget(self, action: #selector(previousYear), for: .touchUpInside)
         nextButton.addTarget(self, action: #selector(nextYear), for: .touchUpInside)
     }
-    
+    /// Used in the charts viewer to switch between Month/Category/Income
     func addSegmentedControl() {
         addSubview(segmentedControl)
         segmentedControl.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)], for: .normal)
         segmentedControl.setTitleTextAttributes([.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 15 : 15 * fontScale)], for: .selected)
         segmentedControl.anchor(top: previousButton.bottomAnchor, topConstant: 5 * windowHeightScale, leading: leadingAnchor, leadingConstant: 20 * windowWidthScale, trailing: trailingAnchor, trailingConstant: 20 * windowWidthScale)
     }
-    
-    @objc func nextYear() {
+    /// Gets called when user pesses "next" arrow button. Adds one to the current year and passes it to the delegate
+    @objc private func nextYear() {
         guard let year = headerLabel.text, let yearNumber = Int(year) else { return }
         let nextYear = String(yearNumber + 1)
         headerLabel.text = nextYear
         delegate?.yearSelected(year: nextYear)
     }
-    
-    @objc func previousYear() {
+    /// Gets called when the user presses "previous" arrow button. Subtracts  one from the current year and passes it to the delegate
+    @objc private func previousYear() {
         guard let year = headerLabel.text, let yearNumber = Int(year) else { return }
         let previousYear = String(yearNumber - 1)
         headerLabel.text = previousYear
         delegate?.yearSelected(year: previousYear)
     }
-
 }
 
 

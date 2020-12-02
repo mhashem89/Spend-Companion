@@ -8,32 +8,29 @@
 
 import UIKit
 
-class MonthViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, CategoryViewControllerDelegate, MonthViewModelDelegate {
-    
-    
-    func categoryChanged() {
-        viewModel.fetchData()
-        collectionView.reloadData()
-        if viewModel.fixedCategories.isEmpty && viewModel.otherExpenses.isEmpty {
-            centerTextView.removeFromSuperview()
-            navigationItem.rightBarButtonItem?.isEnabled = true
-        }
-    }
-    
+class MonthViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, MonthViewModelDelegate {
     
     // MARK:- Properties
     
-    var cellId = "cellId"
-    var headerId = "HeaderId"
-    var viewModel: MonthViewModel
-    var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
-    var labels = ["Income", "Recurring Expenses"]
+    private var cellId = "cellId"
+    private var headerId = "HeaderId"
+    private var viewModel: MonthViewModel
+    private var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
+    private var selectedCategories = [Category]() // Keep track of the categories user has selected to delete
     
-    var selectedCategories = [Category]()
+// MARK:- Subviews
     
-    var monthString: String
+    private var centerTextView: UITextView = {
+        let textView = UITextView()
+        textView.font = UIFont.boldSystemFont(ofSize: 20)
+        textView.textColor = CustomColors.darkGray
+        textView.text = "Press the plus button to start adding categories"
+        textView.textAlignment =  .center
+        textView.isEditable = false
+        return textView
+    }()
     
-    var plusButton: UIButton = {
+    private var plusButton: UIButton = {
         let button = UIButton(type: .system)
         if #available(iOS 13, *) {
             button.setImage(UIImage(systemName: "plus")?.withRenderingMode(.automatic), for: .normal)
@@ -46,12 +43,9 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         return button
     }()
     
-    let centerTextView = UITextView()
-    
-    // MARK:- Lifecycle Methods
+// MARK:- Lifecycle Methods
     
     init(monthString: String) {
-        self.monthString = monthString
         self.viewModel = MonthViewModel(monthString: monthString)
         super.init(collectionViewLayout: UICollectionViewFlowLayout())
     }
@@ -62,13 +56,21 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.viewModel.delegate = self
-        self.viewModel.fetchData()
-        view.addSubview(plusButton)
+        viewModel.delegate = self
+        viewModel.fetchData()
+        
+        // Setup the navigation bar
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editCollectionView))
+        title = viewModel.month.date
+        navigationController?.navigationBar.isHidden = false
+        
+        // Setup the subviews
+        view.addSubviews([plusButton, centerTextView])
         plusButton.anchor(top: view.safeAreaLayoutGuide.topAnchor, topConstant: 15, trailing: view.trailingAnchor, trailingConstant: 20, widthConstant: 40, heightConstant: 40)
+        centerTextView.anchor(centerX: view.centerXAnchor, centerY: view.centerYAnchor, widthConstant: view.frame.width * 0.8, heightConstant: view.frame.height * 0.1)
         plusButton.addTarget(self, action: #selector(self.addCategory), for: .touchUpInside)
         
+        // Setup the collection view
         collectionView.backgroundColor = CustomColors.systemBackground
         collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: cellId)
         collectionView.register(SectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerId)
@@ -76,39 +78,29 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        title = viewModel.month.date
-        navigationController?.navigationBar.isHidden = false
         tabBarController?.tabBar.isHidden = true
         
         if viewModel.fixedCategories.isEmpty && viewModel.otherExpenses.isEmpty {
-            centerTextView.font = UIFont.boldSystemFont(ofSize: 20)
-            centerTextView.textColor = CustomColors.darkGray
-            centerTextView.text = "Press the plus button to start adding categories"
-            centerTextView.textAlignment =  .center
-            centerTextView.isEditable = false
-            view.addSubview(centerTextView)
-            centerTextView.anchor(centerX: view.centerXAnchor, centerY: view.centerYAnchor, widthConstant: view.frame.width * 0.8, heightConstant: view.frame.height * 0.1)
+            centerTextView.isHidden = false
             navigationItem.rightBarButtonItem?.isEnabled = false
         } else {
             navigationItem.rightBarButtonItem?.isEnabled = true
-            centerTextView.removeFromSuperview()
+            centerTextView.isHidden = true
         }
-        
     }
-    
-    
     
     // MARK:- Collection View Methods
     
-    @objc func editCollectionView() {
+    /// Gets called when the "Edit" nav bar button is pressed.
+    @objc private func editCollectionView() {
         collectionView.allowsMultipleSelection = true
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelEditingCollectionView))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(finishEditingCollectionView))
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(deleteSelectedItems))
         navigationItem.hidesBackButton = true
         collectionView.reloadData()
     }
-    
-    @objc func cancelEditingCollectionView() {
+    /// Gets called when the user either cancels or finishes editing the collection view. Restores the UI and empties the selected categories array.
+    @objc private func finishEditingCollectionView() {
         collectionView.allowsMultipleSelection = false
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editCollectionView))
         navigationItem.leftBarButtonItem = .none
@@ -117,14 +109,12 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         selectedCategories.removeAll()
     }
     
-    @objc func deleteSelectedItems() {
+    @objc private func deleteSelectedItems() {
         if selectedCategories.count > 0 {
-            for category in selectedCategories {
-                viewModel.deleteCategory(category: category)
-            }
+            selectedCategories.forEach({ viewModel.deleteCategory(category: $0) })
             viewModel.fetchData()
         }
-        cancelEditingCollectionView()
+        finishEditingCollectionView()
     }
     
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
@@ -147,45 +137,28 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if viewModel.fixedCategories.count > 0 {
-            switch section {
-            case 0:
-                return viewModel.fixedCategories.count
-            case 1:
-                return viewModel.otherExpenses.count
-            default:
-                return 0
-            }
+            return section == 0 ? viewModel.fixedCategories.count : viewModel.otherExpenses.count
         } else {
             return viewModel.otherExpenses.count
         }
-        
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! CategoryCell
         cell.addBorderShadow()
-        var total: String = "0"
-        if viewModel.fixedCategories.count > 0 {
-            switch indexPath.section {
-            case 0:
-                let categoryNames = viewModel.fixedCategories.keys.map({ String($0) }).sorted(by: { $0 < $1 })
-                let categoryName = categoryNames[indexPath.item]
-                cell.nameLabel.text = categoryName
-                total = viewModel.calcCategoryTotal(category: viewModel.fixedCategories[categoryName])
-                cell.backgroundColor = CustomColors.green
-            case 1:
-                cell.nameLabel.text = viewModel.otherExpenses[indexPath.item].name
-                total = viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item])
-                cell.backgroundColor = colors[indexPath.item]
-            default:
-                break
-            }
+        var total: String = "0" // The total value for the category
+        
+        // If there is an "Income" category then there would be 2 sections otherwise there would be 1 section for expenses
+        if viewModel.fixedCategories.count > 0 && indexPath.section == 0 {
+            cell.nameLabel.text = ItemType.income.description
+            total = viewModel.calcCategoryTotal(category: viewModel.fixedCategories[ItemType.income.description])
+            cell.backgroundColor = CustomColors.green
         } else {
             cell.nameLabel.text = viewModel.otherExpenses[indexPath.item].name
             total = viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item])
             cell.backgroundColor = colors[indexPath.item]
         }
-        cell.totalLabel.text = CommonObjects.shared.formattedCurrency(with: Double(total)!)
+        cell.totalLabel.text = CommonObjects.shared.formattedCurrency(with: Double(total)!) // Format total into currency
         cell.editingEnabled = collectionView.allowsMultipleSelection
         cell.setupSubviews()
         return cell
@@ -200,45 +173,37 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     }
 
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        var category: Category?
-        if viewModel.fixedCategories.count > 0 {
-            let categoryNames = viewModel.fixedCategories.keys.map({ String($0) }).sorted(by: { $0 < $1 })
-            switch indexPath.section {
-            case 0:
-                let categoryName = categoryNames[indexPath.item]
-                category = viewModel.fixedCategories[categoryName]
-            case 1:
-                category = viewModel.otherExpenses[indexPath.item]
-            default:
-                break
-            }
+        var selectedCategory: Category?
+        if viewModel.fixedCategories.count > 0 && indexPath.section == 0 {
+            selectedCategory = viewModel.fixedCategories[ItemType.income.description]
         } else {
-            category = viewModel.otherExpenses[indexPath.item]
+            selectedCategory = viewModel.otherExpenses[indexPath.item]
         }
         
+        // If "allowsMultipleSelection" is true then the collection view is in editing mode, otherwise selecting a cell pushes the category table view controller
         switch collectionView.allowsMultipleSelection {
         case false:
-            let categoryVC = CategoryViewController(month: viewModel.month, category: category)
+            let categoryVC = CategoryViewController(month: viewModel.month, category: selectedCategory)
             categoryVC.delegate = self
             let navVC = UINavigationController(rootViewController: categoryVC)
             navVC.modalPresentationStyle = .overCurrentContext
             present(navVC, animated: true)
         case true:
             let cell = collectionView.cellForItem(at: indexPath) as! CategoryCell
-            if let selectedCategoryIndex = selectedCategories.firstIndex(of: category!) {
+            
+            // If the category has already been selected then it deselects the cell, otherwise it gets appended to selected categories
+            if let selectedCategoryIndex = selectedCategories.firstIndex(of: selectedCategory!) {
                 selectedCategories.remove(at: selectedCategoryIndex)
             } else {
-                selectedCategories.append(category!)
+                selectedCategories.append(selectedCategory!)
             }
             collectionView.deselectItem(at: indexPath, animated: true)
             cell.toggleCheckMark()
         }
-        
     }
     
-    
     // MARK:- Selectors
-       
+    /// Gets called when the plus button is pressed. Presents a new category table view controller.
     @objc func addCategory() {
         let categoryVC = CategoryViewController(month: viewModel.month)
         categoryVC.delegate = self
@@ -246,9 +211,21 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         navVC.modalPresentationStyle = .fullScreen
         present(navVC, animated: true)
     }
-       
 }
 
+// MARK:- Category View Controller Delegate
+
+extension MonthViewController: CategoryViewControllerDelegate {
+    
+    func categoryChanged() {
+        viewModel.fetchData()
+        collectionView.reloadData()
+        if viewModel.fixedCategories.isEmpty && viewModel.otherExpenses.isEmpty {
+            centerTextView.removeFromSuperview()
+            navigationItem.rightBarButtonItem?.isEnabled = true
+        }
+    }
+}
 
 // MARK:- Section Header
 

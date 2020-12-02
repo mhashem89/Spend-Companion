@@ -8,34 +8,31 @@
 
 import UIKit
 
-
 protocol ItemCellDelegate: class {
+    /// Called when the user presses "Done" after choosing the item date. Passes to the delegate the selected day index and a reference to the  cell.
     func donePressedInDayPicker(selected day: Int, for cell: ItemCell)
+    /// Tells the delegate that the detail textfield has returned and passes reference to the cell. If the item has future similar items then it tells the delegate to display an alert message to the user asking whether to apply the change to future items.
     func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool)
+    /// Tells the delegate that the amount textfield has returned and passes reference to the cell. If the item has future similar items then it tells the delegate to display an alert message to the user asking whether to apply the change to future items.
     func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool)
+    /// Tells the delegate when any data is changed in order to enable the "Save" button.
     func dataDidChange()
+    /// Tells the delegate that editing has started in a textfield in a particular cell. Passes reference to the cell in order to highlight it.
     func editingStarted(in textField: UITextField, of cell: ItemCell)
+    /// Tells the delegate that circular recurrence button is pressed to show the recurrence view controller
     func recurrenceButtonPressed(in cell: ItemCell)
 }
-
 
 class ItemCell: UITableViewCell {
         
 // MARK:- Properties
-    
-    
-    let dayPicker = UIPickerView()
-    
+        
+    let dayPicker = UIPickerView() // The picker to choose the item date
     weak var delegate: ItemCellDelegate?
-    
-    var setupUIDone: Bool = false
-    
-    var detailTextChanged: Bool = false
-    
-    var amountTextChanged: Bool = false
-    
-    var amountString: String?
-    
+    var setupUIDone: Bool = false // Boolean to keep track if the cell has already been used, if true it means the cell is dequed
+    var detailTextChanged: Bool = false // Boolean to keep track of changes in detail textfield
+    var amountTextChanged: Bool = false // Boolean to keep track of changes in amount textfield
+    var amountString: String? // Keep track of the value in the amount textfield to restore it if the user presses cancel
     
     // MARK:- Subviews
     
@@ -94,6 +91,7 @@ class ItemCell: UITableViewCell {
             tf.addRightPadding(withSymbol: currencySymbol.symbol)
         }
         tf.keyboardType = .decimalPad
+        tf.inputAccessoryView = setupAmountToolbar()
         return tf
     }()
     
@@ -118,24 +116,26 @@ class ItemCell: UITableViewCell {
     
     func setupUI() {
         if !setupUIDone {
+            
+            // Add all the subviews
             addSubviews([dayLabel, dayTextField, detailTextField, amountTextField, recurringCircleButton])
+            
             dayLabel.anchor(leading: leadingAnchor, leadingConstant: frame.width * 0.05, centerY: centerYAnchor)
             dayTextField.anchor(top: topAnchor, leading: leadingAnchor, widthConstant: frame.width * 0.25, heightConstant: frame.height)
             detailTextField.anchor(leading: leadingAnchor, leadingConstant: frame.width * 0.27, centerY: centerYAnchor)
             amountTextField.anchor(leading: leadingAnchor, leadingConstant: frame.width * 0.78, centerY: centerYAnchor)
             recurringCircleButton.anchor(trailing: trailingAnchor, trailingConstant: frame.width * 0.25, centerY: centerYAnchor)
-            recurringCircleButton.addTarget(self, action: #selector(recurrenceButtonPressed), for: .touchUpInside)
+            
             addVerticalSeparator(for: dayLabel)
             addVerticalSeparator(for: detailTextField)
                
             [detailTextField, amountTextField, dayTextField].forEach({ $0.delegate = self })
             
-            setupAmountToolbar()
+            recurringCircleButton.addTarget(self, action: #selector(recurrenceButtonPressed), for: .touchUpInside)
             setupUIDone = true
         }
-        
     }
-    
+    /// Configures the subviews to display data from the item
     func configure(for item: Item?) {
         if let itemDate = item?.date {
             dayLabel.text = itemDate.dayMatches(Date()) ? "Today" : DateFormatters.fullDateWithLetters.string(from: itemDate).extractDate()
@@ -153,7 +153,8 @@ class ItemCell: UITableViewCell {
         recurringCircleButton.isHidden = item?.recurringNum == nil && item?.recurringUnit == nil
     }
     
-    private func setupAmountToolbar() {
+    /// Returns the toolbar used as an accessory view to the amount textfield
+    private func setupAmountToolbar() -> UIToolbar {
         let toolBar = UIToolbar(frame: .init(origin: .zero, size: CGSize(width: frame.width, height: 44 * windowHeightScale)))
         toolBar.sizeToFit()
         toolBar.backgroundColor = CustomColors.mediumGray
@@ -161,9 +162,9 @@ class ItemCell: UITableViewCell {
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(doneEnteringAmount))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         toolBar.setItems([cancelButton, spacer, doneButton], animated: false)
-        amountTextField.inputAccessoryView = toolBar
+        return toolBar
     }
-    
+    /// Adds vertical line after the subview
     private func addVerticalSeparator(for view: UIView) {
         let separator = UIView()
         addSubview(separator)
@@ -176,17 +177,17 @@ class ItemCell: UITableViewCell {
             if textField.isFirstResponder { textField.resignFirstResponder() }
         }
     }
-    
+    /// Gets called when circle recurrence button is pressed and calls the delegate.
     @objc func recurrenceButtonPressed() {
         delegate?.recurrenceButtonPressed(in: self)
     }
-
+    /// Gets called when the "Done" button in day picker is pressed.
     @objc private func doneDayPicker() {
         delegate?.donePressedInDayPicker(selected: dayPicker.selectedRow(inComponent: 0), for: self)
         dayTextField.resignFirstResponder()
         delegate?.dataDidChange()
     }
-    
+    /// Gets called when the "Cancel" button in day picker is pressed.
     @objc private func cancelButtonPressed() {
         if amountTextField.isFirstResponder {
             amountTextField.text = amountString
@@ -200,7 +201,7 @@ class ItemCell: UITableViewCell {
     @objc private func doneEnteringAmount() {
         amountTextField.resignFirstResponder()
     }
-    
+    /// The changes needed to highlight the cell, including highlight color and changing font color to blue
     override func setHighlighted(_ highlighted: Bool, animated: Bool) {
         if highlighted {
             backgroundColor = CustomColors.lightGray
@@ -220,7 +221,6 @@ class ItemCell: UITableViewCell {
     }
 }
 
-
 extension ItemCell: UITextFieldDelegate {
     
     func textFieldDidBeginEditing(_ textField: UITextField) {
@@ -232,10 +232,9 @@ extension ItemCell: UITextFieldDelegate {
         return true
     }
     
-    
     func textFieldDidEndEditing(_ textField: UITextField) {
         guard let text = textField.text, !text.isEmpty else { return }
-        switch textField {
+        switch textField { // if either detail or amount textField end editing, sends the changes to the delegate
         case detailTextField:
             if detailTextChanged {
                 delegate?.detailTextFieldReturn(text: text, for: self, withMessage: !recurringCircleButton.isHidden && detailTextChanged)

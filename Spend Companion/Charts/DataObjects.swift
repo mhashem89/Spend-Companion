@@ -69,9 +69,18 @@ enum ItemChangeType {
 }
 
 
-enum ItemType: Int16 {
+enum ItemType: Int16, CustomStringConvertible {
     case spending = 0
     case income = 1
+    
+    var description: String {
+        switch self {
+        case .spending:
+            return "Spending"
+        case .income:
+            return "Income"
+        }
+    }
 }
 
 struct YearTotals {

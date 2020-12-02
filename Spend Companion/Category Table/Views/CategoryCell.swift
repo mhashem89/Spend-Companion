@@ -34,7 +34,7 @@ class CategoryCell: UICollectionViewCell {
     
     var checkMark = UIButton()
     
-    var editingEnabled: Bool = false
+    var editingEnabled: Bool = false // Keeps track if the cell should be in editing mode
     
     // MARK:- Lifecycle Methods
     
@@ -48,21 +48,21 @@ class CategoryCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK:- Selectors
-    
-    
     // MARK:- UI Methods
     
     func setupSubviews() {
+        
+        // Setup the stack view
         let stack = UIStackView(arrangedSubviews: [nameLabel, totalLabel])
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = 10
+        stack.axis = .vertical; stack.alignment = .center; stack.spacing = 10
+        
         nameLabel.anchor(widthConstant: frame.width)
+        checkMark.tintColor = .white
         
         addSubview(stack)
         stack.anchor(centerX: centerXAnchor, centerY: centerYAnchor)
-        checkMark.tintColor = .white
+        
+        // If editing is enabled then show the checkmark otherwise remove it
         if editingEnabled {
             if #available(iOS 13, *) {
                 checkMark.setImage(UIImage(systemName: "circle"), for: .normal) 
@@ -86,10 +86,10 @@ class CategoryCell: UICollectionViewCell {
         } else {
             if checkMark.title(for: .normal) == "☐" {
                 checkMark.setTitle("☑", for: .normal)
+            } else {
+                checkMark.setTitle("☐", for: .normal)
             }
         }
     }
-    
-    
 }
 

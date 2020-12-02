@@ -10,6 +10,8 @@ import UIKit
 
 class ItemTableHeader: UIView {
     
+// MARK:- Subviews
+    
     let titleButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitleColor(CustomColors.label, for: .normal)
@@ -68,7 +70,9 @@ class ItemTableHeader: UIView {
     
     let separatorView = UIView()
     
+// MARK:- Methods
     
+    /// Enable all the buttons
     func enableButtons(with viewModel: CategoryViewModel?) {
         guard let viewModel = viewModel else { return }
         plusButton.isEnabled = true
@@ -96,19 +100,23 @@ class ItemTableHeader: UIView {
     
     func setupUI(with viewModel: CategoryViewModel?) {
         backgroundColor = CustomColors.systemBackground
+        
+        // Setup the stack view that has the buttons
         let buttonStack = UIStackView(arrangedSubviews: [favoriteButton, sortButton, plusButton])
         separatorView.backgroundColor = CustomColors.darkGray
         buttonStack.axis = .horizontal; buttonStack.spacing = 10 * windowWidthScale
-        titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
-        addSubviews([titleButton, buttonStack, separatorView])
         
+        titleButton.setTitle(viewModel?.category?.name ?? "Choose name", for: .normal)
+        
+        // Setup the subviews
+        addSubviews([titleButton, buttonStack, separatorView])
         titleButton.anchor(leading: leadingAnchor, leadingConstant: 20 * windowWidthScale, centerY: centerYAnchor)
         buttonStack.anchor(trailing: trailingAnchor, trailingConstant: 20 * windowWidthScale, centerY: centerYAnchor)
         separatorView.anchor(leading: leadingAnchor, trailing: trailingAnchor, bottom: bottomAnchor, heightConstant: 1)
+        
         if let category = viewModel?.category {
             favoriteButton.isHidden = category.name == "Income"
             titleButton.isUserInteractionEnabled = category.name != "Income"
         }
     }
-   
 }

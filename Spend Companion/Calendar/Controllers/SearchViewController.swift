@@ -9,19 +9,22 @@
 import UIKit
 
 class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-  
-    var cellId = "cellId"
     
-    var viewModel = SearchViewModel()
+// MARK:- Properties
     
-    let searchTable = UITableView()
+    private var viewModel = SearchViewModel()
+    private let searchTable = UITableView()
 
+// MARK:- Methods
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground
+        
+        // Setup search table
         searchTable.delegate = self
         searchTable.dataSource = self
-        searchTable.register(RecentItemCell.self, forCellReuseIdentifier: cellId)
+        searchTable.register(RecentItemCell.self, forCellReuseIdentifier: RecentItemCell.reuseIdentifier)
         searchTable.keyboardDismissMode = .interactive
         
         view.addSubview(searchTable)
@@ -33,23 +36,9 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! RecentItemCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: RecentItemCell.reuseIdentifier, for: indexPath) as! RecentItemCell
         let item = viewModel.searchResults[indexPath.row]
-        guard let itemDate = item.date else { return cell }
-        let titleString = NSMutableAttributedString(string: item.detail ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
-        let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
-        let dayString = DateFormatters.fullDateFormatter.string(from: itemDate) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: itemDate)
-        let formattedDayString = NSAttributedString(string: "   \(dayString)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.darkGray])
-        titleString.append(formattedDayString)
-        cell.textLabel?.attributedText = titleString
-        cell.detailTextLabel?.text = item.category?.name
-        cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
-        cell.amountLabel.text = String(format: "%g", (item.amount * 100).rounded() / 100)
-        if item.recurringNum != nil && item.recurringUnit != nil {
-            cell.addRecurrence()
-        } else {
-            cell.recurringCircleButton.removeFromSuperview()
-        }
+        cell.configureCell(for: item)
         return cell
     }
     
@@ -57,6 +46,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         tableView.deselectRow(at: indexPath, animated: false)
         let item = self.viewModel.searchResults[indexPath.row]
         guard let itemMonth = item.month else { return }
+        
+        // Present the category table view controller
         let categoryVC = CategoryViewController(month: itemMonth, category: item.category)
         if let itemIndex = categoryVC.viewModel?.items?.firstIndex(of: item) {
             present(UINavigationController(rootViewController: categoryVC), animated: true) {
@@ -66,7 +57,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
         }
     }
-    
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
@@ -82,19 +72,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return windowHeightScale < 1 ? 44 : 44 * fontScale
     }
-    
-    
 }
 
-
+// MARK:- Search Results Updating
 
 extension SearchViewController: UISearchResultsUpdating {
    
-    
     func updateSearchResults(for searchController: UISearchController) {
         if let searchText = searchController.searchBar.text {
             do {
@@ -104,10 +90,5 @@ extension SearchViewController: UISearchResultsUpdating {
             }
             searchTable.reloadData()
         }
-      
     }
-    
-    
-    
-    
 }

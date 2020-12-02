@@ -18,19 +18,16 @@ class SearchViewModel {
     
     var searchResults = [Item]()
     
-    
     func search(name: String) throws {
         let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
         fetchRequest.predicate = NSPredicate(format: "detail BEGINSWITH[c] %@", name)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: true)]
         searchResults = try context.fetch(fetchRequest)
     }
-    
     
     func deleteItem(item: Item, at indexPath: IndexPath) throws {
         searchResults.remove(at: indexPath.row)
         try CoreDataManager.shared.deleteItem(item: item, saveContext: true)
     }
-    
-    
 }
 

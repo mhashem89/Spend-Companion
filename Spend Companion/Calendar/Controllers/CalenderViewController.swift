@@ -8,29 +8,28 @@
 
 import UIKit
 
-class CalenderViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout, CalendarHeaderDelegate {
+class CalenderViewController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
-    var yearCellId = "yearCellId"
-    var monthCellId = "monthCellId"
+// MARK:- Properties
     
-    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    private var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    private var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
+    private var chosenColor: UIColor? = #colorLiteral(red: 0.8501421211, green: 0.8527938297, blue: 1, alpha: 1)
+    private var selectedYear: String = DateFormatters.yearFormatter.string(from: Date())
     
-    var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
-    var chosenColor: UIColor? = #colorLiteral(red: 0.8501421211, green: 0.8527938297, blue: 1, alpha: 1)
+    // Total income and spending for each month of the selected year
+    private var yearTotals = [String: (spending: Double?, income: Double?)]()
     
-    var selectedYear: String = DateFormatters.yearFormatter.string(from: Date())
-
-    var yearTotals = [String: (spending: Double?, income: Double?)]()
+// MARK:- Methods
     
     override func viewDidLoad() {
+        
+        // Setup the collection view
         collectionView.backgroundColor = CustomColors.systemBackground
-        collectionView.register(CalendarCell.self, forCellWithReuseIdentifier: monthCellId)
-        collectionView.register(CalendarHeader.self, forCellWithReuseIdentifier: yearCellId)
+        collectionView.register(CalendarCell.self, forCellWithReuseIdentifier: CalendarCell.reuseIdentifier)
+        collectionView.register(CalendarHeader.self, forCellWithReuseIdentifier: CalendarHeader.reuseIdentifier)
         
-        navigationController?.navigationBar.prefersLargeTitles = true
-        navigationItem.largeTitleDisplayMode = .always
-        navigationItem.title = "Calendar"
-        
+        // Setup the navigation bar
         setupNavBar()
     }
     
@@ -41,16 +40,14 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
         collectionView.reloadData()
     }
     
-    func loadData() {
-        months.forEach { [weak self] (month) in
-            let monthString = "\(month) \(selectedYear)"
-            let spending = CoreDataManager.shared.calcCategoryTotalForMonth(monthString)
-            let income = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: "Income")
-            self?.yearTotals[monthString] = (spending, income)
-        }
-    }
-    
     func setupNavBar() {
+        
+        // Setup the navigation bar
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
+        navigationItem.title = "Calendar"
+        
+        // Setup the search view controller
         let searchVC = SearchViewController()
         let searchController = UISearchController(searchResultsController: searchVC)
         navigationItem.searchController = searchController
@@ -59,37 +56,43 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
         searchController.searchBar.placeholder = "Search transactions"
     }
     
+    func loadData() {
+        
+        // For each month, ask the Core Data manager to calculate total income and spending and save them in the "yearTotals" dict
+        months.forEach { [weak self] (month) in
+            let monthString = "\(month) \(selectedYear)"
+            let spending = CoreDataManager.shared.calcCategoryTotalForMonth(monthString)
+            let income = CoreDataManager.shared.calcCategoryTotalForMonth(monthString, for: "Income")
+            self?.yearTotals[monthString] = (spending, income)
+        }
+    }
+    
+// MARK:-  Collection View Methods
+    
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 2
     }
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            return 1
-        case 1:
-            return 12
-        default:
-            return 0
-        }
+        return section == 0 ? 1 : months.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if indexPath.section == 0 {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: yearCellId, for: indexPath) as! CalendarHeader
+        if indexPath.section == 0 { // Setup the header that has the selected year
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CalendarHeader.reuseIdentifier, for: indexPath) as! CalendarHeader
             cell.headerLabel.text = selectedYear
             cell.headerLabel.font = UIFont.boldSystemFont(ofSize: 22 * fontScale)
             cell.delegate = self
             return cell
-        } else {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: monthCellId, for: indexPath) as! CalendarCell
+        } else {  // Setup the month cells
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CalendarCell.reuseIdentifier, for: indexPath) as! CalendarCell
             cell.layer.borderColor = chosenColor?.cgColor
             cell.layer.cornerRadius = (view.frame.width * 0.24) / 2
             cell.monthLabel.text = months[indexPath.item]
             let monthString = "\(months[indexPath.item]) \(selectedYear)"
             let totalSpending = yearTotals[monthString]?.spending
             let totalIncome = yearTotals[monthString]?.income
-            if totalSpending != nil || totalIncome != nil {
+            if totalSpending != nil || totalIncome != nil { // Check if the month has either recorded income or spending
                 let totalSpendingString = CommonObjects.shared.formattedCurrency(with: totalSpending ?? 0)
                 let totalIncomeString = CommonObjects.shared.formattedCurrency(with: totalIncome ?? 0)
                 cell.addTotalLabel(income: totalIncomeString, spending: totalSpendingString)
@@ -98,9 +101,7 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
             }
             return cell
         }
-        
     }
-    
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         if indexPath.section == 0 {
@@ -129,6 +130,11 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
             return
         }
     }
+}
+
+// MARK:- Calendar Header Delegate
+
+extension CalenderViewController: CalendarHeaderDelegate {
     
     func yearSelected(year: String) {
         self.selectedYear = year
@@ -136,8 +142,4 @@ class CalenderViewController: UICollectionViewController, UICollectionViewDelega
         chosenColor = colors.randomElement()
         collectionView.reloadSections(IndexSet(arrayLiteral: 1))
     }
-    
-    
-    
-    
 }

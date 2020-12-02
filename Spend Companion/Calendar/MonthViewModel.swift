@@ -10,57 +10,47 @@ import UIKit
 import CoreData
 
 protocol MonthViewModelDelegate: class {
-    
     func presentError(error: Error)
-    
 }
 
 class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
    
-    
     var context: NSManagedObjectContext {
         return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
     }
     
     var month: Month!
-    
     weak var delegate: MonthViewModelDelegate?
-    
     var fixedCategories = [String: Category]()
     var otherExpenses = [Category]()
     
     init(monthString: String) {
         super.init()
-        let fetchRequest = NSFetchRequest<Month>(entityName: "Month")
-        fetchRequest.predicate = NSPredicate(format: "date = %@", monthString)
-        if let fetchedMonth = try? context.fetch(fetchRequest).first {
-            self.month = fetchedMonth
-        } else {
-            let newMonth = Month(context: context)
-            newMonth.date = monthString
-            if let year = monthString.split(separator: " ").last {
-                newMonth.year = String(year)
-            }
-            self.month = newMonth
-            do {
-                try CoreDataManager.shared.saveContext()
-            } catch let err {
-                delegate?.presentError(error: err)
-            }
+        
+        // Fetch the month and load it into the "month" variable, if not found then it creates a new "Month" entity
+        self.month = CoreDataManager.shared.checkMonth(monthString: monthString, createNew: true)
+        do {
+            try CoreDataManager.shared.saveContext()
+        } catch let err {
+            delegate?.presentError(error: err)
         }
     }
     
     func fetchData() {
         guard let categories = month.categories?.allObjects as? [Category] else { return }
         fixedCategories = [String: Category]()
-        fixedCategories["Income"] = categories.filter({
+        
+        // Filter the income category
+        fixedCategories[ItemType.income.description] = categories.filter({
             guard let name = $0.name else { return false }
-            return name == "Income"
+            return name == ItemType.income.description
         }).first
+        
+        // Filter the expenses and sort them by name
         otherExpenses = categories
             .filter({
                 guard let name = $0.name else { return false }
-                return name != "Income"
+                return name != ItemType.income.description
             })
             .sorted(by: {
                 guard let name0 = $0.name, let name1 = $1.name else { return false }
@@ -68,6 +58,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             })
     }
     
+    /// Adds a new category and save the context
     func addCategory(name: String) {
         let newCategory = Category(context: context)
         newCategory.name = name
@@ -86,7 +77,7 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
         return String(format: "%g", 0)
     }
     
-    
+    /// Deletes the category and all associated items
     func deleteCategory(category: Category) {
         do {
             if let items = category.items?.allObjects as? [Item] {
@@ -100,8 +91,4 @@ class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
             delegate?.presentError(error: err)
         }
     }
-    
-    
-    
-    
 }

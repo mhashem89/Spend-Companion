@@ -11,15 +11,7 @@ import UIKit
 
 class CalendarCell: UICollectionViewCell {
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        setupUI()
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
+// MARK:- Subviews
     
     var monthLabel: UILabel = {
         let label = UILabel()
@@ -41,8 +33,18 @@ class CalendarCell: UICollectionViewCell {
         return label
     }()
     
-    
     var stack = UIStackView()
+    
+// MARK:- Methods
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setupUI()
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     func setupUI() {
         layer.borderWidth = 0.8

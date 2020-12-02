@@ -443,3 +443,23 @@ import Foundation
 //            self?.quickAddView.resignFirstResponders()
 //            UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
 //        }
+
+
+
+//        // Format the item name and date
+//        let titleString = NSMutableAttributedString(string: item.detail ?? "Item", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: CustomColors.label])
+//        let todayDate = DateFormatters.fullDateFormatter.string(from: Date())
+//        let dayString = DateFormatters.fullDateFormatter.string(from: itemDate) == todayDate ? "Today" : DateFormatters.fullDateFormatter.string(from: itemDate)
+//        let formattedDayString = NSAttributedString(string: "   \(dayString)", attributes: [.font: UIFont.italicSystemFont(ofSize: fontScale < 1 ? 11 : 12 * fontScale), .foregroundColor: UIColor.darkGray])
+//        titleString.append(formattedDayString)
+//
+//
+//        cell.textLabel?.attributedText = titleString
+//        cell.detailTextLabel?.text = item.category?.name
+//        cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11 : 11 * fontScale)
+//        cell.amountLabel.text = String(format: "%g", (item.amount * 100).rounded() / 100)
+//        if item.recurringNum != nil && item.recurringUnit != nil {
+//            cell.addRecurrence()
+//        } else {
+//            cell.recurringCircleButton.removeFromSuperview()
+//        }
