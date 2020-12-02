@@ -12,41 +12,40 @@ import StoreKit
 
 
 protocol RecurringViewControllerDelegate: class {
-    
+    /// Gets called when the user presses "Cancel" button. Informs the delegate if the user was opening the recurrence view controller for the first time or not.
     func recurringViewCancel(wasNew: Bool)
-    
+    /// Gets called when the user presses "Done" button. Passes the item recurrence struct to the delegate and informs it if the struct is a newly created one, and if not then what items have changed.
     func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool, dataChanged: [ItemRecurrenceCase])
-    
 }
 
 class RecurringViewController: UIViewController {
     
+// MARK:- Properties
+    
     weak var delegate: RecurringViewControllerDelegate?
     
-    var remindersPurchased: Bool {
+    // Boolean to keep track of the reminders purchased status
+    private var remindersPurchased: Bool {
         return iCloudStore.bool(forKey: SettingNames.remindersPurchased)
     }
     
-    let iCloudStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
+    // Reference to the ubiquitous key-value store
+    private let iCloudStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
     
-    let reminderPurchaseProductId = PurchaseIds.reminders.description
+    // The product Id for the reminders in-app purchase
+    private let reminderPurchaseProductId = PurchaseIds.reminders.description
+    let dayPicker = UIDatePicker() // The picker that shows up when user tries to pick an end date
+    private var dayPickerDate: Date?
+    private var dataChanged = [ItemRecurrenceCase]() // Keep track of items the user has edited after opening an exisiting recurrence
+    private var isNewRecurrence: Bool = true
+    private var oldRecurrence: ItemRecurrence? // This gets passed from the presenting view controller if the user is opening an existing recurrence
     
-    let dayPicker = UIDatePicker()
+// MARK:- Subviews
     
-    var dataChanged = [ItemRecurrenceCase]()
+    private var upperStack: UIStackView!
+    private var reminderStack: UIStackView?
     
-    var dayPickerDate: Date?
-    
-    var upperStack: UIStackView!
-    var reminderStack: UIStackView?
-    
-    var isNewRecurrence: Bool = true
-    
-    var oldRecurrence: ItemRecurrence?
-    
-    let purchaseButton = UIButton.purchaseButton(withFont: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 14 * fontScale))
-    
-    var questionLabel: UILabel = {
+    private var questionLabel: UILabel = {
         let lbl = UILabel()
         lbl.text = "Recurring every:"
         lbl.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
@@ -54,20 +53,8 @@ class RecurringViewController: UIViewController {
         lbl.baselineAdjustment = .alignCenters
         return lbl
     }()
-    
 
-    let segmentedControl: UISegmentedControl = {
-        let sc = UISegmentedControl()
-        sc.insertSegment(withTitle: "day", at: 0, animated: false)
-        sc.insertSegment(withTitle: "week", at: 1, animated: false)
-        sc.insertSegment(withTitle: "month", at: 2, animated: false)
-        sc.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)], for: .normal)
-        sc.layer.borderColor = UIColor.systemRed.cgColor
-        return sc
-    }()
-    
-    
-    let periodTextField: UITextField = {
+    private lazy var periodTextField: UITextField = {
         let tf = UITextField()
         tf.placeholder = "Enter number"
         tf.keyboardType = .numberPad
@@ -77,10 +64,54 @@ class RecurringViewController: UIViewController {
         tf.layer.borderWidth = 1
         tf.addLeftPadding(padding: 10)
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
+        tf.inputAccessoryView = setupToolbar()
         return tf
     }()
     
-    var endDateLabel: UILabel = {
+    private let segmentedControl: UISegmentedControl = {
+        let sc = UISegmentedControl()
+        sc.insertSegment(withTitle: "day", at: 0, animated: false)
+        sc.insertSegment(withTitle: "week", at: 1, animated: false)
+        sc.insertSegment(withTitle: "month", at: 2, animated: false)
+        sc.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)], for: .normal)
+        sc.layer.borderColor = UIColor.systemRed.cgColor
+        return sc
+    }()
+
+    var reminderSwitch: UISwitch = {
+        let reminder = UISwitch()
+        return reminder
+    }()
+    
+    private var reminderLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.text = "Reminder"
+        lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 14 * fontScale)
+        return lbl
+    }()
+    
+    private let purchaseButton = UIButton.purchaseButton(withFont: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 14 * fontScale))
+    
+    private let restorePurchaseButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Restore purchases", for: .normal)
+        button.titleLabel?.numberOfLines = 0
+        button.setAttributedTitle(NSAttributedString(string: "restore purchase", attributes: [.font: UIFont.systemFont(ofSize: 12)]), for: .normal)
+        button.titleLabel?.textAlignment = .center
+        return button
+    }()
+    
+    private var reminderSegmentedControl: UISegmentedControl = {
+        let sc = UISegmentedControl()
+        sc.insertSegment(withTitle: "1 day", at: 0, animated: false)
+        sc.insertSegment(withTitle: "2 days", at: 1, animated: false)
+        sc.insertSegment(withTitle: "3 days", at: 2, animated: false)
+        sc.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)], for: .normal)
+        sc.layer.borderColor = UIColor.systemRed.cgColor
+        return sc
+    }()
+    
+    private var endDateLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
         label.isUserInteractionEnabled = true
@@ -93,29 +124,7 @@ class RecurringViewController: UIViewController {
         return label
     }()
     
-    var reminderSwitch: UISwitch = {
-        let reminder = UISwitch()
-        return reminder
-    }()
-    
-    var reminderLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.text = "Reminder"
-        lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 14 * fontScale)
-        return lbl
-    }()
-    
-    var reminderSegmentedControl: UISegmentedControl = {
-        let sc = UISegmentedControl()
-        sc.insertSegment(withTitle: "1 day", at: 0, animated: false)
-        sc.insertSegment(withTitle: "2 days", at: 1, animated: false)
-        sc.insertSegment(withTitle: "3 days", at: 2, animated: false)
-        sc.setTitleTextAttributes([.font: UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)], for: .normal)
-        sc.layer.borderColor = UIColor.systemRed.cgColor
-        return sc
-    }()
-    
-    lazy var endDateTextField: UITextField = {
+    private lazy var endDateTextField: UITextField = {
         let tf = UITextField()
         tf.inputView = dayPicker
         tf.tintColor = .clear
@@ -139,16 +148,7 @@ class RecurringViewController: UIViewController {
         return tf
     }()
     
-    let restorePurchaseButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Restore purchases", for: .normal)
-        button.titleLabel?.numberOfLines = 0
-        button.setAttributedTitle(NSAttributedString(string: "restore purchase", attributes: [.font: UIFont.systemFont(ofSize: 12)]), for: .normal)
-        button.titleLabel?.textAlignment = .center
-        return button
-    }()
-    
-    let cancelButton: UIButton = {
+    private let cancelButton: UIButton = {
         let button = UIButton(type: .system)
         button.layer.borderColor = CustomColors.label.cgColor
         button.layer.borderWidth = 0.5
@@ -157,7 +157,7 @@ class RecurringViewController: UIViewController {
         return button
     }()
     
-    let doneButton: UIButton = {
+    private let doneButton: UIButton = {
         let button = UIButton(type: .system)
         button.layer.borderColor = CustomColors.label.cgColor
         button.layer.borderWidth = 0.5
@@ -167,12 +167,11 @@ class RecurringViewController: UIViewController {
         return button
     }()
     
-    
-    
 // MARK:- Life Cycle Methods
     
     init(itemRecurrence: ItemRecurrence? = nil) {
         super.init(nibName: nil, bundle: nil)
+        // If opened with an existing item recurrence struct, load the subviews with the data
         if let itemRecurrence = itemRecurrence {
             periodTextField.text = String(itemRecurrence.period)
             segmentedControl.selectedSegmentIndex = itemRecurrence.unit.rawValue
@@ -194,7 +193,30 @@ class RecurringViewController: UIViewController {
     }
     
     override func viewDidLoad() {
+        super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground.withAlphaComponent(fontScale < 1 ? 1 : 0.6)
+        setupStackViews()
+        
+        reminderSwitch.addTarget(self, action: #selector(toggleReminder), for: .touchUpInside)
+        purchaseButton.addTarget(self, action: #selector(buyReminders), for: .touchUpInside)
+        
+        endDateLabel.addSubview(endDateTextField)
+        endDateTextField.fillSuperView()
+        
+        segmentedControl.addTarget(self, action: #selector(handleSegmentedControl), for: .valueChanged)
+        reminderSegmentedControl.addTarget(self, action: #selector(handleReminderSegmentedControl), for: .valueChanged)
+        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
+        doneButton.addTarget(self, action: #selector(done), for: .touchUpInside)
+        
+        periodTextField.delegate = self
+        dayPicker.date = DateFormatters.fullDateFormatter.date(from: endDateLabel.text ?? "") ?? Date()
+        SKPaymentQueue.default().add(self)
+    }
+    
+// MARK:- UI Methods
+
+    private func setupStackViews() {
+    
         reminderStack = UIStackView(arrangedSubviews: [remindersPurchased ? reminderSwitch : purchaseButton, reminderLabel])
         reminderStack?.axis = .horizontal; reminderStack?.spacing = 10; reminderStack?.alignment = .center
         reminderStack?.distribution = remindersPurchased ? .fill : .fillEqually
@@ -202,97 +224,87 @@ class RecurringViewController: UIViewController {
             reminderStack?.insertArrangedSubview(restorePurchaseButton, at: 2)
             restorePurchaseButton.addTarget(self, action: #selector(restorePurchase), for: .touchUpInside)
         }
-        reminderSwitch.addTarget(self, action: #selector(toggleReminder), for: .touchUpInside)
-        purchaseButton.addTarget(self, action: #selector(buyReminders), for: .touchUpInside)
+        
         upperStack = UIStackView(arrangedSubviews: [questionLabel, periodTextField, segmentedControl, reminderStack!, endDateLabel])
-        if reminderSwitch.isOn {
-            upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
-        }
         upperStack.axis = .vertical; upperStack.spacing = 15; upperStack.distribution = .fillEqually
         upperStack.anchor(widthConstant: fontScale < 1 ? 200 : 200 * fontScale)
-        
+        if reminderSwitch.isOn { upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4) }
+
         let lowerStack = UIStackView(arrangedSubviews: [cancelButton, doneButton])
         lowerStack.axis = .horizontal; lowerStack.spacing = 15; lowerStack.distribution = .fillEqually
         
-        let stack = UIStackView(arrangedSubviews: [upperStack, lowerStack])
-        stack.axis = .vertical; stack.spacing = 15
+        let fullStack = UIStackView(arrangedSubviews: [upperStack, lowerStack])
+        fullStack.axis = .vertical; fullStack.spacing = 15
         
-        view.addSubview(stack)
-        endDateLabel.addSubview(endDateTextField)
-        endDateTextField.anchor(top: endDateLabel.topAnchor, leading: endDateLabel.leadingAnchor, trailing: endDateLabel.trailingAnchor, bottom: endDateLabel.bottomAnchor)
-        stack.anchor(centerX: view.centerXAnchor, centerY: view.centerYAnchor, centerYConstant: popoverPresentationController?.arrowDirection == .up ? 10 : -10)
-        
-        segmentedControl.addTarget(self, action: #selector(handleSegmentedControl), for: .valueChanged)
-        reminderSegmentedControl.addTarget(self, action: #selector(handleReminderSegmentedControl), for: .valueChanged)
-        
-        cancelButton.addTarget(self, action: #selector(cancel), for: .touchUpInside)
-        doneButton.addTarget(self, action: #selector(done), for: .touchUpInside)
-        
-        setupAmountToolbar()
-        periodTextField.delegate = self
-        dayPicker.date = DateFormatters.fullDateFormatter.date(from: endDateLabel.text ?? "") ?? Date()
-        SKPaymentQueue.default().add(self)
+        view.addSubview(fullStack)
+        fullStack.anchor(centerX: view.centerXAnchor, centerY: view.centerYAnchor, centerYConstant: popoverPresentationController?.arrowDirection == .up ? 10 : -10)
     }
-    
-    
-// MARK:- UI Methods
-    
-
-    
-    private func setupAmountToolbar() {
+    /// Returns a toolbar that has "Cancel" and "Done" buttons
+    private func setupToolbar() -> UIToolbar {
         let toolBar = UIToolbar()
         toolBar.sizeToFit()
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(toolBarCancel))
         let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(toolBarDone))
         let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         toolBar.setItems([cancelButton, spacer, doneButton], animated: false)
-        periodTextField.inputAccessoryView = toolBar
+        return toolBar
     }
     
-    @objc func handleSegmentedControl() {
+    @objc private func toolBarDone() {
+        if endDateTextField.isFirstResponder {
+            dayPickerDate = dayPicker.date
+            endDateLabel.layer.borderColor = CustomColors.label.cgColor
+        }
+        resignFirstResponders()
+    }
+    
+    @objc private func toolBarCancel() {
+        if endDateTextField.isFirstResponder {
+            endDateLabel.text = dayPickerDate == nil ? "End Date" : "End: \(DateFormatters.fullDateFormatter.string(from: dayPickerDate!))"
+        } else if periodTextField.isFirstResponder {
+            periodTextField.text = nil
+        }
+        resignFirstResponders()
+    }
+    
+    private func resignFirstResponders() {
+        if endDateTextField.isFirstResponder {
+            endDateTextField.resignFirstResponder()
+        } else if periodTextField.isFirstResponder {
+            periodTextField.resignFirstResponder()
+        }
+    }
+    
+    @objc private func handleSegmentedControl() {
         segmentedControl.isSelected = true
         segmentedControl.layer.borderWidth = 0
         dataChanged.append(.unit)
     }
     
-    @objc func handleReminderSegmentedControl() {
+    @objc private func handleReminderSegmentedControl() {
         reminderSegmentedControl.isSelected = true
         reminderSegmentedControl.layer.borderWidth = 0
         dataChanged.append(.reminderTime)
     }
-    
-    @objc func datePicked() {
+    /// Gets called when the user changes the selection in the day picker
+    @objc private func datePicked() {
         endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: dayPicker.date))"
         endDateLabel.textColor = CustomColors.label
         endDateLabel.layer.borderColor = CustomColors.label.cgColor
         dataChanged.append(.endDate)
     }
     
-    @objc func restorePurchase() {
+    @objc private func restorePurchase() {
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
-    
-    @objc private func toolBarDone() {
-        if endDateTextField.isFirstResponder {
-            endDateTextField.resignFirstResponder()
-            dayPickerDate = dayPicker.date
-            endDateLabel.layer.borderColor = CustomColors.label.cgColor
-        } else if periodTextField.isFirstResponder {
-            periodTextField.resignFirstResponder()
-        }
+    /// Setups the UI after the successful purchase or restoring purchase
+    private func purchaseSuccessful() {
+        purchaseButton.removeFromSuperview()
+        reminderStack?.insertArrangedSubview(reminderSwitch, at: 0)
+        reminderStack?.distribution = .fill
     }
-    
-    @objc private func toolBarCancel() {
-        if endDateTextField.isFirstResponder {
-            endDateLabel.text = dayPickerDate == nil ? "End Date" : "End: \(DateFormatters.fullDateFormatter.string(from: dayPickerDate!))"
-            endDateTextField.resignFirstResponder()
-        } else if periodTextField.isFirstResponder {
-            periodTextField.text = nil
-            periodTextField.resignFirstResponder()
-        }
-    }
-    
-    @objc func toggleReminder() {
+    /// Hides/ shows the reminder segmented control. If reminder is turned off, tracks the change.
+    @objc private func toggleReminder() {
         if reminderSwitch.isOn {
             upperStack.insertArrangedSubview(reminderSegmentedControl, at: 4)
         } else {
@@ -300,15 +312,15 @@ class RecurringViewController: UIViewController {
             if !dataChanged.contains(.reminderTime) { dataChanged.append(.reminderTime) }
         }
     }
-    
-    @objc func buyReminders() {
+    /// Gets called when user presses "Purchase" button
+    @objc private func buyReminders() {
         let idiom = UIDevice.current.userInterfaceIdiom
         let alertController = UIAlertController(title: "Purchase Reminders", message: "set custom reminders for any recurring transaction for a one-time payment of 0.99 USD (or equivalent in local currency)", preferredStyle: idiom == .pad ? .alert : .actionSheet)
         alertController.addAction(UIAlertAction(title: "Puchase", style: .default, handler: { (_) in
             if SKPaymentQueue.canMakePayments() {
                 let remindersPayment = SKMutablePayment()
                 remindersPayment.productIdentifier = PurchaseIds.reminders.description
-                SKPaymentQueue.default().add(remindersPayment)
+                SKPaymentQueue.default().add(remindersPayment) // Triggers the reminders payment
             }
         }))
         alertController.addAction(UIAlertAction(title: "Cancel", style: .destructive, handler: { [weak self] (_) in
@@ -316,14 +328,16 @@ class RecurringViewController: UIViewController {
         }))
         present(alertController, animated: true)
     }
-    
-    @objc func cancel() {
+    /// Gets called when the main "Cancel" button is pressed
+    @objc private func cancel() {
         delegate?.recurringViewCancel(wasNew: isNewRecurrence)
     }
-    
-    @objc func done() {
+    /// Gets called when the main "Done" button is pressed
+    @objc private func done() {
+        // If no data has changed, dismisses the view controller
         if dataChanged.isEmpty { delegate?.recurringViewCancel(wasNew: isNewRecurrence); return }
         
+        // Validate user input, if one field is empty or has incompatible data turns the border red
         guard let period = periodTextField.text, let periodNum = Int(period), periodNum > 0 else {
             periodTextField.layer.borderColor = UIColor.systemRed.cgColor
             return
@@ -338,29 +352,27 @@ class RecurringViewController: UIViewController {
         }
         
         var reminderTime: Int?
-        
         if reminderSwitch.isOn && reminderSegmentedControl.isSelected {
             reminderTime = reminderSegmentedControl.selectedSegmentIndex + 1
         } else if reminderSwitch.isOn && !reminderSegmentedControl.isSelected {
             reminderSegmentedControl.layer.borderWidth = 1
             return
         }
-        
+        // Construct the new item recurrence
         let newItemRecurrence = ItemRecurrence(period: periodNum, unit: selectedSegment, reminderTime: reminderTime, endDate: endDate)
         
+        // Check if the new recurrence is different from the old one, if so then it gets passed to the delegate
         if let oldRecurrence = oldRecurrence, newItemRecurrence == oldRecurrence {
             delegate?.recurringViewCancel(wasNew: isNewRecurrence); return
         } else {
             delegate?.recurringViewDone(with: newItemRecurrence, new: isNewRecurrence, dataChanged: dataChanged)
         }
     }
-    
 }
 
 // MARK:- Text Field Delegate
 
 extension RecurringViewController: UITextFieldDelegate {
-    
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if !string.isEmpty {
@@ -369,7 +381,6 @@ extension RecurringViewController: UITextFieldDelegate {
         dataChanged.append(.period)
         return true
     }
-    
 }
 
 // MARK:- SKPayment Transaction Observer
@@ -383,9 +394,7 @@ extension RecurringViewController: SKPaymentTransactionObserver {
             case .purchased:
                 if remindersPurchased == false {
                     iCloudStore.set(true, forKey: SettingNames.remindersPurchased)
-                    purchaseButton.removeFromSuperview()
-                    reminderStack?.insertArrangedSubview(reminderSwitch, at: 0)
-                    reminderStack?.distribution = .fill
+                    purchaseSuccessful()
                     queue.finishTransaction(transaction)
                 }
             case .failed:
@@ -393,9 +402,7 @@ extension RecurringViewController: SKPaymentTransactionObserver {
             case .restored:
                 if remindersPurchased == false {
                     iCloudStore.set(true, forKey: SettingNames.remindersPurchased)
-                    purchaseButton.removeFromSuperview()
-                    reminderStack?.insertArrangedSubview(reminderSwitch, at: 0)
-                    reminderStack?.distribution = .fill
+                    purchaseSuccessful()
                 }
                 queue.finishTransaction(transaction)
             default:
@@ -403,5 +410,4 @@ extension RecurringViewController: SKPaymentTransactionObserver {
             }
         }
     }
-    
 }
