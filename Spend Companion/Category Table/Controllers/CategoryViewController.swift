@@ -9,37 +9,38 @@
 import UIKit
 
 protocol CategoryViewControllerDelegate: class {
+    /// Tells the delegate that some data have changed in the category in order to reload the month collection view
     func categoryChanged()
 }
 
 class CategoryViewController: UIViewController {
     
-    // MARK:- Properties
+// MARK:- Properties
     
     var viewModel: CategoryViewModel?
-    var month: Month
-    var delegate: CategoryViewControllerDelegate?
-    var tableView = UITableView(frame: .zero, style: .plain)
-    var viewFrameHeight: CGFloat = 0
-    var tableViewFrameHeight: CGFloat = 0
-    var activeIndexPath: IndexPath? {
+    private var month: Month
+    weak var delegate: CategoryViewControllerDelegate?
+    private var viewFrameHeight: CGFloat = 0  // Keep track of the frame height to restore it after dismissing the keyboard
+    private var tableViewFrameHeight: CGFloat = 0 // Keep track of the frame height to restore it after dismissing the keyboard
+    private var itemsToBeScheduled = [Item: ItemRecurrence]() // Keep track of items that need reminder notifications scheduled, which gets done when the user presses "Save button"
+    private var cancelChanges: Bool = false // Gets set to true when user presses "Cancel" to perform cleanup after the view controller is deallocated ***
+    var activeIndexPath: IndexPath? { // Keep track which index path is active in order to highlight it
         didSet {
             guard let activeIndexPath = activeIndexPath else { return }
             activeCell = tableView.cellForRow(at: activeIndexPath) as? ItemCell
             scrollToActiveRow()
         }
     }
-    var activeCell: ItemCell?
-    var headerView = ItemTableHeader()
-    var recurrenceViewer: RecurringViewController?
-    let sortingVC = SortingViewController()
-    var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
+
+// MARK:- Subviews
     
-    var itemsToBeScheduled = [Item: ItemRecurrence]()
-    
-    var cancelChanges: Bool = false
-    
-    
+    var tableView = UITableView(frame: .zero, style: .plain)  // The main table view
+    var activeCell: ItemCell?  // The current active cell
+    private var headerView = ItemTableHeader()  // The table header
+    private var recurrenceViewer: RecurringViewController? // The controller that displays item recurrence
+    private let sortingVC = SortingViewController() // The controller that shows up when sorting button is pressed
+    private var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5)) // To dim the background
+
 // MARK:- Lifecycle Methods
     
     init(month: Month, category: Category? = nil) {
@@ -56,22 +57,25 @@ class CategoryViewController: UIViewController {
     
     deinit {
         if cancelChanges, let rightBarButton = navigationItem.rightBarButtonItem, rightBarButton.isEnabled {
-            viewModel?.cancel()
+            viewModel?.cancel()  // If the user presses cancel and there are unsaved changed, then asks the context to rollback
         }
     }
    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground
-        title = month.date
+        
         view.addSubviews([tableView, headerView])
         setupHeaderView()
         setupTableView()
         
+        // Setup the navigation bar
+        title = month.date
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save))
         navigationItem.rightBarButtonItem?.isEnabled = false
         navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancel))
        
+        // Setup the keyboard notification observers
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillShow(notification:)), name: UIResponder.keyboardDidShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(handleKeyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
@@ -84,45 +88,44 @@ class CategoryViewController: UIViewController {
     
 // MARK:- Methods
     
-    func setupHeaderView() {
+    private func setupHeaderView() {
+        headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * windowHeightScale)
         headerView.plusButton.addTarget(self, action: #selector(self.addItem), for: .touchUpInside)
         headerView.sortButton.addTarget(self, action: #selector(self.presentSortingVC), for: .touchUpInside)
         headerView.favoriteButton.addTarget(self, action: #selector(favoriteCategory), for: .touchUpInside)
         headerView.titleButton.addTarget(self, action: #selector(selectTitle), for: .touchUpInside)
         headerView.toggleFavoriteButton(with: viewModel)
-        headerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, heightConstant: 75 * windowHeightScale)
         headerView.setupUI(with: viewModel)
         headerView.enableButtons(with: viewModel)
     }
     
-    func setupTableView() {
+    private func setupTableView() {
         tableView.setup(delegate: self, dataSource: self, cellClass: ItemCell.self, cellId: ItemCell.reuseIdentifier)
         tableView.allowsSelection = false
         tableView.keyboardDismissMode = .interactive
         tableView.anchor(top: headerView.bottomAnchor, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
     }
-    
-    @objc func selectTitle() {
+    /// Gets called when the user presses the title button. Presents the title view controller.
+    @objc private func selectTitle() {
         let categoryTitleVC = CategoryTitleViewController(categoryName: viewModel?.category?.name)
         categoryTitleVC.delegate = self
         let navVC = UINavigationController(rootViewController: categoryTitleVC)
         navVC.modalPresentationStyle = .overCurrentContext
         present(navVC, animated: true)
     }
-    
-   
-    func handleFutureItems(for item: Item?, amount: Double? = nil, detail: String? = nil) {
+    /// Gets called if the user edits an item that has future similar items, presents an alert to ask the user whether to edit all future items or only current item
+    private func handleFutureItems(for item: Item?, amount: Double? = nil, detail: String? = nil) {
         presentFutureTransactionAlert(withChangeType: .edit) { [weak self] (_) in
             self?.viewModel?.editFutureItems(for: item, amount: amount, detail: detail)
             self?.tableView.reloadSections(IndexSet(arrayLiteral: 0), with: .automatic)
         }
     }
-    
+    /// Gets called when the "Save" button is pressed
     @objc private func save() {
         activeCell?.resignFirstResponders()
         do {
             try viewModel?.save()
-            try itemsToBeScheduled.keys.forEach { (item) in
+            try itemsToBeScheduled.keys.forEach { (item) in // Schedule reminder notifications that have been saved
                 try CoreDataManager.shared.scheduleReminder(for: item, with: itemsToBeScheduled[item], createNew: item.reminderUID == nil)
                 if let sisterItems = item.futureItems(), sisterItems.count > 0 {
                     for item in sisterItems {
@@ -140,7 +143,7 @@ class CategoryViewController: UIViewController {
             UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
         }
     }
-    
+    /// Gets called when the user presses "Cancel" button.
     @objc private func cancel() {
         cancelChanges = true
         dismiss(animated: true) {
@@ -154,23 +157,23 @@ class CategoryViewController: UIViewController {
             self.viewModel?.createEmptyItem()
             let itemCount = self.viewModel?.items?.count ?? 1
             let newIndexPath = IndexPath(row: itemCount - 1, section: 0)
-            self.tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic)
+            self.tableView.insertRows(at: [newIndexPath], with: itemCount == 1 ? .none : .automatic) // Insert new row into last indexPath
         }, completion: { [weak self] _ in
-            self?.activeIndexPath = self?.tableView.lastIndexPath(inSection: 0)
+            self?.activeIndexPath = self?.tableView.lastIndexPath(inSection: 0) // Set the new indexPath to be the active one
             self?.dataDidChange()
         })
-        if let items = viewModel?.items, items.count > 1 {
+        if let items = viewModel?.items, items.count > 1 {  // Enable sort button if item count >1
             headerView.sortButton.isEnabled = true
         }
     }
-    
+    /// Gets called when the favorite button is pressed
     @objc private func favoriteCategory() {
         guard viewModel != nil else { return }
-        viewModel?.favoriteCategory()
-        headerView.toggleFavoriteButton(with: viewModel)
+        viewModel?.favoriteCategory()  // Tells the view model to favorite the catogory
+        headerView.toggleFavoriteButton(with: viewModel)  // Tells the subview to favorite the category
         dataDidChange()
     }
-    
+    /// Gets caleld with the sorting button is pressed
     @objc private func presentSortingVC() {
         dimBackground()
         sortingVC.setupPopoverController(popoverDelegate: self,
@@ -182,7 +185,7 @@ class CategoryViewController: UIViewController {
         present(sortingVC, animated: true)
     }
     
-    @objc func handleKeyboardWillShow(notification: NSNotification) {
+    @objc private func handleKeyboardWillShow(notification: NSNotification) {
         guard let keyboardFrame = notification.userInfo?["UIKeyboardFrameEndUserInfoKey"] as? CGRect
         else { return }
         view.frame.size.height = viewFrameHeight - keyboardFrame.height
@@ -190,11 +193,10 @@ class CategoryViewController: UIViewController {
         scrollToActiveRow()
     }
     
-    @objc func handleKeyboardWillHide(notification: NSNotification) {
+    @objc private func handleKeyboardWillHide(notification: NSNotification) {
         if view.frame.height != viewFrameHeight {
             view.frame.size.height = viewFrameHeight
             tableView.frame.size.height = tableViewFrameHeight
-//            tableView.setContentOffset(.zero, animated: true)
         }
     }
     
@@ -241,7 +243,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let item = viewModel?.items?[indexPath.row], let categoryName = item.category?.name else { return nil }
         activeIndexPath = indexPath
-        let move = UIContextualAction(style: .normal, title: "Move") { [weak self] (_, _, _) in
+        let move = UIContextualAction(style: .normal, title: "Move") { [weak self] (_, _, _) in // Present table view controller with all the other categories
             guard let categories = item.month?.categories?.allObjects as? [Category] else { return }
             let moveItemVC = MoveItemViewController(item: item, selectedCategory: categoryName)
             moveItemVC.delegate = self
@@ -251,13 +253,13 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         move.backgroundColor = CustomColors.indigo
         
         let delete = UIContextualAction(style: .destructive, title: "Delete") { [weak self] (_, _, _) in
-            if let futureItems = item.futureItems() {
+            if let futureItems = item.futureItems() { // If the item as similar future items then present an alert to the user
                 self?.presentFutureTransactionAlert(withChangeType: .delete) { (_) in
-                    futureItems.forEach({
-                        if let itemIndex = self?.viewModel?.items?.firstIndex(of: $0) {
+                    futureItems.forEach({ // If the user elects to delete all similar future items
+                        if let itemIndex = self?.viewModel?.items?.firstIndex(of: $0) { // Reload the table if the future item is in the same month
                             self?.viewModel?.deleteItem(item: $0, at: itemIndex)
                             self?.tableView.reloadData()
-                        } else {
+                        } else { // Otherwise delete the future item from context and schedule its reminder for deletion
                             self?.viewModel?.context.delete($0)
                             if let itemReminder = $0.reminderUID { self?.viewModel?.reminderUIDsForDeletion.append(itemReminder) }
                         }
@@ -279,7 +281,7 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
         guard let item = viewModel?.items?[indexPath.row], item.recurringNum == nil else { return nil }
         activeIndexPath = indexPath
         let setRecurring = UIContextualAction(style: .normal, title: "Recurring") { [weak self] (_, _, _) in
-            if let cell = tableView.cellForRow(at: indexPath) as? ItemCell {
+            if let cell = tableView.cellForRow(at: indexPath) as? ItemCell { // Open the recurring view controller for the cell
                 cell.recurringCircleButton.isHidden = false
                 self?.recurrenceButtonPressed(in: cell)
             }
@@ -292,7 +294,6 @@ extension CategoryViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return windowHeightScale < 1 ? 50 : 50 * windowHeightScale
     }
-    
 }
 
 
@@ -302,6 +303,8 @@ extension CategoryViewController: CategoryTitleViewControllerDelegate {
     
     func saveCategoryTitle(title: String) {
         guard let monthString = month.date else { return }
+        
+        // If the user chooses a category that already exists, then the view model is changed to load the category items, othewise a new category is created
         if let category = CoreDataManager.shared.checkCategory(categoryName: title, monthString: monthString, createNew: viewModel == nil) {
             self.viewModel = CategoryViewModel(month: month, category: category)
             tableView.reloadData()
@@ -324,26 +327,26 @@ extension CategoryViewController: ItemCellDelegate {
         DispatchQueue.main.async { [weak self] in
             guard let self = self,
                   let selectedIndexPath = self.tableView.indexPath(for: cell) else { return }
-            let selectedDay = viewModel.calcDaysRange(month: self.month)[day]
-            let selectedDate = DateFormatters.fullDateWithLetters.date(from: selectedDay)!
-            self.viewModel?.items?[selectedIndexPath.row].date = selectedDate
+            let selectedDay = viewModel.calcDaysRange(month: self.month)[day] // Return the day selected from the range of days in the month
+            let selectedDate = DateFormatters.fullDateWithLetters.date(from: selectedDay)! // Convert the day into a date
+            self.viewModel?.items?[selectedIndexPath.row].date = selectedDate // Update the item's date
             cell.dayLabel.text = selectedDate.dayMatches(Date()) ? "Today" : selectedDay.extractDate()
         }
     }
     
     func detailTextFieldReturn(text: String, for cell: ItemCell, withMessage: Bool) {
-        guard !cancelChanges,
+        guard !cancelChanges, // Validate return didn't happen because user dismissed the view controller by pressing "Cancel"
               let selectedIndexPath = tableView.indexPath(for: cell),
               let item = viewModel?.items?[selectedIndexPath.row]
               else { return }
         item.detail = text
-        if withMessage == true && item.futureItems() != nil {
+        if withMessage == true && item.futureItems() != nil { // Present an alert if the item has similar future items
             handleFutureItems(for: item, amount: nil, detail: text)
         }
     }
     
     func amountTextFieldReturn(amount: Double, for cell: ItemCell, withMessage: Bool) {
-        guard !cancelChanges,
+        guard !cancelChanges, // Validate return didn't happen because user dismissed the view controller by pressing "Cancel"
               let selectedIndexPath = tableView.indexPath(for: cell),
               let item = viewModel?.items?[selectedIndexPath.row]
         else { return }
@@ -361,7 +364,7 @@ extension CategoryViewController: ItemCellDelegate {
         self.activeIndexPath = tableView.indexPath(for: cell)
     }
     
-    func recurrenceButtonPressed(in cell: ItemCell) {
+    func recurrenceButtonPressed(in cell: ItemCell) { // Present the recurrence view controller
         guard let indexPath = tableView.indexPath(for: cell),
               let item = viewModel?.items?[indexPath.row]
         else { return }
@@ -432,7 +435,7 @@ extension CategoryViewController: RecurringViewControllerDelegate {
     func recurringViewCancel(wasNew : Bool) {
         recurrenceViewer?.dismiss(animated: true, completion: nil)
         dimmingView.removeFromSuperview()
-        activeCell?.recurringCircleButton.isHidden = wasNew
+        activeCell?.recurringCircleButton.isHidden = wasNew // Recurrence button hidden if no existing item recurrence
     }
     
     func recurringViewDone(with itemRecurrence: ItemRecurrence, new: Bool, dataChanged: [ItemRecurrenceCase]) {
@@ -449,8 +452,8 @@ extension CategoryViewController: RecurringViewControllerDelegate {
             new || item.futureItems() == nil ? updateItemRecurrence(for: item, with: itemRecurrence, isNew: new, dataChanged: dataChanged) : present(alertController, animated: true, completion: nil)
         }
     }
-    
-    func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence, isNew: Bool, dataChanged: [ItemRecurrenceCase]) {
+    /// Tells the view model to update the item recurrence and schedules the item for notification after the user presses "Save"
+    private func updateItemRecurrence(for item: Item, with itemRecurrence: ItemRecurrence, isNew: Bool, dataChanged: [ItemRecurrenceCase]) {
         do {
             try viewModel?.updateItemRecurrence(for: item, with: itemRecurrence, isNew: isNew, dataChanged: dataChanged)
             itemsToBeScheduled[item] = itemRecurrence

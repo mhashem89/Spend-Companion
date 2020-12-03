@@ -11,7 +11,6 @@ import UIKit
 protocol MoveItemVCDelegate: class {
     
     func moveItem(item: Item, to category: String, sisterItems: [Item]?)
-    
 }
 
 class MoveItemViewController: UITableViewController {

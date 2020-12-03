@@ -15,19 +15,9 @@ protocol CategoryTitleViewControllerDelegate: class {
 
 class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UITextFieldDelegate {
     
-    var cellId = "cellId"
-    
-    let titleTextField: UITextField = {
-        let tf = UITextField()
-        tf.placeholder = "New Category"
-        tf.borderStyle = .roundedRect
-        return tf
-    }()
-    
-    var categoriesTable = UITableView(frame: .zero, style: .plain)
+// MARK:- Properties
     
     var categoryName: String?
-    
     var recentNames = [String]()
     var favorites = [String]()
     var fixedCategories = ["Income"]
@@ -38,19 +28,44 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
             categoriesTable.endUpdates()
         }
     }
-    
     weak var delegate: CategoryTitleViewControllerDelegate?
+    var cellId = "cellId"
+    
+// MARK:- Subviews
+    
+    let titleTextField: UITextField = {
+        let tf = UITextField()
+        tf.placeholder = "New Category"
+        tf.borderStyle = .roundedRect
+        return tf
+    }()
+    
+    var categoriesTable = UITableView(frame: .zero, style: .plain)
+    
+// MARK:- Methods
+    
+    init(categoryName: String? = nil) {
+        super.init(nibName: nil, bundle: nil)
+        if categoryName != nil, categoryName != "Category" {
+            self.categoryName = categoryName
+            fixedCategories.removeAll()
+        }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = CustomColors.systemBackground
-        setupCategoriesTable()
 
         view.addSubviews([titleTextField, categoriesTable])
-        titleTextField.text = categoryName
-        
-        titleTextField.anchor(top: view.safeAreaLayoutGuide.topAnchor, topConstant: 15, leading: view.leadingAnchor, leadingConstant: 15, trailing: view.trailingAnchor, trailingConstant: 15, heightConstant: 40)
+        setupCategoriesTable()
         categoriesTable.anchor(top: titleTextField.bottomAnchor, topConstant: 10, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
+        
+        titleTextField.text = categoryName
+        titleTextField.anchor(top: view.safeAreaLayoutGuide.topAnchor, topConstant: 15, leading: view.leadingAnchor, leadingConstant: 15, trailing: view.trailingAnchor, trailingConstant: 15, heightConstant: 40)
         
         favorites = CoreDataManager.shared.fetchFavorites()
         recentNames = CoreDataManager.shared.fetchUniqueCategoryNames(for: nil).sorted(by: { $0 < $1 })
@@ -65,18 +80,6 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         super.viewWillAppear(animated)
         titleTextField.becomeFirstResponder()
         titleTextField.delegate = self
-    }
-    
-    init(categoryName: String? = nil) {
-        super.init(nibName: nil, bundle: nil)
-        if categoryName != nil, categoryName != "Category" {
-            self.categoryName = categoryName
-            fixedCategories.removeAll()
-        }
-    }
-    
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
     
     @objc func done() {
@@ -96,7 +99,8 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         categoriesTable.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
         categoriesTable.tableFooterView = UIView()
     }
-    
+
+// MARK:- Table view delegate, Table view data source
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         if section == 1 {
@@ -148,6 +152,8 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         self.titleTextField.text = selectedTitle
         done()
     }
+
+// MARK:- Textfield delegate
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         titleTextField.resignFirstResponder()
@@ -165,15 +171,5 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
             tableRecentNames = recentNames
         }
         return newString.length < 16
-    }
-    
-    
-}
-
-
-extension String {
-    func removeTrailingSpace() -> String {
-        let substrings = self.split(separator: " ")
-        return substrings.joined(separator: " ")
     }
 }

@@ -226,6 +226,12 @@ extension String {
         let date = String(subStrings[0] + "," + subStrings[1])
         return date
     }
+    
+    func removeTrailingSpace() -> String {
+        let substrings = self.split(separator: " ")
+        return substrings.joined(separator: " ")
+    }
+    
 }
 
 
