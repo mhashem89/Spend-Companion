@@ -132,6 +132,7 @@ struct SettingNames {
     static let remindersPurchased = "remindersPurchased"
     static let iCloudSyncPurchased = "iCloudSync Purchased"
     static let contextIsActive = "contextIsActive"
+    static let openedBefore = "openedBefore"
 }
 
 

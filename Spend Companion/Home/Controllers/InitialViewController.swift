@@ -75,6 +75,11 @@ class InitialViewController: UIViewController {
         }
         reloadDataAfterChange()
         quickAddView.buttonColor = UserDefaults.standard.colorForKey(key: SettingNames.buttonColor) ?? CustomColors.blue
+        let iCloudKeyStore = (UIApplication.shared.delegate as! AppDelegate).iCloudKeyStore
+        if !iCloudKeyStore.bool(forKey: SettingNames.openedBefore) {
+            showWelcomeVC()
+            iCloudKeyStore.set(true, forKey: SettingNames.openedBefore)
+        }
     }
     
 // MARK:- Methods
@@ -195,6 +200,17 @@ class InitialViewController: UIViewController {
         summaryView.configureSummaryLabel(with: viewModel)
         quickAddView.updateCurrencySymbol()
         recentItemsDidChange = true
+    }
+    
+    func showWelcomeVC() {
+        let welcomeVC = WelcomeViewController()
+        welcomeVC.setupPopoverController(popoverDelegate: self,
+                                         sourceView: quickAddView,
+                                         sourceRect: quickAddView.quickAddLabel.frame,
+                                         preferredWidth: view.frame.width * 0.8, preferredHeight: 50,
+                                         style: .popover)
+        dimBackground()
+        present(welcomeVC, animated: true, completion: nil)
     }
 }
 
@@ -417,6 +433,11 @@ extension InitialViewController: UIPopoverPresentationControllerDelegate {
     }
     
     func popoverPresentationControllerShouldDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) -> Bool {
-        return false
+        if let presentedVC = presentedViewController, presentedVC.isKind(of: RecurringViewController.self) {
+            return false
+        } else {
+            dimmingView.removeFromSuperview()
+            return true
+        }
     }
 }
