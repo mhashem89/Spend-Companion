@@ -60,7 +60,7 @@ class ChartCell: UICollectionViewCell {
     func formatValueLabel(with amount: Double, withPercentage percentage: Double? = nil) {
         guard amount > 0,
               let numberString = numberFormatter.string(from: NSNumber(value: amount))
-        else { valueLabel.text = nil; return }
+        else { valueLabel.text = "0"; return }
         if let percentage = percentage {
             valueLabel.text = "\(numberString) (\(Int(percentage))%)"
         } else {

@@ -243,6 +243,10 @@ extension Date {
     func yearMatches(_ date: Date) -> Bool {
         return DateFormatters.yearFormatter.string(from: date) == DateFormatters.yearFormatter.string(from: self)
     }
+    
+    func zeroHour() -> Date {
+        return Calendar.current.date(bySettingHour: 0, minute: 0, second: 0, of: self) ?? self
+    }
 }
 
 extension UIColor {

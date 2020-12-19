@@ -10,20 +10,20 @@ import UIKit
 
 class WelcomeViewController: UIViewController {
     
-    var welcomeLabel: UITextView = {
-        let label = UITextView()
-        label.font = UIFont.systemFont(ofSize: 16 * fontScale)
-        label.textColor = CustomColors.label
-        label.backgroundColor = CustomColors.systemBackground
-        label.text = "Welcome! Start by entering transaction details here"
-        label.textAlignment = .center
-        return label
+    var welcomeTextView: UITextView = {
+        let textView = UITextView()
+        textView.font = UIFont.systemFont(ofSize: 16 * fontScale)
+        textView.textColor = CustomColors.label
+        textView.backgroundColor = CustomColors.systemBackground
+        textView.text = "Welcome! Start by entering transaction details here"
+        textView.textAlignment = .center
+        return textView
     }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.addSubview(welcomeLabel)
-        welcomeLabel.anchor(top: view.topAnchor, topConstant: -3 * windowHeightScale, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
+        view.addSubview(welcomeTextView)
+        welcomeTextView.anchor(top: view.topAnchor, topConstant: -3 * windowHeightScale, leading: view.leadingAnchor, trailing: view.trailingAnchor, bottom: view.bottomAnchor)
     }
     
 }

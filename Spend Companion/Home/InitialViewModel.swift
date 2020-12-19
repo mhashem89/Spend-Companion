@@ -109,7 +109,7 @@ class InitialViewModel: NSObject {
     /// Fetch request for the recent transactions in the last 7 days
     func fetchRecentItems() {
         guard let weekAgo: Date = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()),
-              let dayAfter: Date = Calendar.current.date(byAdding: .day, value: 1, to: Date())
+              let dayAfter: Date = Calendar.current.date(byAdding: .day, value: 1, to: Date().zeroHour())
         else { return }
         do {
             let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
