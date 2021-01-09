@@ -89,7 +89,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         container.viewContext.automaticallyMergesChangesFromParent = true
-        container.viewContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
+//        container.viewContext.mergePolicy = NSMergeByPropertyStoreTrumpMergePolicy
         
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
             if let error = error as NSError? {
