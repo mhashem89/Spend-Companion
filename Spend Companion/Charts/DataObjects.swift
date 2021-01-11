@@ -133,6 +133,8 @@ struct SettingNames {
     static let iCloudSyncPurchased = "iCloudSync Purchased"
     static let contextIsActive = "contextIsActive"
     static let openedBefore = "openedBefore"
+    static let feedbackRequested = "feedbackRequested"
+    static let productURL = "https://apps.apple.com/us/app/spend-companion/id1536985369"
 }
 
 

@@ -268,6 +268,9 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: yearBarChartCell, for: indexPath) as! ChartCell
         cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : categoryNames[indexPath.row]
+        if let text = cell.cellLabel.text {
+            cell.cellLabel.numberOfLines = text.split(separator: " ").count > 1 ? 0 : 1
+        }
         cell.setupUI(withLabelWidth: chartLabelMaxWidth)
         cell.barView.frame = .init(x: chartLabelMaxWidth + (5 * windowWidthScale), y: (cell.frame.height - 25) / 2, width: 0, height: 25)
         if selectedSegment == 1 || selectedSegment == 2 {

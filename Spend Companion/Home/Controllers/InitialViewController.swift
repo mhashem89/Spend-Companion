@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import StoreKit
 
 class InitialViewController: UIViewController {
     
@@ -144,6 +145,10 @@ class InitialViewController: UIViewController {
         }
         recentItemsTable?.reloadData()
         recentItemsDidChange = false
+        if viewModel.recentItems.count > 14, !UserDefaults.standard.bool(forKey: SettingNames.feedbackRequested) {
+            SKStoreReviewController.requestReview()
+            UserDefaults.standard.setValue(true, forKey: SettingNames.feedbackRequested)
+        }
     }
     /// Fetches total spending and total income for the selected month and reloads the bar chart
     private func reloadBarChartData() {
@@ -190,7 +195,7 @@ class InitialViewController: UIViewController {
     }
     /// Returns the scale ratio used to calculate the length of the bar chart
     private func calcScaleFactor() -> Double {
-        let higherValue: Double = max(viewModel.currentYearTotalIncome, viewModel.currentYearTotalSpending)
+        let higherValue: Double =  summaryView.segmentedControl.selectedSegmentIndex == 0 ? viewModel.maxMonthAmountInYear : max(viewModel.currentYearTotalIncome, viewModel.currentYearTotalSpending)
         let valueLabelSize = UILabel.calcSize(for: String(format: "%g", higherValue), withFont: 13 * fontScale)
         let chartLabelMaxWidth = UILabel.calcSize(for: summaryLabels.longestString()!, withFont: 16 * fontScale).width
         return Double(view.frame.width - chartLabelMaxWidth - valueLabelSize.width - (70 * fontScale)) / higherValue

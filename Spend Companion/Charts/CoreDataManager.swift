@@ -375,4 +375,23 @@ class CoreDataManager {
         }
         return dict
     }
+    
+    public func deleteAllData() throws {
+        let categoryRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
+        let favoriteRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Favorite")
+        let monthRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Month")
+        let itemRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Item")
+        
+        let categoryDelete = NSBatchDeleteRequest(fetchRequest: categoryRequest)
+        let favoriteDelete = NSBatchDeleteRequest(fetchRequest: favoriteRequest)
+        let monthDelete = NSBatchDeleteRequest(fetchRequest: monthRequest)
+        let itemDelete = NSBatchDeleteRequest(fetchRequest: itemRequest)
+        
+        try context.execute(categoryDelete)
+        try context.execute(favoriteDelete)
+        try context.execute(monthDelete)
+        try context.execute(itemDelete)
+    }
+    
+    
 }

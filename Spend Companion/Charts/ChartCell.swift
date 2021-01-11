@@ -37,7 +37,8 @@ class ChartCell: UICollectionViewCell {
         label.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
         label.backgroundColor = CustomColors.systemBackground
         label.textAlignment = .right
-        label.numberOfLines = 0
+//        label.numberOfLines = 0
+        label.lineBreakMode = .byTruncatingTail
         return label
     }()
     

@@ -11,6 +11,7 @@ import CloudKit
 import LocalAuthentication
 import SwiftUI
 import Combine
+import MessageUI
 
 
 protocol SettingsCellDelegate: class {
@@ -35,26 +36,14 @@ class SettingsViewController: UITableViewController {
     let reminderPurchaseProductId = PurchaseIds.reminders.description
     let remindersPurchased = SettingNames.remindersPurchased
     
-    var settings: [String] {
-        var settingsList = ["iCloud sync"]
-        if let biometricType = biometricType() {
-            switch biometricType {
-            case .faceID:
-                settingsList.append("Enable faceID")
-            case .touchID:
-                settingsList.append("Enable touchID")
-            default:
-                break
-            }
-        } else {
-            settingsList.append("Enable passcode")
-        }
-        settingsList.append("Select currency")
+    var settings: [Setting] {
+        var settingsList: [Setting] = [.iCloudSync, .biometrics, .currency, .support, .feedback, .share, .delete]
         if #available(iOS 14, *) {
-            settingsList.append("Customize appearance")
+            settingsList.insert(.appearance, at: 3)
         }
-       return settingsList
+        return settingsList
     }
+    
     
 // MARK:- Lifecycle Methods
     
@@ -87,30 +76,8 @@ class SettingsViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: SettingsCell.reuseIdentifier, for: indexPath) as! SettingsCell
         cell.textLabel?.font = UIFont.systemFont(ofSize: 18)
-        
-        switch indexPath.row {
-        case 0:
-            cell.settingsToggle.isOn = iCloudKeyStore.bool(forKey: SettingNames.iCloudSync)
-            cell.setupUI(for: .iCloudSync, isPurchased: iCloudKeyStore.bool(forKey: SettingNames.iCloudSyncPurchased))
-            cell.textLabel?.text = settings[indexPath.row]
-            cell.detailTextLabel?.text = "sets iCloud sync across all devices"
-            cell.selectionStyle = .none
-        case 1:
-            cell.settingsToggle.isOn = UserDefaults.standard.bool(forKey: SettingNames.enableBiometrics)
-            cell.setupUI(for: .biometrics)
-            cell.textLabel?.text = settings[indexPath.row]
-            cell.selectionStyle = .none
-        case 2:
-            cell.textLabel?.text = settings[indexPath.row]
-            cell.accessoryType = .disclosureIndicator
-        case 3:
-            if #available(iOS 14, *) {
-                cell.textLabel?.text = settings[indexPath.row]
-                cell.accessoryType = .disclosureIndicator
-            }
-        default:
-            break
-        }
+        cell.setting = settings[indexPath.row]
+        cell.setupUI()
         cell.delegate = self
         return cell
     }
@@ -121,11 +88,48 @@ class SettingsViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: false)
-        if indexPath.row == 2 {
+        guard let setting = (tableView.cellForRow(at: indexPath) as? SettingsCell)?.setting else { return }
+        switch setting {
+        case .currency:
             navigationController?.pushViewController(CurrencyViewController(), animated: true)
-        }
-        if indexPath.row == 3, #available(iOS 14, *) {
-            navigationController?.pushViewController(CustomizeAppearanceController(), animated: true)
+        case.appearance:
+            if #available(iOS 14, *) { navigationController?.pushViewController(CustomizeAppearanceController(), animated: true) }
+        case .support:
+            if MFMailComposeViewController.canSendMail() {
+                let mc = MFMailComposeViewController()
+                mc.mailComposeDelegate = self
+                mc.setToRecipients(["spendcompanion@gmail.com"])
+                mc.setSubject("Support")
+                present(mc, animated: true, completion: nil)
+            } else {
+                let alertController = UIAlertController(title: nil, message: "Please email spendcompanion@gmail.com with any support issues", preferredStyle: .alert)
+                alertController.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+                present(alertController, animated: true, completion: nil)
+            }
+        case .feedback:
+            guard let productURL = URL(string: SettingNames.productURL) else { return }
+            var components = URLComponents(url: productURL, resolvingAgainstBaseURL: false)
+            components?.queryItems = [URLQueryItem(name: "action", value: "write-review")]
+            guard let writeReviewURL = components?.url else { return }
+            UIApplication.shared.open(writeReviewURL)
+        case .share:
+            let activityViewController = UIActivityViewController(activityItems: [SettingNames.productURL], applicationActivities: nil)
+            activityViewController.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)
+            present(activityViewController, animated: true)
+        case .delete:
+            let alertController = UIAlertController(title: "Delete all data?", message: "This will delete all stored spending and income data.\n\n Warning: if iCloud sync is turned on, this will delete data on all devices. If you'd like to delete data only on this device, try uninstalling the application", preferredStyle: .alert)
+            alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+            alertController.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { [weak self] (_) in
+                do {
+                    try CoreDataManager.shared.deleteAllData()
+                    InitialViewController.shared.updateData()
+                } catch let err {
+                    self?.presentError(error: err)
+                }
+            }))
+            present(alertController, animated: true, completion: nil)
+        default:
+            break
         }
     }
     
@@ -156,14 +160,6 @@ class SettingsViewController: UITableViewController {
         InitialViewController.shared.updateData()
     }
     
-    func biometricType() -> LABiometryType? {
-        if LAContext().canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil) {
-            return LAContext().biometryType
-        } else {
-            return nil
-        }
-    }
-    
     @objc func restorePurchases() {
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
@@ -173,7 +169,6 @@ class SettingsViewController: UITableViewController {
 
 @available(iOS 13, *)
 extension SettingsViewController: SettingsCellDelegate {
-    
     
     func purchaseButtonPressed() {
         buyiCloudSync()
@@ -249,8 +244,20 @@ extension SettingsViewController: SKPaymentTransactionObserver {
     }
 }
 
+
+// MARK:- MFMailComposer Delegate
+
+@available(iOS 13, *)
+extension SettingsViewController: MFMailComposeViewControllerDelegate {
+    
+    func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+        dismiss(animated: true, completion: nil)
+    }
+    
+}
+
 // MARK:- Settings
 
 enum Setting {
-    case iCloudSync, biometrics
+    case iCloudSync, biometrics, currency, appearance, support, feedback, share, delete
 }

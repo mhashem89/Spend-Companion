@@ -34,7 +34,7 @@ class InitialViewModel: NSObject {
     private(set) var currentMonthTotalSpending: Double = 0
     private(set) var currentYearTotalSpending: Double = 0
     private(set) var currentYearTotalIncome: Double = 0
-    private(set) var maxMonthSpendingInYear: Double = 0
+    private(set) var maxMonthAmountInYear: Double = 0
     
 // MARK:- Fetched Result Controllers
     
@@ -80,7 +80,7 @@ class InitialViewModel: NSObject {
             let yearTotals = try CoreDataManager.shared.calcYearTotals(year: year)
             currentYearTotalIncome = yearTotals.totalIncome
             currentYearTotalSpending = yearTotals.totalSpending
-            maxMonthSpendingInYear = yearTotals.maxAmountPerMonth
+            maxMonthAmountInYear = yearTotals.maxAmountPerMonth
         } catch let err {
             delegate?.presentError(error: err)
         }

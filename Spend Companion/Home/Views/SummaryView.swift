@@ -74,6 +74,7 @@ class SummaryView: UIView {
         (barChart.collectionViewLayout as? UICollectionViewFlowLayout)?.scrollDirection = .vertical
         barChart.showsHorizontalScrollIndicator = false
         barChart.showsVerticalScrollIndicator = false
+        barChart.isScrollEnabled = false
     }
     
 /// Configures summary label according to whether the user selected to view bar chart by month or year
