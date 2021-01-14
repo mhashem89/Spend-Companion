@@ -28,7 +28,7 @@ struct BarColorChooser: View {
     
     func updateUserDefaults(with color: Color) {
         UserDefaults.standard.setColor(color: UIColor(color), forKey: SettingNames.barColor)
-        InitialViewController.shared.summaryView.barChart.reloadData()
+//        InitialViewController.shared.summaryView.barChart.reloadData()
     }
 }
 
@@ -53,7 +53,7 @@ struct LabelColorChooser: View {
     
     func updateUserDefaults(with color: Color) {
         UserDefaults.standard.setColor(color: UIColor(color), forKey: SettingNames.labelColor)
-        InitialViewController.shared.summaryView.barChart.reloadData()
+//        InitialViewController.shared.summaryView.barChart.reloadData()
     }
 }
 

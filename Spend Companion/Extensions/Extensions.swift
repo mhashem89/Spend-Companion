@@ -78,10 +78,10 @@ extension UIView {
         return containerView
     }
     
-    func addBorderShadow() {
-        layer.shadowColor = UIColor.black.cgColor
-        layer.shadowOpacity = 0.55
-        layer.shadowOffset = CGSize(width: 0.5, height: 0.5)
+    func addBorderShadow(color: UIColor, opacity: Float, size: CGSize) {
+        layer.shadowColor = color.cgColor
+        layer.shadowOpacity = opacity
+        layer.shadowOffset = size
     }
     
     func addSubviews(_ views: [UIView]) {
@@ -98,7 +98,7 @@ extension UIView {
     func addBorder() {
         layer.cornerRadius = 5
         layer.borderWidth = 1
-        layer.borderColor = CustomColors.label.cgColor
+        layer.borderColor = CustomColors.darkGray.cgColor
         clipsToBounds = true
     }
     
@@ -240,6 +240,10 @@ extension Date {
         return DateFormatters.fullDateFormatter.string(from: date) == DateFormatters.fullDateFormatter.string(from: self)
     }
     
+    func monthMatches(_ date: Date) -> Bool {
+        return DateFormatters.abbreviatedMonthYearFormatter.string(from: date) == DateFormatters.abbreviatedMonthYearFormatter.string(from: self)
+    }
+    
     func yearMatches(_ date: Date) -> Bool {
         return DateFormatters.yearFormatter.string(from: date) == DateFormatters.yearFormatter.string(from: self)
     }
@@ -367,38 +371,6 @@ extension UICollectionViewCell {
     static var reuseIdentifier: String {
         return String(describing: self)
     }
-}
-
-extension UserDefaults {
-    
-  func colorForKey(key: String) -> UIColor? {
-    var colorReturned: UIColor?
-    if let colorData = data(forKey: key) {
-      do {
-        if let color = try NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(colorData) as? UIColor {
-          colorReturned = color
-        } else {
-            colorReturned = nil
-        }
-      } catch {
-        print("Error UserDefaults")
-      }
-    }
-    return colorReturned
-  }
-  
-  func setColor(color: UIColor?, forKey key: String) {
-    var colorData: NSData?
-    if let color = color {
-      do {
-        let data = try NSKeyedArchiver.archivedData(withRootObject: color, requiringSecureCoding: false) as NSData?
-        colorData = data
-      } catch {
-        print("Error UserDefaults")
-      }
-    }
-    set(colorData, forKey: key)
-  }
 }
 
 

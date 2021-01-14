@@ -33,9 +33,7 @@ class SummaryView: UIView {
         let lbl = UILabel()
         lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 11.5 : 14 * fontScale)
         lbl.numberOfLines = 0
-        lbl.layer.borderWidth = 0.5
-        lbl.layer.borderColor = CustomColors.label.cgColor
-        lbl.layer.cornerRadius = 5
+        lbl.addBorder()
         lbl.textAlignment = .center
         return lbl
     }()
@@ -48,17 +46,25 @@ class SummaryView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = CustomColors.systemBackground
+        layer.cornerRadius = 10
+        clipsToBounds = true
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.masksToBounds = false
+        addBorderShadow(color: CustomColors.mediumGray, opacity: 0.7, size: .init(width: 0.5, height: 0.5))
+    }
+    
     func setupUI() {
         addSubviews([segmentedControl, titleLabel, barChart, summaryLabel])
         
     // Anrhor subviews
-        titleLabel.anchor(top: safeAreaLayoutGuide.topAnchor, topConstant: 15 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
+        titleLabel.anchor(top: topAnchor, topConstant: 30 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
         segmentedControl.anchor(trailing: safeAreaLayoutGuide.trailingAnchor, trailingConstant: 10 * windowWidthScale, centerY: titleLabel.centerYAnchor, widthConstant: 117 * windowWidthScale, heightConstant: 31 * windowWidthScale)
         barChart.anchor(top: titleLabel.bottomAnchor, topConstant: 20 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, trailing: safeAreaLayoutGuide.trailingAnchor, heightConstant: frame.height * 0.4)
         summaryLabel.anchor(top: barChart.bottomAnchor, topConstant: 15, centerX: centerXAnchor, widthConstant: frame.width * 0.9, heightConstant: frame.height * 0.17)

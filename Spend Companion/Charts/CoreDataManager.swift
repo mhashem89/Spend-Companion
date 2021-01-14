@@ -376,6 +376,59 @@ class CoreDataManager {
         return dict
     }
     
+    func generateCSV(completion: @escaping ((URL) -> Void)) throws {
+        let itemFetch = NSFetchRequest<Item>(entityName: "Item")
+        let categoryFetch = NSFetchRequest<Category>(entityName: "Category")
+        let favoriteFetch = NSFetchRequest<Favorite>(entityName: "Favorite")
+        
+        var csvString = ""
+        
+        if let items = try? context.fetch(itemFetch),
+           let categories = try? context.fetch(categoryFetch),
+           let favorites = try? context.fetch(favoriteFetch) {
+            
+            csvString = "ITEMS\n\nmonth,date,type,category,description,amount,every,recurringUnit,recurringEndDate,reminderTime\n"
+            items.forEach { (item) in
+                let month = item.month?.date ?? ""
+                let date = item.date?.description ?? ""
+                let type = item.type == 0 ? "Spending" : "Income"
+                let category = item.category?.name ?? ""
+                let description = item.detail ?? ""
+                let amount = item.amount.description
+                let recurringNum = item.recurringNum?.description ?? ""
+                var recurringUnit: String {
+                    switch item.recurringUnit {
+                    case 0: return "day"
+                    case 1: return "week"
+                    case 2: return "month"
+                    default: return ""
+                    }
+                }
+                let recurringEndDate = item.recurringEndDate?.description ?? ""
+                let reminderTime = item.reminderTime?.description ?? ""
+                let content = "\(month),\(date),\(type),\(category),\(description),\(amount),\(recurringNum),\(recurringUnit),\(recurringEndDate),\(reminderTime)\n"
+                csvString.append(content)
+            }
+            
+            csvString.append("\n\nCATEGORIES\nname,month\n")
+            
+            categories.forEach { (category) in
+                let content = "\(category.name ?? ""),\(category.month?.date ?? "")\n"
+                csvString.append(content)
+            }
+            
+            csvString.append("\n\nFAVORITES\nname\n")
+            favorites.forEach { (favorite) in
+                let content = "\(favorite.name ?? "")\n"
+                csvString.append(content)
+            }
+            let directoryURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let fileURL = URL(fileURLWithPath: "Spend Companion Data", relativeTo: directoryURL).appendingPathExtension("csv")
+            try csvString.write(to: fileURL, atomically: true, encoding: .utf8)
+            completion(fileURL)
+        } 
+    }
+    
     public func deleteAllData() throws {
         let categoryRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Category")
         let favoriteRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Favorite")

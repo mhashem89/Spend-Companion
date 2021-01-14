@@ -136,7 +136,7 @@ class QuickAddView: UIView {
             let title = NSAttributedString(string: "Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)])
             button.setAttributedTitle(title, for: .normal)
         } else {
-            let title = NSAttributedString(string: "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale), .foregroundColor: UIColor.black])
+            let title = NSAttributedString(string: "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: UIColor.black])
             button.setAttributedTitle(title, for: .normal)
         }
         if windowWidthScale < 1 { button.imageEdgeInsets = UIEdgeInsets(top: 1 / windowWidthScale, left: 1 / windowWidthScale, bottom: 1 / windowWidthScale, right: 1 / windowWidthScale) }
@@ -184,12 +184,12 @@ class QuickAddView: UIView {
     
     var saveButton: UIButton = {
         let button = UIButton(type: .system)
-        let saveString = NSAttributedString(string: "Save", attributes: [.font: UIFont.boldSystemFont(ofSize: 22 * fontScale), .foregroundColor: UIColor.white])
+        let saveString = NSAttributedString(string: "Save", attributes: [.font: UIFont.boldSystemFont(ofSize: 20 * fontScale), .foregroundColor: UIColor.white])
         button.setAttributedTitle(saveString, for: .normal)
         button.layer.cornerRadius = 5
         button.clipsToBounds = true
-        button.backgroundColor = .systemBlue
-        button.alpha = 0
+        button.backgroundColor = CustomColors.lessDarkGray
+        button.isEnabled = false
         return button
     }()
     
@@ -202,17 +202,27 @@ class QuickAddView: UIView {
     
 // MARK:- UI Methods
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.masksToBounds = false
+        addBorderShadow(color: CustomColors.mediumGray, opacity: 0.55, size: .init(width: 0.5, height: 0.5))
+    }
+    
     func setupUI() {
         // The width and height values adjusted for window size that I will use for the subviews' frames
         let width = frame.width * 0.4
         let height: CGFloat = 40 * windowHeightScale
         
+        backgroundColor = CustomColors.systemBackground
+        layer.cornerRadius = 10
+        clipsToBounds = true
+        
         anchorSubviews(withWidth: width, withHeigh: height)
         setupStackViews()
         addSubviews([quickAddLabel, fullStack])
         
-        quickAddLabel.anchor(top: topAnchor, topConstant: 5, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
-        fullStack.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15, centerX: centerXAnchor, widthConstant: frame.width * 0.95)
+        quickAddLabel.anchor(top: topAnchor, topConstant: 10 * windowHeightScale, leading: safeAreaLayoutGuide.leadingAnchor, leadingConstant: 10 * windowWidthScale)
+        fullStack.anchor(top: quickAddLabel.bottomAnchor, topConstant: 15 * windowHeightScale, centerX: centerXAnchor, widthConstant: frame.width * 0.95)
         
         // Add textField on top of the day label so that it becomes first responder when label is clicked. The textField is transparent.
         dayLabel.addSubview(dayTextField)
@@ -231,8 +241,8 @@ class QuickAddView: UIView {
     
     private func setupStackViews() {
         buttonStack.spacing = 5; buttonStack.distribution = .fillEqually
-        [leftStack, rightStack].forEach({ $0.axis = .vertical; $0.spacing = 10 })
-        fullStack.axis = .horizontal; fullStack.spacing = 10 * windowWidthScale
+        [leftStack, rightStack].forEach({ $0.axis = .vertical; $0.spacing = 10 * windowHeightScale })
+        fullStack.axis = .horizontal; fullStack.spacing = 10 * windowHeightScale
     }
     /// Setup the height and width of the subviews
     private func anchorSubviews(withWidth width: CGFloat, withHeigh height: CGFloat) {
@@ -259,12 +269,13 @@ class QuickAddView: UIView {
             dayLabel.text = DateFormatters.fullDateFormatter.string(from: dayPicker.date)
         }
         dayLabel.textColor = CustomColors.label
-        dayLabel.layer.borderColor = CustomColors.label.cgColor
+        dayLabel.layer.borderColor = CustomColors.darkGray.cgColor
     }
     /// Handles  when user persses the "income/expense" segmented control. If expense is chosen then it shows the category label, otherwise hides it.
     @objc private func handleSegmentedControl() {
         segmentedControl.layer.borderColor = UIColor.clear.cgColor
         segmentedControl.isSelected = true
+        showSaveButton()
         switch segmentedControl.selectedSegmentIndex {
         case 1:
             categoryLabel.alpha = 0
@@ -289,8 +300,7 @@ class QuickAddView: UIView {
         if dayTextField.isFirstResponder {
             dayTextField.resignFirstResponder()
             dayPickerDate = dayPicker.date
-            dayLabel.layer.borderColor = CustomColors.label.cgColor
-            showSaveButton()
+            dayLabel.layer.borderColor = CustomColors.darkGray.cgColor
         } else if amountTextField.isFirstResponder {
             amountTextField.resignFirstResponder()
         }
@@ -320,7 +330,8 @@ class QuickAddView: UIView {
     }
     
     func showSaveButton() {
-        saveButton.alpha = 1
+        saveButton.backgroundColor = .systemBlue
+        saveButton.isEnabled = true
     }
     /// Gets called when the user changes the currency symbol in settings.
     func updateCurrencySymbol() {
@@ -372,7 +383,8 @@ class QuickAddView: UIView {
         segmentedControl.selectedSegmentIndex = UISegmentedControl.noSegment
         segmentedControl.isSelected = false
         amountTextField.text = nil
-        saveButton.alpha = 0
+        saveButton.isEnabled = false
+        saveButton.backgroundColor = CustomColors.lessDarkGray
         isRecurring = false
         categoryLabel.text = "Category"
         categoryLabel.textColor = CustomColors.darkGray
@@ -389,7 +401,7 @@ extension QuickAddView: UITextFieldDelegate {
         guard let text = textField.text else { return false }
         let currentString: NSString = text as NSString
         let newString = currentString.replacingCharacters(in: range, with: string) as NSString
-        textField.layer.borderColor = CustomColors.label.cgColor
+        textField.layer.borderColor = CustomColors.darkGray.cgColor
         showSaveButton()
         switch textField {
         case amountTextField:

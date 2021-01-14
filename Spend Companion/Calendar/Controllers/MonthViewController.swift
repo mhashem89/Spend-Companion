@@ -145,7 +145,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! CategoryCell
-        cell.addBorderShadow()
+        cell.addBorderShadow(color: CustomColors.darkGray, opacity: 0.55, size: .init(width: 0.5, height: 0.5))
         var total: String = "0" // The total value for the category
         
         // If there is an "Income" category then there would be 2 sections otherwise there would be 1 section for expenses

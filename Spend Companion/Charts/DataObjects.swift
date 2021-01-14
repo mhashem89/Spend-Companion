@@ -121,23 +121,6 @@ enum RecurringUnit: Int, CustomStringConvertible {
     }
 }
 
-
-struct SettingNames {
-    static let iCloudSync = "iCloud sync"
-    static let enableBiometrics = "EnableBiometrics"
-    static let barColor = "bar color"
-    static let buttonColor = "button color"
-    static let labelColor = "label color"
-    static let currency = "currency"
-    static let remindersPurchased = "remindersPurchased"
-    static let iCloudSyncPurchased = "iCloudSync Purchased"
-    static let contextIsActive = "contextIsActive"
-    static let openedBefore = "openedBefore"
-    static let feedbackRequested = "feedbackRequested"
-    static let productURL = "https://apps.apple.com/us/app/spend-companion/id1536985369"
-}
-
-
 enum PurchaseIds: CustomStringConvertible {
     case reminders, iCloudSync
     

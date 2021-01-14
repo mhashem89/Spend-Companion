@@ -31,7 +31,7 @@ class CustomColors {
         if #available(iOS 13, *) {
             return .systemGray6
         } else {
-            return #colorLiteral(red: 0.8039215803, green: 0.8039215803, blue: 0.8039215803, alpha: 1)
+            return #colorLiteral(red: 0.8891932368, green: 0.8893426061, blue: 0.8891735673, alpha: 0.8075839711)
         }
     }
     
@@ -44,6 +44,22 @@ class CustomColors {
             return .systemGray3
         } else {
             return .darkGray
+        }
+    }
+    
+    static var lessDarkGray: UIColor {
+        if #available(iOS 13, *) {
+            return .systemGray4
+        } else {
+            return .darkGray
+        }
+    }
+    
+    static var leastdarkGray: UIColor {
+        if #available(iOS 13, *) {
+            return .systemGray5
+        } else {
+            return .lightGray
         }
     }
     

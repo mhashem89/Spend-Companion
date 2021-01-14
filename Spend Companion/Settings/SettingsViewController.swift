@@ -37,13 +37,15 @@ class SettingsViewController: UITableViewController {
     let remindersPurchased = SettingNames.remindersPurchased
     
     var settings: [Setting] {
-        var settingsList: [Setting] = [.iCloudSync, .biometrics, .currency, .support, .feedback, .share, .delete]
+        var settingsList: [Setting] = [.iCloudSync, .biometrics, .currency, .support, .feedback, .share, .export, .delete]
         if #available(iOS 14, *) {
             settingsList.insert(.appearance, at: 3)
         }
         return settingsList
     }
     
+    var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
+    var activityIndicator = UIActivityIndicatorView(style: .whiteLarge)
     
 // MARK:- Lifecycle Methods
     
@@ -75,7 +77,8 @@ class SettingsViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: SettingsCell.reuseIdentifier, for: indexPath) as! SettingsCell
-        cell.textLabel?.font = UIFont.systemFont(ofSize: 18)
+        cell.textLabel?.font = UIFont.systemFont(ofSize: 18 * fontScale)
+        cell.detailTextLabel?.font = UIFont.systemFont(ofSize: fontScale < 1 ? 12 : 12 * fontScale)
         cell.setting = settings[indexPath.row]
         cell.setupUI()
         cell.delegate = self
@@ -116,6 +119,19 @@ class SettingsViewController: UITableViewController {
             let activityViewController = UIActivityViewController(activityItems: [SettingNames.productURL], applicationActivities: nil)
             activityViewController.popoverPresentationController?.sourceView = tableView.cellForRow(at: indexPath)
             present(activityViewController, animated: true)
+        case .export:
+            dimBackground()
+            do {
+                try CoreDataManager.shared.generateCSV(completion: { [weak self] (fileURL) in
+                    let activityViewController = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+                    self?.present(activityViewController, animated: true, completion: {
+                        self?.dimmingView.removeFromSuperview()
+                    })
+                })
+            } catch let err {
+                activityIndicator.stopAnimating()
+                presentError(error: err)
+            }
         case .delete:
             let alertController = UIAlertController(title: "Delete all data?", message: "This will delete all stored spending and income data.\n\n Warning: if iCloud sync is turned on, this will delete data on all devices. If you'd like to delete data only on this device, try uninstalling the application", preferredStyle: .alert)
             alertController.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
@@ -134,6 +150,15 @@ class SettingsViewController: UITableViewController {
     }
     
 // MARK:- Methods
+    
+    private func dimBackground() {
+        navigationController?.view.addSubview(dimmingView)
+        dimmingView.fillSuperView()
+        dimmingView.addSubview(activityIndicator)
+        activityIndicator.anchor(centerX: dimmingView.centerXAnchor, centerY: dimmingView.centerYAnchor)
+        activityIndicator.startAnimating()
+        activityIndicator.hidesWhenStopped = true
+    }
     
     func buyiCloudSync() {
         let idiom = UIDevice.current.userInterfaceIdiom
@@ -259,5 +284,5 @@ extension SettingsViewController: MFMailComposeViewControllerDelegate {
 // MARK:- Settings
 
 enum Setting {
-    case iCloudSync, biometrics, currency, appearance, support, feedback, share, delete
+    case iCloudSync, biometrics, currency, appearance, support, feedback, share, export, delete
 }

@@ -60,7 +60,7 @@ class RecurringViewController: UIViewController {
         tf.keyboardType = .numberPad
         tf.backgroundColor = CustomColors.systemBackground
         tf.layer.cornerRadius = 5
-        tf.layer.borderColor = CustomColors.label.cgColor
+        tf.layer.borderColor = CustomColors.darkGray.cgColor
         tf.layer.borderWidth = 1
         tf.addLeftPadding(padding: 10)
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
@@ -120,7 +120,7 @@ class RecurringViewController: UIViewController {
         label.textColor = CustomColors.darkGray
         label.layer.cornerRadius = 5
         label.layer.borderWidth = 1
-        label.layer.borderColor = CustomColors.label.cgColor
+        label.layer.borderColor = CustomColors.darkGray.cgColor
         return label
     }()
     
@@ -150,7 +150,7 @@ class RecurringViewController: UIViewController {
     
     private let cancelButton: UIButton = {
         let button = UIButton(type: .system)
-        button.layer.borderColor = CustomColors.label.cgColor
+        button.layer.borderColor = CustomColors.darkGray.cgColor
         button.layer.borderWidth = 0.5
         button.layer.cornerRadius = 5
         button.setAttributedTitle(NSAttributedString(string: "Cancel", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale), .foregroundColor: UIColor.systemRed]), for: .normal)
@@ -159,7 +159,7 @@ class RecurringViewController: UIViewController {
     
     private let doneButton: UIButton = {
         let button = UIButton(type: .system)
-        button.layer.borderColor = CustomColors.label.cgColor
+        button.layer.borderColor = CustomColors.darkGray.cgColor
         button.layer.borderWidth = 0.5
         button.layer.cornerRadius = 5
         button.anchor(heightConstant: fontScale < 1 ? 30 : 30 * fontScale)
@@ -253,7 +253,7 @@ class RecurringViewController: UIViewController {
     @objc private func toolBarDone() {
         if endDateTextField.isFirstResponder {
             dayPickerDate = dayPicker.date
-            endDateLabel.layer.borderColor = CustomColors.label.cgColor
+            endDateLabel.layer.borderColor = CustomColors.darkGray.cgColor
         }
         resignFirstResponders()
     }
@@ -290,7 +290,7 @@ class RecurringViewController: UIViewController {
     @objc private func datePicked() {
         endDateLabel.text = "End: \(DateFormatters.fullDateFormatter.string(from: dayPicker.date))"
         endDateLabel.textColor = CustomColors.label
-        endDateLabel.layer.borderColor = CustomColors.label.cgColor
+        endDateLabel.layer.borderColor = CustomColors.darkGray.cgColor
         dataChanged.append(.endDate)
     }
     
@@ -376,7 +376,7 @@ extension RecurringViewController: UITextFieldDelegate {
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         if !string.isEmpty {
-            textField.layer.borderColor = CustomColors.label.cgColor
+            textField.layer.borderColor = CustomColors.darkGray.cgColor
         }
         dataChanged.append(.period)
         return true

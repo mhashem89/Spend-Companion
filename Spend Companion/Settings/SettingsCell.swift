@@ -40,7 +40,7 @@ class SettingsCell: UITableViewCell {
                 showPurchaseButton()
             }
             textLabel?.text = "iCloud sync"
-            detailTextLabel?.text = "sets iCloud sync across all devices"
+            detailTextLabel?.text = "set iCloud sync across all devices"
             selectionStyle = .none
         case .biometrics:
             showSettingsToggle()
@@ -52,6 +52,9 @@ class SettingsCell: UITableViewCell {
                     textLabel?.text = "Enable faceID"
                 case .touchID:
                     textLabel?.text = "Enable touchID"
+                case .none:
+                    textLabel?.text = "Enable biometry"
+                    settingsToggle.isEnabled = false
                 default:
                     break
                 }
@@ -69,7 +72,10 @@ class SettingsCell: UITableViewCell {
         case .feedback:
             textLabel?.text = "Rate us"
         case .share:
-            textLabel?.text = "Share Spend Companion"
+            textLabel?.text = "Share with friends"
+        case .export:
+            textLabel?.text = "Export data"
+            detailTextLabel?.text = "convert all data into CSV format"
         case .delete:
             textLabel?.text = "Delete all data"
             textLabel?.textColor = CustomColors.red
@@ -111,6 +117,15 @@ class SettingsCell: UITableViewCell {
         delegate?.purchaseButtonPressed()
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        textLabel?.text = nil
+        detailTextLabel?.text = nil
+        accessoryType = .none
+        textLabel?.textColor = CustomColors.label
+        settingsToggle.removeFromSuperview()
+        purchaseButton.removeFromSuperview()
+    }
     
 }
 

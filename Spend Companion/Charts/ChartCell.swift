@@ -26,7 +26,7 @@ class ChartCell: UICollectionViewCell {
     
     var valueLabel: UILabel = {
         let lbl = UILabel()
-        lbl.textColor = CustomColors.darkGray
+        lbl.textColor = CustomColors.label
         lbl.font = UIFont.systemFont(ofSize: fontScale < 1 ? 13 : 13 * fontScale)
         return lbl
     }()
@@ -34,8 +34,8 @@ class ChartCell: UICollectionViewCell {
     var cellLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
-        label.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
-        label.backgroundColor = CustomColors.systemBackground
+        label.textColor =  CustomColors.label
+//        label.backgroundColor = CustomColors.systemBackground
         label.textAlignment = .right
 //        label.numberOfLines = 0
         label.lineBreakMode = .byTruncatingTail
@@ -52,10 +52,12 @@ class ChartCell: UICollectionViewCell {
     }
     
     func setupUI(withLabelWidth maxWidth: CGFloat) {
-        backgroundColor = CustomColors.systemBackground
+//        backgroundColor = CustomColors.systemBackground
         barView.backgroundColor = UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1)
+        barView.layer.cornerRadius = 10
+        barView.clipsToBounds = true
         cellLabel.frame = .init(x: 0, y: 0, width: maxWidth, height: frame.height)
-        cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
+//        cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? .systemBlue
     }
     
     func formatValueLabel(with amount: Double, withPercentage percentage: Double? = nil) {

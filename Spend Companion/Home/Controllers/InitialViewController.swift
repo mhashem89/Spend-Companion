@@ -36,7 +36,7 @@ class InitialViewController: UIViewController {
     let scrollView = UIScrollView()
     let summaryView = SummaryView()
     var quickAddView = QuickAddView()
-    let summaryLabels = ["Total Income", "Total Spending"]
+    let summaryLabels = ["Income", "Spending"]
     let savedLabel = UILabel.savedLabel() // Shows up when a new transaction is successfully saved
     var dimmingView = UIView().withBackgroundColor(color: UIColor.black.withAlphaComponent(0.5))
     var recentItemsTable: UITableView?
@@ -50,16 +50,19 @@ class InitialViewController: UIViewController {
         viewModel.delegate = self
         UserDefaults.standard.setValue(false, forKey: SettingNames.contextIsActive)
         navigationController?.navigationBar.isHidden = true
-        view.backgroundColor = CustomColors.systemBackground
         
         // Add the main scroll view and the subviews
         view.addSubview(scrollView)
         scrollView.frame = view.bounds
+        scrollView.backgroundColor = CustomColors.lightGray
+        scrollView.delegate = self
+        scrollView.contentSize = view.bounds.size
+        scrollView.showsVerticalScrollIndicator = false
         scrollView.addSubviews([summaryView, quickAddView, savedLabel, emptyItemsLabel])
         
         // Setup the subviews' frames
-        summaryView.frame = .init(x: 0, y: safeAreaTop, width: view.frame.width, height: view.frame.height * 0.3)
-        quickAddView.frame = .init(x: 0, y: summaryView.frame.height + 20, width: view.frame.width, height: 200 * windowHeightScale)
+        summaryView.frame = .init(x: 6 * windowWidthScale, y: 20, width: view.frame.width - (12 * windowWidthScale), height: view.frame.height * 0.3)
+        quickAddView.frame = .init(x: 6 * windowWidthScale, y: 20 + summaryView.frame.height + 15, width: view.frame.width - (12 * windowWidthScale), height: 200 * windowHeightScale)
         savedLabel.frame = .init(x: view.frame.width * 0.25, y: -80, width: view.frame.width * 0.5, height: 40)
         emptyItemsLabel.anchor(top: quickAddView.bottomAnchor, topConstant: view.frame.height * 0.1, centerX: view.centerXAnchor)
         
@@ -156,6 +159,11 @@ class InitialViewController: UIViewController {
         viewModel.calcYearTotals(year: DateFormatters.yearFormatter.string(from: selectedYear))
         scaleFactor = calcScaleFactor()
         summaryView.barChart.reloadData()
+        if #available(iOS 14, *), selectedMonth.monthMatches(Date()) {
+            let monthSummary = MonthSummary(month: DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth), income: viewModel.currentMonthTotalIncome, spending: viewModel.currentMonthTotalSpending)
+            let monthSummaryData = SummaryData(monthSummary: monthSummary)
+            monthSummaryData.storeData()
+        }
     }
     
     /// Updates both the bar chart data and the recent items table, performs a new fetch from the context
@@ -246,7 +254,7 @@ extension InitialViewController: UICollectionViewDelegate, UICollectionViewDataS
             newValue = indexPath.row == 0 ? viewModel.currentYearTotalIncome : viewModel.currentYearTotalSpending
             oldValue = indexPath.row == 0 ? selectedYearScaledData.0 : selectedYearScaledData.1
         }
-        
+        cell.barView.backgroundColor = indexPath.row == 0 ? CustomColors.green : CustomColors.red
         cell.formatValueLabel(with: newValue)
         cell.barView.frame = .init(x: maxWidth + 15, y: (cell.frame.height - 25) / 2, width: oldValue, height: 25)
         cell.valueLabel.frame = .init(origin: CGPoint(x: maxWidth + 20 + oldValue, y: cell.frame.height * 0.35), size: cell.valueLabel.intrinsicContentSize)
@@ -333,7 +341,6 @@ extension InitialViewController: CategoryTitleViewControllerDelegate {
         guard title != "Category" else { return }
         quickAddView.categoryLabel.text = title
         quickAddView.categoryLabel.textColor = CustomColors.label
-        quickAddView.showSaveButton()
     }
 }
 
@@ -344,7 +351,6 @@ extension InitialViewController: ItemNameViewControllerDelegate {
     func saveItemName(name: String) {
         quickAddView.detailLabel.text = name
         quickAddView.detailLabel.textColor = CustomColors.label
-        quickAddView.showSaveButton()
     }
 }
 
@@ -355,12 +361,12 @@ extension InitialViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let label = UILabel()
         label.attributedText = NSAttributedString(string: "   Recent Items", attributes: [.font: UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 18 * fontScale)])
-        label.backgroundColor = CustomColors.lightGray
+        label.backgroundColor = CustomColors.leastdarkGray
         return label
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return 30 * windowHeightScale
+        return 35 * windowHeightScale
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -395,7 +401,7 @@ extension InitialViewController: InitialViewModelDelegate {
         // Check if the month whose items changed is the month displayed in the summary view otherwise do nothing
         if forMonth.date == DateFormatters.abbreviatedMonthYearFormatter.string(from: selectedMonth) && summaryView.segmentedControl.selectedSegmentIndex == 0 {
             
-            // If the view controller is visible the updates the bar chart data, otherwise sets monthChanged to true to keep track of it
+            // If the view controller is visible then updates the bar chart data, otherwise sets monthChanged to true to keep track of it
             if view.window != nil && presentedViewController == nil {
                 reloadBarChartData()
             } else {
