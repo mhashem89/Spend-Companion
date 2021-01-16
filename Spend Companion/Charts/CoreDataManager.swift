@@ -280,7 +280,6 @@ class CoreDataManager {
         let lastMonth = Calendar.current.date(byAdding: .month, value: -1, to: Date())
         let lastMonthString = DateFormatters.abbreviatedMonthYearFormatter.string(from: lastMonth!)
         fetchRequest.predicate = NSPredicate(format: "month.date = %@ OR month.date = %@", currentMonthString, lastMonthString)
-        fetchRequest.fetchLimit = 15
         if let items = try? context.fetch(fetchRequest) {
             let itemNames = items.compactMap({ $0.detail })
             var itemCounts = [String: Int]()
@@ -446,5 +445,20 @@ class CoreDataManager {
         try context.execute(itemDelete)
     }
     
-    
+    func checkIfItemExists(name: String) -> (categoryName: String?, itemType: ItemType)? {
+        let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
+        fetchRequest.predicate = NSPredicate(format: "detail = %@", name)
+        if let results = try? context.fetch(fetchRequest) {
+            var categoryNames = [String]()
+            var itemTypes = [ItemType]()
+            results.forEach { (item) in
+                if let categoryName = item.category?.name, !categoryNames.contains(categoryName) { categoryNames.append(categoryName) }
+                if let type = ItemType(rawValue: item.type), !itemTypes.contains(type) { itemTypes.append(type) }
+            }
+            if !itemTypes.isEmpty {
+                return !categoryNames.isEmpty ? (categoryNames[0], itemTypes[0]) : (nil, itemTypes[0])
+            }
+        }
+        return nil
+    }
 }

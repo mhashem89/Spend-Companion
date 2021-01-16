@@ -8,6 +8,7 @@
 
 import UIKit
 import StoreKit
+import WidgetKit
 
 class InitialViewController: UIViewController {
     
@@ -83,6 +84,9 @@ class InitialViewController: UIViewController {
         if !iCloudKeyStore.bool(forKey: SettingNames.openedBefore) {
             showWelcomeVC()
             iCloudKeyStore.set(true, forKey: SettingNames.openedBefore)
+        }
+        if #available(iOS 14, *) {
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
     
@@ -351,6 +355,11 @@ extension InitialViewController: ItemNameViewControllerDelegate {
     func saveItemName(name: String) {
         quickAddView.detailLabel.text = name
         quickAddView.detailLabel.textColor = CustomColors.label
+        if let resultCheck = CoreDataManager.shared.checkIfItemExists(name: name) {
+            quickAddView.segmentedControl.selectedSegmentIndex = Int(resultCheck.itemType.rawValue)
+            quickAddView.handleSegmentedControl()
+            if let categoryName = resultCheck.categoryName { saveCategoryTitle(title: categoryName) }
+        }
     }
 }
 

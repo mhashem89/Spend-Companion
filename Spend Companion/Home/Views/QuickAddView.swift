@@ -39,7 +39,7 @@ class QuickAddView: UIView {
             if #available(iOS 13, *) {
                 recurringButton.setImage(UIImage(systemName: isRecurring ? "checkmark.square" : "square"), for: .normal)
             } else {
-                recurringButton.setAttributedTitle(NSAttributedString(string: isRecurring ? "☑ Recurring" : "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale), .foregroundColor: UIColor.black]), for: .normal)
+                recurringButton.setAttributedTitle(NSAttributedString(string: isRecurring ? "☑ Recurring" : "▢ Recurring", attributes: [.font: UIFont.systemFont(ofSize: fontScale < 1 ? 13 : 16 * fontScale), .foregroundColor: UIColor.black]), for: .normal)
             }
             switch isRecurring {
             case true:
@@ -272,7 +272,7 @@ class QuickAddView: UIView {
         dayLabel.layer.borderColor = CustomColors.darkGray.cgColor
     }
     /// Handles  when user persses the "income/expense" segmented control. If expense is chosen then it shows the category label, otherwise hides it.
-    @objc private func handleSegmentedControl() {
+    @objc func handleSegmentedControl() {
         segmentedControl.layer.borderColor = UIColor.clear.cgColor
         segmentedControl.isSelected = true
         showSaveButton()

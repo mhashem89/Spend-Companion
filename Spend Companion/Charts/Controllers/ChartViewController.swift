@@ -268,6 +268,8 @@ extension ChartViewController: UICollectionViewDelegate, UICollectionViewDataSou
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: yearBarChartCell, for: indexPath) as! ChartCell
         cell.cellLabel.text = selectedSegment == 1 || selectedSegment == 2 ? months[indexPath.item] : categoryNames[indexPath.row]
+        cell.cellLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? CustomColors.label
+        cell.valueLabel.textColor = UserDefaults.standard.colorForKey(key: SettingNames.labelColor) ?? CustomColors.label
         if let text = cell.cellLabel.text {
             cell.cellLabel.numberOfLines = text.split(separator: " ").count > 1 ? 0 : 1
         }

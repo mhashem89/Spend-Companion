@@ -9,6 +9,10 @@ import WidgetKit
 import SwiftUI
 import Combine
 
+enum BalanceType {
+    case positive, negative
+}
+
 struct Provider: TimelineProvider {
     @AppStorage("monthSummary", store: UserDefaults(suiteName: "group.MohamedHashem.Spend-Companion")) var summaryData: Data = Data()
     
@@ -50,6 +54,20 @@ struct SummaryWidgetEntryView : View {
         return (windowWidth * 0.5) / CGFloat(max(entry.monthSummary.income, entry.monthSummary.spending))
     }
     
+    func calculateBalance() -> (amount: String, balanceType: BalanceType)? {
+        let balance = entry.monthSummary.income - entry.monthSummary.spending
+        if let formattedValue = numberFormatter.string(from: NSNumber(value: balance)) {
+            switch balance < 0 {
+            case true:
+                return ("-\(formattedValue)", .negative)
+            case false:
+                return ("+\(formattedValue)", .positive)
+            }
+        } else {
+            return nil
+        }
+    }
+    
     var numberFormatter: NumberFormatter = {
         let formatter = NumberFormatter()
         formatter.locale = .current
@@ -72,6 +90,10 @@ struct SummaryWidgetEntryView : View {
                             .stroke(lineWidth: 0.8)
                     )
                     .padding(.leading, 5)
+                if let balance = calculateBalance() {
+                    Text("\(balance.amount)")
+                        .foregroundColor(balance.balanceType == .positive ? .green : .red)
+                }
                 Spacer()
                 Image("small_icon")
                     .cornerRadius(5, antialiased: true)
@@ -130,7 +152,7 @@ struct SummaryWidget: Widget {
 
 struct SummaryWidget_Previews: PreviewProvider {
     static var previews: some View {
-        SummaryWidgetEntryView(entry: SimpleEntry(monthSummary: MonthSummary(month: "Jan 2021", income: 2300, spending: 1500)))
+        SummaryWidgetEntryView(entry: SimpleEntry(monthSummary: MonthSummary(month: "Jan 2021", income: 2300, spending: 3500)))
             .previewContext(WidgetPreviewContext(family: .systemMedium))
     }
 }
