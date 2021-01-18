@@ -29,7 +29,7 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         }
     }
     weak var delegate: CategoryTitleViewControllerDelegate?
-    var cellId = "cellId"
+    var cellId = "CategoryTitleCellId"
     
 // MARK:- Subviews
     
@@ -170,6 +170,6 @@ class CategoryTitleViewController: UIViewController, UITableViewDelegate, UITabl
         } else {
             tableRecentNames = recentNames
         }
-        return newString.length < 16
+        return newString.length < 17
     }
 }

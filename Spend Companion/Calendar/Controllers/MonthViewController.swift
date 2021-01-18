@@ -12,7 +12,6 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     
     // MARK:- Properties
     
-    private var cellId = "cellId"
     private var headerId = "HeaderId"
     private var viewModel: MonthViewModel
     private var colors: [UIColor] = [CustomColors.blue, CustomColors.indigo, CustomColors.orange, CustomColors.pink, CustomColors.purple, CustomColors.red, CustomColors.teal, CustomColors.yellow]
@@ -72,7 +71,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         
         // Setup the collection view
         collectionView.backgroundColor = CustomColors.systemBackground
-        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: cellId)
+        collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: CategoryCell.reuseIdentifier)
         collectionView.register(SectionHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerId)
     }
     
@@ -90,32 +89,6 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     }
     
     // MARK:- Collection View Methods
-    
-    /// Gets called when the "Edit" nav bar button is pressed.
-    @objc private func editCollectionView() {
-        collectionView.allowsMultipleSelection = true
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(finishEditingCollectionView))
-        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(deleteSelectedItems))
-        navigationItem.hidesBackButton = true
-        collectionView.reloadData()
-    }
-    /// Gets called when the user either cancels or finishes editing the collection view. Restores the UI and empties the selected categories array.
-    @objc private func finishEditingCollectionView() {
-        collectionView.allowsMultipleSelection = false
-        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editCollectionView))
-        navigationItem.leftBarButtonItem = .none
-        navigationItem.hidesBackButton = false
-        collectionView.reloadData()
-        selectedCategories.removeAll()
-    }
-    
-    @objc private func deleteSelectedItems() {
-        if selectedCategories.count > 0 {
-            selectedCategories.forEach({ viewModel.deleteCategory(category: $0) })
-            viewModel.fetchData()
-        }
-        finishEditingCollectionView()
-    }
     
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return viewModel.fixedCategories.count > 0 ? 2 : 1
@@ -144,8 +117,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellId, for: indexPath) as! CategoryCell
-        cell.addBorderShadow(color: CustomColors.darkGray, opacity: 0.55, size: .init(width: 0.5, height: 0.5))
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryCell.reuseIdentifier, for: indexPath) as! CategoryCell
         var total: String = "0" // The total value for the category
         
         // If there is an "Income" category then there would be 2 sections otherwise there would be 1 section for expenses
@@ -156,11 +128,12 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
         } else {
             cell.nameLabel.text = viewModel.otherExpenses[indexPath.item].name
             total = viewModel.calcCategoryTotal(category: viewModel.otherExpenses[indexPath.item])
-            cell.backgroundColor = colors[indexPath.item]
+            cell.backgroundColor = colors[indexPath.item % 8]
         }
         cell.totalLabel.text = CommonObjects.shared.formattedCurrency(with: Double(total)!) // Format total into currency
         cell.editingEnabled = collectionView.allowsMultipleSelection
         cell.setupSubviews()
+        if selectedCategories.map({ $0.name }).contains(cell.nameLabel.text) { cell.toggleCheckMark() }
         return cell
     }
     
@@ -189,7 +162,7 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
             navVC.modalPresentationStyle = .overCurrentContext
             present(navVC, animated: true)
         case true:
-            let cell = collectionView.cellForItem(at: indexPath) as! CategoryCell
+            guard let cell = collectionView.cellForItem(at: indexPath) as? CategoryCell else { return }
             
             // If the category has already been selected then it deselects the cell, otherwise it gets appended to selected categories
             if let selectedCategoryIndex = selectedCategories.firstIndex(of: selectedCategory!) {
@@ -200,6 +173,32 @@ class MonthViewController: UICollectionViewController, UICollectionViewDelegateF
             collectionView.deselectItem(at: indexPath, animated: true)
             cell.toggleCheckMark()
         }
+    }
+    
+    /// Gets called when the "Edit" nav bar button is pressed.
+    @objc private func editCollectionView() {
+        collectionView.allowsMultipleSelection = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(finishEditingCollectionView))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(deleteSelectedItems))
+        navigationItem.hidesBackButton = true
+        collectionView.reloadData()
+    }
+    /// Gets called when the user either cancels or finishes editing the collection view. Restores the UI and empties the selected categories array.
+    @objc private func finishEditingCollectionView() {
+        collectionView.allowsMultipleSelection = false
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(editCollectionView))
+        navigationItem.leftBarButtonItem = .none
+        navigationItem.hidesBackButton = false
+        collectionView.reloadData()
+        selectedCategories.removeAll()
+    }
+    
+    @objc private func deleteSelectedItems() {
+        if selectedCategories.count > 0 {
+            selectedCategories.forEach({ viewModel.deleteCategory(category: $0) })
+            viewModel.fetchData()
+        }
+        finishEditingCollectionView()
     }
     
     // MARK:- Selectors

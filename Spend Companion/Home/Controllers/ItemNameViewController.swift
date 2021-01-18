@@ -31,7 +31,7 @@ class ItemNameViewController: UIViewController, UITableViewDelegate, UITableView
         }
     }
     
-    private var cellId = "cellId"
+    private var cellId = "itemTableCellId"
     weak var delegate: ItemNameViewControllerDelegate?
     
 // MARK:- Subviews

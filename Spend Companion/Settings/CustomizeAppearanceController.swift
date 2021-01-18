@@ -11,7 +11,7 @@ import SwiftUI
 @available(iOS 14, *)
 class CustomizeAppearanceController: UITableViewController {
     
-    var cellId = "cellId"
+    var cellId = "CustomizeAppearanceCellId"
     
     override func viewDidLoad() {
         super.viewDidLoad()

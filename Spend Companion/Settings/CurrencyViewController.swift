@@ -14,7 +14,7 @@ enum CurrencyPosition: String {
 
 class CurrencyViewController: UITableViewController {
     
-    var cellId = "cellId"
+    var cellId = "CurrencyCellId"
     
     var userCurrency: String {
         get {

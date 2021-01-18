@@ -17,7 +17,7 @@ protocol FilterViewControllerDelegate: class {
 
 class FilterViewController: UITableViewController {
     
-    var cellId = "cellId"
+    var cellId = "FilterTableCellId"
     var rowNames = [String]()
     weak var delegate: FilterViewControllerDelegate?
     var filterActive: Bool = false

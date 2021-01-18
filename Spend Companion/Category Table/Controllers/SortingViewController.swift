@@ -15,7 +15,7 @@ protocol SortingViewControllerDelegate: class {
 
 class SortingViewController: UITableViewController {
     
-    var cellId = "cellId"
+    var cellId = "SettingsTableCellId"
     let names = ["Date ↑", "Date ↓", "Amount ↑", "Amount ↓", "Name ↑", "Name ↓"]
     weak var delegate: SortingViewControllerDelegate?
     

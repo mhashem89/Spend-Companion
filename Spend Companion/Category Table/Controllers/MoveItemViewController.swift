@@ -15,7 +15,7 @@ protocol MoveItemVCDelegate: class {
 
 class MoveItemViewController: UITableViewController {
     
-    var cellId = "cellId"
+    var cellId = "MoveTableCellId"
     
     var selectedCategory: String!
     

@@ -42,6 +42,16 @@ class CategoryCell: UICollectionViewCell {
         super.init(frame: frame)
         layer.cornerRadius = 10
         clipsToBounds = true
+        checkMark.tintColor = .white
+        
+        // Setup the stack view
+        let stack = UIStackView(arrangedSubviews: [nameLabel, totalLabel])
+        stack.axis = .vertical; stack.alignment = .center; stack.spacing = 10
+        
+        nameLabel.anchor(widthConstant: frame.width)
+        
+        addSubview(stack)
+        stack.anchor(centerX: centerXAnchor, centerY: centerYAnchor)
     }
     
     required init?(coder: NSCoder) {
@@ -51,16 +61,6 @@ class CategoryCell: UICollectionViewCell {
     // MARK:- UI Methods
     
     func setupSubviews() {
-        
-        // Setup the stack view
-        let stack = UIStackView(arrangedSubviews: [nameLabel, totalLabel])
-        stack.axis = .vertical; stack.alignment = .center; stack.spacing = 10
-        
-        nameLabel.anchor(widthConstant: frame.width)
-        checkMark.tintColor = .white
-        
-        addSubview(stack)
-        stack.anchor(centerX: centerXAnchor, centerY: centerYAnchor)
         
         // If editing is enabled then show the checkmark otherwise remove it
         if editingEnabled {
