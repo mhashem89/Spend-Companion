@@ -13,8 +13,69 @@ class CoreDataManager {
     
     static let shared = CoreDataManager()
     
+    var iCloudKeyStore = NSUbiquitousKeyValueStore.default
+    
     var context: NSManagedObjectContext {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        return persistentContainer.viewContext
+    }
+    
+    lazy var persistentContainer: NSPersistentContainer = setupPersistentContainer()
+    
+    func setupPersistentContainer() -> NSPersistentContainer {
+        /*
+         The persistent container for the application. This implementation
+         creates and returns a container, having loaded the store for the
+         application to it. This property is optional since there are legitimate
+         error conditions that could cause the creation of the store to fail.
+        */
+        var container: NSPersistentContainer!
+        
+        if #available(iOS 13, *) {
+            container = NSPersistentCloudKitContainer(name: "Spend_Companion")
+            guard let description = container.persistentStoreDescriptions.first else {
+                fatalError("###\(#function): Failed to retrieve a persistent store description.")
+            }
+            
+            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            if !iCloudKeyStore.bool(forKey: SettingNames.iCloudSync) {
+                description.cloudKitContainerOptions = nil
+            }
+            
+        } else {
+            container = NSPersistentContainer(name: "Spend_Companion")
+        }
+        
+        container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                // Replace this implementation with code to handle the error appropriately.
+                // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+                 
+                /*
+                 Typical reasons for an error here include:
+                 * The parent directory does not exist, cannot be created, or disallows writing.
+                 * The persistent store is not accessible, due to permissions or data protection when the device is locked.
+                 * The device is out of space.
+                 * The store could not be migrated to the current model version.
+                 Check the error message to determine what the actual problem was.
+                 */
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        return container
+    }
+
+    func saveContext () throws {
+        let context = persistentContainer.viewContext
+        if context.hasChanges {
+            do {
+                try context.save()
+            } catch {
+                throw SaveError.saveError
+            }
+        }
     }
     
     /// Create a new Item entitiy from an item struct and saves it. Does the same if the item has future similar items.
@@ -316,12 +377,7 @@ class CoreDataManager {
             try saveContext()
         }
     }
-    /// Asks context to save changes if there are any
-    func saveContext() throws {
-        if context.hasChanges {
-            try (UIApplication.shared.delegate as? AppDelegate)?.saveContext()
-        }
-    }
+
     /// Returns an array of all the unique category names
     func fetchUniqueCategoryNames(for year: String?) -> [String] {
         var names = [String]()
@@ -461,4 +517,19 @@ class CoreDataManager {
         }
         return nil
     }
+    
+    public func clearDatabase() {
+        guard let url = persistentContainer.persistentStoreDescriptions.first?.url else { return }
+        
+        let persistentStoreCoordinator = persistentContainer.persistentStoreCoordinator
+        
+        do {
+            try persistentStoreCoordinator.destroyPersistentStore(at:url, ofType: NSSQLiteStoreType, options: nil)
+            try persistentStoreCoordinator.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
+        } catch let error {
+            print("Attempted to clear persistent store: " + error.localizedDescription)
+        }
+    }
+    
+    
 }

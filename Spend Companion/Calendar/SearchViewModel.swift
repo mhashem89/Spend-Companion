@@ -13,7 +13,7 @@ import CoreData
 class SearchViewModel {
     
     var context: NSManagedObjectContext {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        return CoreDataManager.shared.context
     }
     
     var searchResults = [Item]()

@@ -59,6 +59,14 @@ class SettingsCell: UITableViewCell {
                     break
                 }
             }
+        case .reminder:
+            textLabel?.text = "Daily reminder"
+            showSettingsToggle()
+            if let reminderTime = UserDefaults.standard.value(forKey: SettingNames.dailyReminderTime) as? String {
+                detailTextLabel?.text = reminderTime
+                settingsToggle.isOn = true
+            }
+            selectionStyle = .none
         case .currency:
             textLabel?.text = "Select currency"
             accessoryType = .disclosureIndicator

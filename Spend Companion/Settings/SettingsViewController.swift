@@ -35,9 +35,30 @@ class SettingsViewController: UITableViewController {
     
     let reminderPurchaseProductId = PurchaseIds.reminders.description
     let remindersPurchased = SettingNames.remindersPurchased
+    var timePicker: UIDatePicker = {
+        let picker = UIDatePicker()
+        picker.datePickerMode = .time
+        if #available(iOS 13.4, *) {
+            picker.preferredDatePickerStyle = .wheels
+        }
+        return picker
+    }()
+    
+    lazy var timeTextField: UITextField = {
+        let textField = UITextField()
+        let toolBar = UIToolbar()
+        toolBar.sizeToFit()
+        let doneButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(toolBarDone))
+        let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(toolBarCancel))
+        let spacer = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
+        toolBar.setItems([cancelButton, spacer, doneButton], animated: false)
+        textField.inputView = timePicker
+        textField.inputAccessoryView = toolBar
+        return textField
+    }()
     
     var settings: [Setting] {
-        var settingsList: [Setting] = [.iCloudSync, .biometrics, .currency, .support, .feedback, .share, .export, .delete]
+        var settingsList: [Setting] = [.iCloudSync, .biometrics, .reminder, .currency, .support, .feedback, .share, .export, .delete]
         if #available(iOS 14, *) {
             settingsList.insert(.appearance, at: 3)
         }
@@ -51,6 +72,7 @@ class SettingsViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.addSubview(timeTextField)
         tableView.register(SettingsCell.self, forCellReuseIdentifier: SettingsCell.reuseIdentifier)
         navigationController?.navigationBar.prefersLargeTitles = true
         title = "Settings"
@@ -180,13 +202,43 @@ class SettingsViewController: UITableViewController {
     
     func toggleiCloudSync(sync: Bool) {
         iCloudKeyStore.set(sync, forKey: SettingNames.iCloudSync)
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        appDelegate.persistentContainer = appDelegate.setupPersistentContainer()
+        CoreDataManager.shared.persistentContainer = CoreDataManager.shared.setupPersistentContainer()
         InitialViewController.shared.updateData()
     }
     
     @objc func restorePurchases() {
         SKPaymentQueue.default().restoreCompletedTransactions()
+    }
+    
+    @objc func toolBarDone() {
+        let dateComponents = Calendar.current.dateComponents([.hour, .minute], from: timePicker.date)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let content = UNMutableNotificationContent()
+        content.body = "Daily Reminder"
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: SettingNames.dailyReminderID, content: content, trigger: trigger)
+        let cell = tableView.cellForRow(at: IndexPath(row: 2, section: 0)) as? SettingsCell
+        UNUserNotificationCenter.current().add(request) { (error) in
+            if let _ = error {
+                DispatchQueue.main.async {
+                    cell?.settingsToggle.setOn(false, animated: true)
+                    self.timeTextField.resignFirstResponder()
+                }
+            }
+            DispatchQueue.main.async { [weak self] in
+                if let pickerTime = self?.timePicker.date {
+                    let timeString = DateFormatters.hourFormatter.string(from: pickerTime)
+                    cell?.detailTextLabel?.text = timeString
+                    UserDefaults.standard.setValue(timeString, forKey: SettingNames.dailyReminderTime)
+                }
+            }
+        }
+        timeTextField.resignFirstResponder()
+    }
+    
+    @objc func toolBarCancel() {
+        timeTextField.resignFirstResponder()
+        (tableView.cellForRow(at: IndexPath(row: 2, section: 0)) as? SettingsCell)?.settingsToggle.setOn(false, animated: true)
     }
 }
 
@@ -232,6 +284,20 @@ extension SettingsViewController: SettingsCellDelegate {
                     self.present(ac, animated: true)
                 }
             }
+        case (2, true):
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { (success, error) in
+                if let error = error {
+                    print(error.localizedDescription)
+                    cell.settingsToggle.setOn(false, animated: true)
+                    return
+                }
+            }
+            timeTextField.becomeFirstResponder()
+        case (2, false):
+            UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [SettingNames.dailyReminderID])
+            cell.settingsToggle.setOn(false, animated: true)
+            cell.detailTextLabel?.text = nil
+            UserDefaults.standard.setValue(nil, forKey: SettingNames.dailyReminderTime)
         default:
             break
         }
@@ -284,5 +350,5 @@ extension SettingsViewController: MFMailComposeViewControllerDelegate {
 // MARK:- Settings
 
 enum Setting {
-    case iCloudSync, biometrics, currency, appearance, support, feedback, share, export, delete
+    case iCloudSync, biometrics, currency, appearance, support, feedback, share, export, delete, reminder
 }

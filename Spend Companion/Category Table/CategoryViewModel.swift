@@ -13,7 +13,7 @@ import CoreData
 class CategoryViewModel {
     
     var context: NSManagedObjectContext {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        return CoreDataManager.shared.context
     }
     
     var category: Category? {

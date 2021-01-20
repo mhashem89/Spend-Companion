@@ -360,6 +360,9 @@ extension InitialViewController: ItemNameViewControllerDelegate {
             quickAddView.handleSegmentedControl()
             if let categoryName = resultCheck.categoryName { saveCategoryTitle(title: categoryName) }
         }
+        if let text = quickAddView.amountTextField.text, text.isEmpty {
+            quickAddView.amountTextField.becomeFirstResponder()
+        }
     }
 }
 

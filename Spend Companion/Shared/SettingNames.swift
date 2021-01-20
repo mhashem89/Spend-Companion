@@ -25,6 +25,8 @@ struct SettingNames {
     static let currentMonthSpending = "currentMonthSpending"
     static let currentMonthIncome = "currentMonthIncome"
     static let scaleFactor = "scaleFactor"
+    static let dailyReminderID = "dailyReminderID"
+    static let dailyReminderTime = "dailyReminderTime"
 }
 
 

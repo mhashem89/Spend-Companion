@@ -173,7 +173,7 @@ extension UIImageView {
 
 extension UITextField {
     
-    static func setupTextField(placeholderText: String, isSecureEntry: Bool = false) -> UITextField {
+    static func setupTextField(placeholderText: String, isSecureEntry: Bool = false, withPaddingSize size: CGFloat) -> UITextField {
         let tf = UITextField()
         tf.attributedPlaceholder = NSAttributedString(string: placeholderText, attributes: [.foregroundColor : UIColor.lightGray, .font: UIFont.systemFont(ofSize: 16)])
         tf.font = UIFont.systemFont(ofSize: 16)
@@ -185,32 +185,32 @@ extension UITextField {
         tf.autocorrectionType = .no
         tf.isSecureTextEntry = isSecureEntry
         tf.textColor = .black
-        tf.addLeftPadding(padding: 10)
+        tf.addLeftPadding(padding: 10, withFontSize: size)
         return tf
     }
     
-    func addLeftPadding(padding: CGFloat? = nil, withSymbol symbol: String? = nil) {
+    func addLeftPadding(padding: CGFloat? = nil, withSymbol symbol: String? = nil, withFontSize size: CGFloat) {
         let leftView = UIView(frame: CGRect(x: 0, y: 0, width: padding ?? 10, height: self.frame.height))
         if let symbol = symbol {
             let symbolLabel = UILabel()
             symbolLabel.text = symbol
             symbolLabel.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
             leftView.addSubview(symbolLabel)
-            leftView.frame.size.width = UILabel.calcSize(for: symbol, withFont: fontScale < 1 ? 14 : 16 * fontScale).width + 2
+            leftView.frame.size.width = UILabel.calcSize(for: symbol, withFont: size).width + 2
             symbolLabel.fillSuperView()
         }
         self.leftView = leftView
         self.leftViewMode = .always
     }
     
-    func addRightPadding(padding: CGFloat? = nil, withSymbol symbol: String? = nil) {
+    func addRightPadding(padding: CGFloat? = nil, withSymbol symbol: String? = nil, withFontSize size: CGFloat) {
         let rightView = UIView(frame: CGRect(x: 0, y: 0, width: padding ?? 10, height: self.frame.height))
         if let symbol = symbol {
             let symbolLabel = UILabel()
             symbolLabel.text = " \(symbol)"
             symbolLabel.font = UIFont.boldSystemFont(ofSize: fontScale < 1 ? 14 : 16 * fontScale)
             rightView.addSubview(symbolLabel)
-            rightView.frame.size.width = UILabel.calcSize(for: symbol, withFont: fontScale < 1 ? 14 : 16 * fontScale).width
+            rightView.frame.size.width = UILabel.calcSize(for: symbol, withFont: size).width
             symbolLabel.fillSuperView()
         }
         self.rightView = rightView

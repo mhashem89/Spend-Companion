@@ -30,8 +30,8 @@ class CommonObjects {
     
     var currencySymbol: (symbol: String?, position: CurrencyPosition) {
         if let storedCurrency = userCurrency {
-            if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
-                return (CurrencyViewController.extractSymbol(from: storedCurrency), currencyPosition)
+            if let currencyPosition = Currencies.currenciesDict[storedCurrency] {
+                return (Currencies.extractSymbol(from: storedCurrency), currencyPosition)
             } else if userCurrency == "Local currency" {
                 return (Locale.current.currencySymbol, .left)
             } else if userCurrency == "None" {
@@ -46,7 +46,7 @@ class CommonObjects {
         if let storedCurrency = userCurrency {
             if storedCurrency == "Local currency" {
                 return numberFormatter.string(from: NSNumber(value: amount)) ?? amountString
-            } else if let currencyPosition = CurrencyViewController.currenciesDict[storedCurrency] {
+            } else if let currencyPosition = Currencies.currenciesDict[storedCurrency] {
                 return currencyPosition == .left ? "\(currencySymbol.symbol ?? "")\(amountString)" : "\(amountString) \(currencySymbol.symbol ?? "")"
             }
         }
@@ -55,6 +55,22 @@ class CommonObjects {
     
 }
 
+struct Currencies {
+    
+    static let currenciesDict : [String: CurrencyPosition] = ["USD ($)": .left, "EUR (€)": .left, "JPY (¥)": .left, "GBP (£)": .left, "AUD ($)": .left, "CAD ($)": .left, "CHF (fr.)": .left, "CNY (¥)": .left, "HKD ($)": .left, "NZD ($)": .left, "SEK (kr)": .left, "KRW (₩)": .left, "SGD ($)": .left, "NOK (kr)": .left, "MXN ($)": .left, "INR (₹)": .left, "RUB (₽)": .right, "ZAR (R)": .left, "TRY (₺)": .right, "BRL (R$)": .left, "TWD ($)": .left, "DKK (kr)": .left, "PLN (zł)": .right, "THB (฿)": .right, "IDR (Rp)": .left, "HUF (Ft)": .right, "CZK (Kč)": .right, "ILS (₪)": .left, "CLP ($)": .left, "PHP (₱)": .left, "AED (د.إ)": .right, "COP ($)": .left, "SAR (﷼)": .right, "MYR (RM)": .left, "RON (L)": .left]
+    
+    
+    static func extractSymbol(from currency: String) -> String? {
+        if currency == "Local currency" {
+            return Locale.current.currencySymbol
+        } else if currency == "None" {
+            return nil
+        } else {
+            let symbol = currency.split(separator: "(").last?.split(separator: ")").first
+            return String(symbol!)
+        }
+    }
+}
 
 enum SortingOption {
     case date, amount, name
@@ -103,9 +119,7 @@ struct ItemStruct {
         guard let itemDate = item.date else { return nil }
         return ItemStruct(amount: item.amount, type: ItemType(rawValue: item.type)!, date: itemDate, detail: item.detail, itemRecurrence: ItemRecurrence.createItemRecurrence(from: item), categoryName: item.category?.name, sisterItems: item.sisterItems?.allObjects as? [Item])
     }
-    
 }
-
 
 enum RecurringUnit: Int, CustomStringConvertible {
     case day = 0
@@ -205,4 +219,17 @@ class DateFormatters {
         formatter.dateFormat = "MMM"
         return formatter
     }()
+    
+    static let hourFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.dateFormat = "h:mm a"
+        return formatter
+    }()
+}
+
+
+
+enum SaveError: Error {
+    case saveError
 }

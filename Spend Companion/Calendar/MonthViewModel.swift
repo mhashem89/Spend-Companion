@@ -16,7 +16,7 @@ protocol MonthViewModelDelegate: class {
 class MonthViewModel: NSObject, NSFetchedResultsControllerDelegate {
    
     var context: NSManagedObjectContext {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        return CoreDataManager.shared.context
     }
     
     var month: Month!

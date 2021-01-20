@@ -15,7 +15,6 @@
 		7DF3717725AC95D900A80ABF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7DF3717625AC95D900A80ABF /* Assets.xcassets */; };
 		7DF3717B25AC95D900A80ABF /* SummaryWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 7DF3716E25AC95D700A80ABF /* SummaryWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7DFF0E3B25AE4FFF004B9211 /* SettingNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFF0E3A25AE4FFF004B9211 /* SettingNames.swift */; };
-		7DFF0E3C25AE4FFF004B9211 /* SettingNames.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFF0E3A25AE4FFF004B9211 /* SettingNames.swift */; };
 		7DFF0E6325AEA4A8004B9211 /* SummaryData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFF0E6225AEA4A8004B9211 /* SummaryData.swift */; };
 		7DFF0E6E25AEAAF3004B9211 /* MonthSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFF0E6D25AEAAF3004B9211 /* MonthSummary.swift */; };
 		7DFF0E6F25AEAAF3004B9211 /* MonthSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFF0E6D25AEAAF3004B9211 /* MonthSummary.swift */; };
@@ -363,7 +362,7 @@
 				7D251F2F2564C3D500DD9F4B /* Category Table */,
 				D905F57B253D574200FE4B59 /* Charts */,
 				D905F57D253D576600FE4B59 /* Settings */,
-				D905F5BB253D5B7700FE4B59 /* Extensions */,
+				D905F5BB253D5B7700FE4B59 /* Shared */,
 				D905F539253D543F00FE4B59 /* AppDelegate.swift */,
 				D905F53B253D543F00FE4B59 /* SceneDelegate.swift */,
 				D905F545253D544300FE4B59 /* Assets.xcassets */,
@@ -408,9 +407,6 @@
 			children = (
 				7D251F602564C69E00DD9F4B /* Controllers */,
 				D905F594253D582000FE4B59 /* ChartCell.swift */,
-				D96FBD16254090EF0025F5CF /* DataObjects.swift */,
-				7DFF0E3A25AE4FFF004B9211 /* SettingNames.swift */,
-				D9CA5549255711EA001C8561 /* CoreDataManager.swift */,
 			);
 			path = Charts;
 			sourceTree = "<group>";
@@ -427,14 +423,17 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		D905F5BB253D5B7700FE4B59 /* Extensions */ = {
+		D905F5BB253D5B7700FE4B59 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				D96FBD16254090EF0025F5CF /* DataObjects.swift */,
+				7DFF0E3A25AE4FFF004B9211 /* SettingNames.swift */,
+				D9CA5549255711EA001C8561 /* CoreDataManager.swift */,
 				D905F5BC253D5B9A00FE4B59 /* Extensions.swift */,
 				D96FBD27254125940025F5CF /* CustomColors.swift */,
 				D96FBD2F2543B38A0025F5CF /* Authenticator.swift */,
 			);
-			path = Extensions;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -599,7 +598,6 @@
 			files = (
 				7DFF0E6F25AEAAF3004B9211 /* MonthSummary.swift in Sources */,
 				7DF3717525AC95D800A80ABF /* SummaryWidget.swift in Sources */,
-				7DFF0E3C25AE4FFF004B9211 /* SettingNames.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

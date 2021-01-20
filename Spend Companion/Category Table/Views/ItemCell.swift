@@ -86,9 +86,9 @@ class ItemCell: UITableViewCell {
         tf.placeholder = "...     "
         let currencySymbol = CommonObjects.shared.currencySymbol
         if currencySymbol.position == .left {
-            tf.addLeftPadding(withSymbol: currencySymbol.symbol)
+            tf.addLeftPadding(withSymbol: currencySymbol.symbol, withFontSize: fontScale < 1 ? 14 : 16 * fontScale)
         } else {
-            tf.addRightPadding(withSymbol: currencySymbol.symbol)
+            tf.addRightPadding(withSymbol: currencySymbol.symbol, withFontSize: fontScale < 1 ? 14 : 16 * fontScale)
         }
         tf.keyboardType = .decimalPad
         tf.inputAccessoryView = setupAmountToolbar()

@@ -25,8 +25,6 @@ class CurrencyViewController: UITableViewController {
         }
     }
     
-    static let currenciesDict : [String: CurrencyPosition] = ["USD ($)": .left, "EUR (€)": .left, "JPY (¥)": .left, "GBP (£)": .left, "AUD ($)": .left, "CAD ($)": .left, "CHF (fr.)": .left, "CNY (¥)": .left, "HKD ($)": .left, "NZD ($)": .left, "SEK (kr)": .left, "KRW (₩)": .left, "SGD ($)": .left, "NOK (kr)": .left, "MXN ($)": .left, "INR (₹)": .left, "RUB (₽)": .right, "ZAR (R)": .left, "TRY (₺)": .right, "BRL (R$)": .left, "TWD ($)": .left, "DKK (kr)": .left, "PLN (zł)": .right, "THB (฿)": .right, "IDR (Rp)": .left, "HUF (Ft)": .right, "CZK (Kč)": .right, "ILS (₪)": .left, "CLP ($)": .left, "PHP (₱)": .left, "AED (د.إ)": .right, "COP ($)": .left, "SAR (﷼)": .right, "MYR (RM)": .left, "RON (L)": .left]
-    
     
     var currencies: [String] = ["USD ($)", "EUR (€)", "JPY (¥)", "GBP (£)", "AUD ($)", "CAD ($)", "CHF (fr.)", "CNY (¥)", "HKD ($)", "NZD ($)", "SEK (kr)", "KRW (₩)", "SGD ($)", "NOK (kr)", "MXN ($)", "INR (₹)", "RUB (₽)", "ZAR (R)", "TRY (₺)", "BRL (R$)", "TWD ($)", "DKK (kr)", "PLN (zł)", "THB (฿)", "IDR (Rp)", "HUF (Ft)", "CZK (Kč)", "ILS (₪)", "CLP ($)", "PHP (₱)", "AED (د.إ)", "COP ($)", "SAR (﷼)", "MYR (RM)", "RON (L)"]
     
@@ -37,18 +35,6 @@ class CurrencyViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellId)
         title = "Currency"
        
-    }
-    
-    
-    static func extractSymbol(from currency: String) -> String? {
-        if currency == "Local currency" {
-            return Locale.current.currencySymbol
-        } else if currency == "None" {
-            return nil
-        } else {
-            let symbol = currency.split(separator: "(").last?.split(separator: ")").first
-            return String(symbol!)
-        }
     }
     
     override func numberOfSections(in tableView: UITableView) -> Int {

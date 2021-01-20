@@ -24,7 +24,7 @@ class InitialViewModel: NSObject {
 // MARK:- Properties
     
     private var context: NSManagedObjectContext {
-        return (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        return CoreDataManager.shared.context
     }
     weak var delegate: InitialViewModelDelegate?
     private(set) var recentItems = [Item]()  // Displayed by the recent items table
@@ -136,10 +136,15 @@ class InitialViewModel: NSObject {
     
     /// Syncs reminders after loading the app in case they were changed by another iCloud device. All the future notifications are reset after performing a fetch request.
     private func syncReminders() {
-        guard NSUbiquitousKeyValueStore.default.bool(forKey: SettingNames.iCloudSync) else { return }
+        guard NSUbiquitousKeyValueStore.default.bool(forKey: SettingNames.iCloudSync),
+              NSUbiquitousKeyValueStore.default.bool(forKey: SettingNames.remindersPurchased)
+              else { return }
         do {
             try remindersFetchedResultsController.performFetch()
             UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+            if let timeString = UserDefaults.standard.value(forKey: SettingNames.dailyReminderTime) as? String, let reminderTime = DateFormatters.hourFormatter.date(from: timeString) {
+                scheduleDailyReminder(at: reminderTime)
+            }
             if let fetchedItems = remindersFetchedResultsController.fetchedObjects {
                 for item in fetchedItems {
                     if let itemRecurrence = ItemRecurrence.createItemRecurrence(from: item) {
@@ -149,6 +154,20 @@ class InitialViewModel: NSObject {
             }
         } catch let err {
             delegate?.presentError(error: err)
+        }
+    }
+    
+    func scheduleDailyReminder(at date: Date) {
+        let dateComponents = Calendar.current.dateComponents([.hour, .minute], from: date)
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let content = UNMutableNotificationContent()
+        content.body = "Daily Reminder"
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: SettingNames.dailyReminderID, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { (error) in
+            if let error = error {
+                print(error.localizedDescription)
+            }
         }
     }
 }

@@ -62,7 +62,7 @@ class RecurringViewController: UIViewController {
         tf.layer.cornerRadius = 5
         tf.layer.borderColor = CustomColors.darkGray.cgColor
         tf.layer.borderWidth = 1
-        tf.addLeftPadding(padding: 10)
+        tf.addLeftPadding(padding: 10, withFontSize: fontScale < 1 ? 14 : 16 * fontScale)
         tf.font = UIFont.systemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
         tf.inputAccessoryView = setupToolbar()
         return tf
@@ -144,7 +144,6 @@ class RecurringViewController: UIViewController {
         dayPicker.addTarget(self, action: #selector(datePicked), for: .valueChanged)
         tf.inputView = dayPicker
         tf.inputAccessoryView = toolBar
-        
         return tf
     }()
     

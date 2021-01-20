@@ -20,6 +20,7 @@ class CustomizeAppearanceController: UITableViewController {
         tableView.tableFooterView = UIView()
         tableView.register(SettingsCell.self, forCellReuseIdentifier: cellId)
         tableView.allowsSelection = false
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Reset", style: .plain, target: self, action: #selector(reset))
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
@@ -49,6 +50,14 @@ class CustomizeAppearanceController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 50
+    }
+    
+    
+    @objc func reset() {
+        UserDefaults.standard.setColor(color: #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1), forKey: SettingNames.barColor)
+        UserDefaults.standard.setColor(color: .systemBlue, forKey: SettingNames.labelColor)
+        UserDefaults.standard.setColor(color: .systemBlue, forKey: SettingNames.buttonColor)
+        tableView.reloadData()
     }
     
 }
