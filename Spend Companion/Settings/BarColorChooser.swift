@@ -11,7 +11,7 @@ import SwiftUI
 
 struct BarColorChooser: View {
     
-    @State private var bgColor = Color(UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1))
+    @State private var bgColor = Color(UserDefaults.standard.colorForKey(key: SettingNames.barColor) ?? .link)
     
     var body: some View {
         

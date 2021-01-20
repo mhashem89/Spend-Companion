@@ -54,7 +54,7 @@ class CustomizeAppearanceController: UITableViewController {
     
     
     @objc func reset() {
-        UserDefaults.standard.setColor(color: #colorLiteral(red: 0.7254902124, green: 0.4784313738, blue: 0.09803921729, alpha: 1), forKey: SettingNames.barColor)
+        UserDefaults.standard.setColor(color: .link, forKey: SettingNames.barColor)
         UserDefaults.standard.setColor(color: .systemBlue, forKey: SettingNames.labelColor)
         UserDefaults.standard.setColor(color: .systemBlue, forKey: SettingNames.buttonColor)
         tableView.reloadData()
