@@ -252,9 +252,9 @@ extension SettingsViewController: SettingsCellDelegate {
     }
 
     func settingsTogglePressed(toggleIsON: Bool, in cell: SettingsCell) {
-        guard let indexPath = tableView.indexPath(for: cell) else { return }
-        switch (indexPath.row, toggleIsON) {
-        case (0, true):
+        guard let setting = cell.setting else { return }
+        switch (setting, toggleIsON) {
+        case (.iCloudSync, true):
             CKContainer.default().accountStatus { [self] (status, error) in
                 DispatchQueue.main.async {
                     if status == .available {
@@ -268,11 +268,11 @@ extension SettingsViewController: SettingsCellDelegate {
                     }
                 }
             }
-        case (0, false):
+        case (.iCloudSync, false):
             toggleiCloudSync(sync: toggleIsON)
-        case (1, true):
+        case (.biometrics, true):
             UserDefaults.standard.setValue(true, forKey: SettingNames.enableBiometrics)
-        case (1, false):
+        case (.biometrics, false):
             Authenticator.authenticate { (success, error) in
                 if success {
                     UserDefaults.standard.setValue(false, forKey: SettingNames.enableBiometrics)
@@ -284,7 +284,7 @@ extension SettingsViewController: SettingsCellDelegate {
                     self.present(ac, animated: true)
                 }
             }
-        case (2, true):
+        case (.reminder, true):
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { (success, error) in
                 if let error = error {
                     print(error.localizedDescription)
@@ -293,7 +293,7 @@ extension SettingsViewController: SettingsCellDelegate {
                 }
             }
             timeTextField.becomeFirstResponder()
-        case (2, false):
+        case (.reminder, false):
             UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [SettingNames.dailyReminderID])
             cell.settingsToggle.setOn(false, animated: true)
             cell.detailTextLabel?.text = nil

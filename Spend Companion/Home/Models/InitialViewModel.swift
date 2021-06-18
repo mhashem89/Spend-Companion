@@ -106,14 +106,12 @@ class InitialViewModel: NSObject {
             currentMonthTotalSpending = monthTotals[.spending] ?? 0
         }
     }
-    /// Fetch request for the recent transactions in the last 7 days
+    /// Fetch request for the most recent 15 transactions
     func fetchRecentItems() {
-        guard let weekAgo: Date = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()),
-              let dayAfter: Date = Calendar.current.date(byAdding: .day, value: 1, to: Date().zeroHour())
-        else { return }
+        guard let dayAfter: Date = Calendar.current.date(byAdding: .day, value: 1, to: Date().zeroHour()) else { return }
         do {
             let fetchRequest = NSFetchRequest<Item>(entityName: "Item")
-            fetchRequest.predicate = NSPredicate(format: "date > %@ AND date < %@", weekAgo as CVarArg, dayAfter as CVarArg)
+            fetchRequest.predicate = NSPredicate(format: "date < %@", dayAfter as CVarArg)
             fetchRequest.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
             fetchRequest.fetchLimit = 15
             recentItemsFetchedResultControl = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)

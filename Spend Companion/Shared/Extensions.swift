@@ -293,7 +293,7 @@ extension UILabel {
     
     static func emptyItemsLabel() -> UILabel {
         let lbl = UILabel()
-        lbl.text = "Items from last 7 days will appear here"
+        lbl.text = "Most recent transactions will appear here"
         lbl.textColor = CustomColors.darkGray
         lbl.font = UIFont.italicSystemFont(ofSize: fontScale < 1 ? 16 : 16 * fontScale)
         return lbl
